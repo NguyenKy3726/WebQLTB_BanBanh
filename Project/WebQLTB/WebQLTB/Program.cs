@@ -1,37 +1,45 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using WebQLTB.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Đăng ký MVC và cơ sở dữ liệu
 builder.Services.AddControllersWithViews();
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DbQLTBConnection")));
-// Add Session
-builder.Services.AddDistributedMemoryCache(); // session lưu in-memory (dev)
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DbQLTBConnection")));
+
+// Session
+builder.Services.AddDistributedMemoryCache();
+
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromHours(8); // timeout session
+    options.IdleTimeout = TimeSpan.FromHours(8);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+
+    // HTTP cho demo Development; HTTPS ở môi trường khác
+    options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+        ? CookieSecurePolicy.SameAsRequest
+        : CookieSecurePolicy.Always;
 });
+
 var app = builder.Build();
-// Configure the HTTP request pipeline.
+
+// Cấu hình HTTPS cho môi trường không phải Development
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
-
-// KẾT: bật session trước khi MapControllerRoute và trước khi xử lý Authorization nếu có
 app.UseRouting();
-app.UseSession();
 
+app.UseSession();
 app.UseAuthorization();
 
 app.MapStaticAssets();
@@ -40,6 +48,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
 
 app.Run();
