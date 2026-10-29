@@ -4,11 +4,8 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>Danh sách đơn hàng</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
 <table class="table">
     <thead>
         <tr>
@@ -31,7 +28,7 @@
                 Thời điểm xác nhận
             </th>
             <th>
-                Thời điển hoàn tất
+                Thời điểm hoàn tất
             </th>
             <th>
                 Ngày giao hàng dự kiến
@@ -83,7 +80,7 @@
                     : "Chưa phân công")
             </td>
             <td>
-                @item.MaNVHoanTat - @(item.MaNVXacNhan.HasValue
+                @item.MaNVXacNhan - @(item.MaNVXacNhan.HasValue
                     ? ViewBag.TenNV[item.MaNVXacNhan.Value]
                     : "Chưa xác nhận")
             </td>
@@ -135,9 +132,7 @@
                 @Html.DisplayFor(model => item.GhiChu)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-madonhang="@item.MaDonHang">Edit</a> |
-                <a asp-action="Details" asp-route-madonhang="@item.MaDonHang">Details</a> |
-                <a asp-action="Delete" asp-route-madonhang="@item.MaDonHang">Delete</a>
+                <a asp-action="Details" asp-route-madonhang="@item.MaDonHang">Xem và xử lý</a>
             </td>
         </tr>
 }

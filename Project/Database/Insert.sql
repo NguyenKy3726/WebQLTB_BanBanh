@@ -1,5 +1,5 @@
 ﻿/* =============================================================================
-   SEED DỮ LIỆU MẪU CHO DbQLTB (11 bảng)
+   SEED DỮ LIỆU MẪU CHO DbQLTB (12 bảng)
    -----------------------------------------------------------------------------
    Phạm vi : chỉ INSERT dữ liệu mẫu và chạy truy vấn kiểm tra.
              Không CREATE lại bảng, không DROP/TRUNCATE/DELETE, không tắt FK/CHECK,
@@ -58,7 +58,7 @@ BEGIN TRY
     BEGIN TRANSACTION;
 
     /* =========================================================================
-       0. KIỂM TRA ĐIỀU KIỆN TIÊN QUYẾT: 11 BẢNG ĐÍCH PHẢI TRỐNG
+       0. KIỂM TRA ĐIỀU KIỆN TIÊN QUYẾT: 12 BẢNG ĐÍCH PHẢI TRỐNG
        Lý do: bộ seed là ảnh chụp trạng thái hoàn chỉnh cho database trống. Trộn với
        dữ liệu có sẵn sẽ làm sai các số liệu đối chiếu (tiền và số bánh giữ).
        Script không tự xóa dữ liệu; chỉ dừng và báo bảng nào đang có dữ liệu.
@@ -77,6 +77,7 @@ BEGIN TRY
         UNION ALL SELECT N'DonHang',            (SELECT COUNT(*) FROM dbo.DonHang)
         UNION ALL SELECT N'ChiTietDonHang',     (SELECT COUNT(*) FROM dbo.ChiTietDonHang)
         UNION ALL SELECT N'ThanhToan',          (SELECT COUNT(*) FROM dbo.ThanhToan)
+        UNION ALL SELECT N'LichSuTrangThaiDonHang', (SELECT COUNT(*) FROM dbo.LichSuTrangThaiDonHang)
     ) AS t
     WHERE t.SoDong > 0;
 
@@ -87,11 +88,11 @@ BEGIN TRY
     /* =========================================================================
        THỨ TỰ CHÈN (bắt buộc, theo phụ thuộc FK):
        NhanVien, Quyen, LoaiBanh, KhachHang, PhanQuyen, SanPham, HinhAnhBanh,
-       BienTheBanh, DonHang, ChiTietDonHang, ThanhToan.
+       BienTheBanh, DonHang, ChiTietDonHang, ThanhToan, LichSuTrangThaiDonHang.
        ========================================================================= */
 
     /* -------------------------------------------------------------------------
-       BẢNG 1/11: dbo.NhanVien
+       BẢNG 1/12: dbo.NhanVien
        Dùng làm gì: tài khoản nhân viên của tiệm (đăng nhập, người tạo bánh, người
          xử lý/xác nhận/hoàn tất đơn và người xác nhận thanh toán).
        FK cần có trước: không (bảng độc lập).
@@ -107,7 +108,7 @@ BEGIN TRY
     (5, N'Đặng Minh',    N'Tâm', '0900000005', 'thungan.tam@example.com',  N'thungan.tam',  @MatKhauMau, N'/images/staff/nv-05.jpg');
 
     /* -------------------------------------------------------------------------
-       BẢNG 2/11: dbo.Quyen
+       BẢNG 2/12: dbo.Quyen
        Dùng làm gì: quyền quản trị và xử lý bán hàng được kiểm tra trong MVC.
        ------------------------------------------------------------------------- */
     INSERT INTO dbo.Quyen (MaQuyen, TenQuyen, MoTa)
@@ -116,7 +117,7 @@ BEGIN TRY
     (2, N'SALES', N'Xử lý khách hàng, đơn hàng, tiến độ bánh và thanh toán.');
 
     /* -------------------------------------------------------------------------
-       BẢNG 3/11: dbo.LoaiBanh
+       BẢNG 3/12: dbo.LoaiBanh
        Dùng làm gì: nhóm các mẫu bánh (SanPham.MaLoaiBanh tham chiếu bảng này).
        FK cần có trước: không.
        Quy tắc: MaLoaiBanh tinyint từ 1; TenLoaiBanh duy nhất.
@@ -130,7 +131,7 @@ BEGIN TRY
     (5, N'Bánh mì ngọt',  N'Bánh mì mềm vị ngọt nhẹ, làm theo mẻ trong ngày.');
 
     /* -------------------------------------------------------------------------
-       BẢNG 4/11: dbo.KhachHang
+       BẢNG 4/12: dbo.KhachHang
        Dùng làm gì: tài khoản khách đặt bánh; DonHang.MaKH tham chiếu (cột này cho phép NULL).
        FK cần có trước: không.
        Quy tắc: dùng HoKH + TenKH + DiaChiThuongDung. TenDN duy nhất. MatKhau như nhân viên.
@@ -151,7 +152,7 @@ BEGIN TRY
     (10, N'Dương Tuấn',  N'Kiệt',   '0900000110', NULL,                      NULL,                                                                   N'kh.tuankiet', @MatKhauMau);
 
     /* -------------------------------------------------------------------------
-       BẢNG 5/11: dbo.PhanQuyen
+       BẢNG 5/12: dbo.PhanQuyen
        ADMIN có toàn quyền; SALES xử lý đơn hàng và thanh toán.
        ------------------------------------------------------------------------- */
     INSERT INTO dbo.PhanQuyen (MaQuyen, MaNV)
@@ -160,7 +161,7 @@ BEGIN TRY
     (2, 2), (2, 3), (2, 5);
 
     /* -------------------------------------------------------------------------
-       BẢNG 6/11: dbo.SanPham
+       BẢNG 6/12: dbo.SanPham
        Dùng làm gì: MỖI MẪU BÁNH CHỈ MỘT DÒNG. Giá và số lượng nằm ở BienTheBanh, ảnh ở
          HinhAnhBanh. Khách đặt trước bánh hết hàng không tạo thêm SanPham.
        FK cần có trước: LoaiBanh, NhanVien (MaNVTao, MaNVCapNhat).
@@ -198,7 +199,7 @@ BEGIN TRY
         'DRAFT', 2, '2026-10-20T14:00:00', NULL, NULL);
 
     /* -------------------------------------------------------------------------
-       BẢNG 7/11: dbo.HinhAnhBanh
+       BẢNG 7/12: dbo.HinhAnhBanh
        Dùng làm gì: ảnh của từng mẫu bánh. Một mẫu có thể có nhiều ảnh.
        FK cần có trước: SanPham.
        Quy tắc: tối đa MỘT ảnh đại diện cho mỗi mẫu (index lọc UX_HinhAnhBanh_AnhDaiDien);
@@ -224,7 +225,7 @@ BEGIN TRY
     (14, 'SP0000008', N'/images/products/banh-tiramisu-16.jpg',        0, 1);
 
     /* -------------------------------------------------------------------------
-       BẢNG 8/11: dbo.BienTheBanh
+       BẢNG 8/12: dbo.BienTheBanh
        Dùng làm gì: lựa chọn bán (kích thước/quy cách) của một mẫu bánh, mang giá và tồn.
        FK cần có trước: SanPham.
        Ý nghĩa số lượng (là SỐ CUỐI KỲ tại ngày chốt, không chạy lại luồng cập nhật):
@@ -276,7 +277,7 @@ BEGIN TRY
     (13, 'SP0000008', N'16 cm',        360000.00, 0, 0, 2, 0);
 
     /* -------------------------------------------------------------------------
-       BẢNG 9/11: dbo.DonHang
+       BẢNG 9/12: dbo.DonHang
        Dùng làm gì: đầu đơn đặt bánh. Cột tiền là SỐ ĐÃ LƯU, phải khớp chi tiết:
          TongTienHang = SUM(SoLuong * DonGiaTaiThoiDiemDat) của ChiTietDonHang,
          TongTienPhaiTra = TongTienHang + PhiGiaoHang - TienGiamGia,
@@ -459,6 +460,12 @@ BEGIN TRY
     VALUES
     (N'TT261012001', N'DH261008001', N'TT261009001', N'REFUND', 250000, N'BANK_TRANSFER', N'SUCCESS', N'2026-10-12T10:00:00', N'2026-10-12T10:30:00', 5, NULL, N'Hoàn đủ cọc khi hủy; giao dịch gốc thuộc cùng đơn.');
 
+    -- Lịch sử mốc ban đầu cho bộ đơn mẫu; các lần chuyển tiếp mới do procedure ghi.
+    INSERT INTO dbo.LichSuTrangThaiDonHang
+        (MaDonHang,TrangThaiCu,TrangThaiMoi,NguoiThucHien,MaNVThucHien,ThoiDiem,LyDo)
+    SELECT MaDonHang,NULL,TrangThaiDonHang,'HE_THONG',NULL,NgayDat,N'Mốc trạng thái ban đầu của đơn mẫu.'
+    FROM dbo.DonHang;
+
 
     /* =====================================================================
        ĐỐI CHIẾU TRƯỚC COMMIT
@@ -601,7 +608,7 @@ BEGIN TRY
     END;
 
     COMMIT TRANSACTION;
-    PRINT N'Đã chèn đủ 11 bảng và vượt qua các kiểm tra của script.';
+    PRINT N'Đã chèn đủ 12 bảng và vượt qua các kiểm tra của script.';
 END TRY
 BEGIN CATCH
     IF XACT_STATE()<>0 ROLLBACK TRANSACTION;
@@ -620,7 +627,8 @@ UNION ALL SELECT N'HinhAnhBanh',COUNT(*) FROM dbo.HinhAnhBanh
 UNION ALL SELECT N'BienTheBanh',COUNT(*) FROM dbo.BienTheBanh
 UNION ALL SELECT N'DonHang',COUNT(*) FROM dbo.DonHang
 UNION ALL SELECT N'ChiTietDonHang',COUNT(*) FROM dbo.ChiTietDonHang
-UNION ALL SELECT N'ThanhToan',COUNT(*) FROM dbo.ThanhToan;
+UNION ALL SELECT N'ThanhToan',COUNT(*) FROM dbo.ThanhToan
+UNION ALL SELECT N'LichSuTrangThaiDonHang',COUNT(*) FROM dbo.LichSuTrangThaiDonHang;
 
 SELECT d.MaDonHang,d.TrangThaiDonHang,d.TongTienHang,d.PhiGiaoHang,d.TienGiamGia,
        d.TongTienPhaiTra,d.TienCocYeuCau,ISNULL(t.ThucThu,0) AS ThucThu,

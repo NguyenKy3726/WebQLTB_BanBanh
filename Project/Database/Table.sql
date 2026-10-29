@@ -276,13 +276,37 @@ CREATE TABLE dbo.DonHang
 );
 GO
 
+-- 10. Nhật ký thay đổi trạng thái đơn: giữ người thực hiện, thời điểm và lý do.
+CREATE TABLE dbo.LichSuTrangThaiDonHang
+(
+    MaLichSu          bigint IDENTITY(1,1) NOT NULL,
+    MaDonHang         char(11) NOT NULL,
+    TrangThaiCu       varchar(30) NULL,
+    TrangThaiMoi      varchar(30) NOT NULL,
+    NguoiThucHien     varchar(20) NOT NULL,
+    MaNVThucHien      tinyint NULL,
+    ThoiDiem          datetime2(0) NOT NULL CONSTRAINT DF_LichSuDonHang_ThoiDiem DEFAULT (SYSDATETIME()),
+    LyDo              nvarchar(500) NULL,
+
+    CONSTRAINT PK_LichSuTrangThaiDonHang PRIMARY KEY (MaLichSu),
+    CONSTRAINT FK_LichSuDonHang_DonHang FOREIGN KEY (MaDonHang) REFERENCES dbo.DonHang(MaDonHang),
+    CONSTRAINT FK_LichSuDonHang_NhanVien FOREIGN KEY (MaNVThucHien) REFERENCES dbo.NhanVien(MaNV),
+    CONSTRAINT CK_LichSuDonHang_NguoiThucHien CHECK (NguoiThucHien IN ('NHAN_VIEN','KHACH_HANG','HE_THONG')),
+    CONSTRAINT CK_LichSuDonHang_NhanVien CHECK
+    (
+        (NguoiThucHien = 'NHAN_VIEN' AND MaNVThucHien IS NOT NULL)
+        OR (NguoiThucHien <> 'NHAN_VIEN' AND MaNVThucHien IS NULL)
+    )
+);
+GO
+
 /*
     Nhóm D: chi tiết và giao dịch phụ thuộc các bảng đơn hàng.
     Các bảng chi tiết dùng khóa chính ghép giữa mã chứng từ và số thứ tự dòng.
     MaThanhToan: TT + YYMMDD + số thứ tự 001-999.
 */
 
--- 10. Chi tiết đơn hàng
+-- 11. Chi tiết đơn hàng
 CREATE TABLE dbo.ChiTietDonHang
 (
     MaDonHang             char(11)       NOT NULL,
@@ -321,7 +345,7 @@ CREATE TABLE dbo.ChiTietDonHang
 );
 GO
 
--- 11. Thanh toán và hoàn tiền
+-- 12. Thanh toán và hoàn tiền
 CREATE TABLE dbo.ThanhToan
 (
     MaThanhToan       char(11)       NOT NULL,

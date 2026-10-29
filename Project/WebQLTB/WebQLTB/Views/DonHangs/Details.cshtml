@@ -2,6 +2,11 @@
 
 @{
     ViewData["Title"] = "Details";
+    var lichSu = ViewBag.LichSu as IEnumerable<WebQLTB.Models.LichSuTrangThaiDonHang>
+        ?? Enumerable.Empty<WebQLTB.Models.LichSuTrangThaiDonHang>();
+    var trangThai = Model.TrangThaiDonHang;
+    var daKetThuc = trangThai == "HOAN_TAT" || trangThai == "DA_HUY";
+    var ngayGiaoMacDinh = DateTime.Now.AddDays(1).ToString("yyyy-MM-ddTHH:mm");
 }
 
 <h1>Details</h1>
@@ -61,7 +66,7 @@
         </dd>
   
         <dt class = "col-sm-2">
-            Thời điểm xác nhận
+            Thời điểm hoàn tất
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.NgayHoanTat)
@@ -146,6 +151,157 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.MaDonHang">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    @if (TempData["ThongBaoXuLyDon"] is string thongBao)
+    {
+        <div class="alert alert-success">@thongBao</div>
+    }
+    @if (TempData["LoiXuLyDon"] is string loi)
+    {
+        <div class="alert alert-danger">@loi</div>
+    }
+
+    <h3>Lịch sử xử lý</h3>
+    @if (lichSu.Any())
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Thời điểm</th>
+                    <th>Trạng thái trước</th>
+                    <th>Trạng thái sau</th>
+                    <th>Người thực hiện</th>
+                    <th>Lý do / ghi chú</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in lichSu)
+            {
+                <tr>
+                    <td>@item.ThoiDiem.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                    <td>@(item.TrangThaiCu == null ? "—" : ViewBag.TenTrangThaiDonHang[item.TrangThaiCu])</td>
+                    <td>@ViewBag.TenTrangThaiDonHang[item.TrangThaiMoi]</td>
+                    <td>
+                        @(item.MaNVThucHien.HasValue
+                            ? ViewBag.TenNV[item.MaNVThucHien.Value]
+                            : item.NguoiThucHien)
+                    </td>
+                    <td>@item.LyDo</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>Chưa có lịch sử xử lý.</p>
+    }
+
+    <h3>Thao tác đơn hàng</h3>
+    @if (daKetThuc)
+    {
+        <div class="alert alert-secondary">
+            Đơn đã @((trangThai == "HOAN_TAT") ? "hoàn tất" : "hủy"); không thể chuyển trạng thái hoặc chỉnh sửa tiếp.
+        </div>
+    }
+    else
+    {
+        @if (trangThai == "CHO_NHAN_VIEN_XU_LY")
+        {
+            <form asp-action="ChuyenTrangThai" method="post" class="card card-body mb-3">
+                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
+                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
+                <input type="hidden" name="HanhDong" value="TIEP_NHAN" />
+                <h5>Tiếp nhận và gửi khách thông tin xác nhận</h5>
+                <div class="mb-2">
+                    <label class="form-label">Ngày giao dự kiến</label>
+                    <input type="datetime-local" name="NgayGiaoDuKien"
+                           value="@ngayGiaoMacDinh" class="form-control" required />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Phí giao hàng</label>
+                    <input type="number" name="PhiGiaoHang" value="@Model.PhiGiaoHang" min="0" step="0.01" class="form-control" required />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Tiền giảm giá</label>
+                    <input type="number" name="TienGiamGia" value="@Model.TienGiamGia" min="0" step="0.01" class="form-control" required />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label">Tiền cọc yêu cầu (nhập 0 nếu không cần cọc)</label>
+                    <input type="number" name="TienCocYeuCau" value="0" min="0" step="0.01" class="form-control" required />
+                </div>
+                <button type="submit" class="btn btn-primary">Tiếp nhận đơn</button>
+            </form>
+        }
+        @if (trangThai == "CHO_KHACH_XAC_NHAN")
+        {
+            <form asp-action="ChuyenTrangThai" method="post" class="mb-3">
+                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
+                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
+                <input type="hidden" name="HanhDong" value="KHACH_DONG_Y" />
+                <button type="submit" class="btn btn-primary">Ghi nhận khách đã đồng ý</button>
+            </form>
+        }
+        @if (trangThai == "CHO_THANH_TOAN_COC")
+        {
+            <form asp-action="ChuyenTrangThai" method="post" class="mb-3">
+                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
+                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
+                <input type="hidden" name="HanhDong" value="XAC_NHAN" />
+                <button type="submit" class="btn btn-primary">Xác nhận đơn sau khi đủ cọc</button>
+            </form>
+        }
+        @if (trangThai == "DA_XAC_NHAN")
+        {
+            <form asp-action="ChuyenTrangThai" method="post" class="mb-3">
+                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
+                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
+                <input type="hidden" name="HanhDong" value="BAT_DAU_CHUAN_BI" />
+                <button type="submit" class="btn btn-primary">Bắt đầu chuẩn bị</button>
+            </form>
+        }
+        @if (trangThai == "DANG_CHUAN_BI")
+        {
+            <form asp-action="ChuyenTrangThai" method="post" class="mb-3">
+                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
+                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
+                <input type="hidden" name="HanhDong" value="SAN_SANG_GIAO" />
+                <button type="submit" class="btn btn-primary">Đánh dấu sẵn sàng giao</button>
+            </form>
+        }
+        @if (trangThai == "SAN_SANG_GIAO")
+        {
+            <form asp-action="ChuyenTrangThai" method="post" class="d-inline-block mb-3">
+                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
+                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
+                <input type="hidden" name="HanhDong" value="DANG_GIAO" />
+                <button type="submit" class="btn btn-primary">Bắt đầu giao</button>
+            </form>
+            <form asp-action="ChuyenTrangThai" method="post" class="d-inline-block mb-3">
+                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
+                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
+                <input type="hidden" name="HanhDong" value="HOAN_TAT" />
+                <button type="submit" class="btn btn-success">Hoàn tất (khách nhận tại cửa hàng)</button>
+            </form>
+        }
+        @if (trangThai == "DANG_GIAO")
+        {
+            <form asp-action="ChuyenTrangThai" method="post" class="mb-3">
+                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
+                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
+                <input type="hidden" name="HanhDong" value="HOAN_TAT" />
+                <button type="submit" class="btn btn-success">Ghi nhận giao thành công</button>
+            </form>
+        }
+
+        <form asp-action="ChuyenTrangThai" method="post" class="card card-body border-danger">
+            <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
+            <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
+            <input type="hidden" name="HanhDong" value="HUY" />
+            <label class="form-label">Lý do hủy đơn</label>
+            <textarea name="LyDoHuy" maxlength="500" class="form-control mb-2" required></textarea>
+            <button type="submit" class="btn btn-outline-danger">Hủy đơn</button>
+        </form>
+    }
+
+    <p class="mt-3"><a asp-action="Index">Quay lại danh sách đơn hàng</a></p>
 </div>

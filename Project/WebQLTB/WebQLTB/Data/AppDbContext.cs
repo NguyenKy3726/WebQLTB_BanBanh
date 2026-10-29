@@ -661,73 +661,57 @@ namespace WebQLTB.Data
             finally { Database.CloseConnection(); }
         }
 
-        public int DonHang_Them(DonHang dh)
+        public int DonHang_ChuyenTrangThai(DonHangChuyenTrangThaiViewModel model, byte maNVThucHien)
         {
-            var cmd = Database.GetDbConnection().CreateCommand();
-            cmd.CommandText = "dbo.DonHang_Them";
+            using var cmd = Database.GetDbConnection().CreateCommand();
+            cmd.CommandText = "dbo.DonHang_ChuyenTrangThai";
             cmd.CommandType = CommandType.StoredProcedure;
-
-            cmd.Parameters.Add(new SqlParameter("@TenNguoiNhan", dh.TenNguoiNhan));
-            cmd.Parameters.Add(new SqlParameter("@DienThoaiNguoiNhan", dh.DienThoaiNguoiNhan));
-            cmd.Parameters.Add(new SqlParameter("@DiaChiGiaoHang", dh.DiaChiGiaoHang));
-            cmd.Parameters.Add(new SqlParameter("@MaKH", (object?)dh.MaKH ?? DBNull.Value));
-            cmd.Parameters.Add(new SqlParameter("@MaNVXuLy", (object?)dh.MaNVXuLy ?? DBNull.Value));
-            cmd.Parameters.Add(new SqlParameter("@PhiGiaoHang", dh.PhiGiaoHang));
-            cmd.Parameters.Add(new SqlParameter("@NgayGiaoDuKien",
-                (object?)dh.NgayGiaoDuKien ?? DBNull.Value));
-            cmd.Parameters.Add(new SqlParameter("@GhiChu", (object?)dh.GhiChu ?? DBNull.Value));
-            cmd.Parameters.Add(new SqlParameter("@NgayDat", (object?)dh.NgayDat ?? DBNull.Value));
-
-            Database.OpenConnection();
-            try
+            cmd.Parameters.Add(new SqlParameter("@MaDonHang", model.MaDonHang));
+            cmd.Parameters.Add(new SqlParameter("@TrangThaiHienTai", model.TrangThaiHienTai));
+            cmd.Parameters.Add(new SqlParameter("@HanhDong", model.HanhDong));
+            cmd.Parameters.Add(new SqlParameter("@MaNVThucHien", maNVThucHien));
+            cmd.Parameters.Add(new SqlParameter("@NgayGiaoDuKien", SqlDbType.DateTime2)
             {
-                return cmd.ExecuteNonQuery();
-            }
-            finally
+                Value = (object?)model.NgayGiaoDuKien ?? DBNull.Value
+            });
+            cmd.Parameters.Add(new SqlParameter("@PhiGiaoHang", SqlDbType.Decimal)
             {
-                Database.CloseConnection();
-            }
-        }
-
-        public int DonHang_Sua(DonHang dh)
-        {
-            var cmd = Database.GetDbConnection().CreateCommand();
-            cmd.CommandText = "dbo.DonHang_Sua";
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            cmd.Parameters.Add(new SqlParameter("@MaDonHang", dh.MaDonHang));
-            cmd.Parameters.Add(new SqlParameter("@TrangThaiDonHang", dh.TrangThaiDonHang));
-            cmd.Parameters.Add(new SqlParameter("@TenNguoiNhan", dh.TenNguoiNhan));
-            cmd.Parameters.Add(new SqlParameter("@DienThoaiNguoiNhan", dh.DienThoaiNguoiNhan));
-            cmd.Parameters.Add(new SqlParameter("@DiaChiGiaoHang", dh.DiaChiGiaoHang));
-            cmd.Parameters.Add(new SqlParameter("@PhiGiaoHang", dh.PhiGiaoHang));
-            cmd.Parameters.Add(new SqlParameter("@TienGiamGia", dh.TienGiamGia));
-            cmd.Parameters.Add(new SqlParameter("@MaKH", (object?)dh.MaKH ?? DBNull.Value));
-            cmd.Parameters.Add(new SqlParameter("@MaNVXuLy", (object?)dh.MaNVXuLy ?? DBNull.Value));
-            cmd.Parameters.Add(new SqlParameter("@MaNVXacNhan", (object?)dh.MaNVXacNhan ?? DBNull.Value));
-            cmd.Parameters.Add(new SqlParameter("@MaNVHoanTat", (object?)dh.MaNVHoanTat ?? DBNull.Value));
-            cmd.Parameters.Add(new SqlParameter("@NgayGiaoDuKien",
-                (object?)dh.NgayGiaoDuKien ?? DBNull.Value));
-            cmd.Parameters.Add(new SqlParameter("@TienCocYeuCau",
-                (object?)dh.TienCocYeuCau ?? DBNull.Value));
-            cmd.Parameters.Add(new SqlParameter("@GhiChu", (object?)dh.GhiChu ?? DBNull.Value));
+                Precision = 12,
+                Scale = 2,
+                Value = (object?)model.PhiGiaoHang ?? DBNull.Value
+            });
+            cmd.Parameters.Add(new SqlParameter("@TienGiamGia", SqlDbType.Decimal)
+            {
+                Precision = 12,
+                Scale = 2,
+                Value = (object?)model.TienGiamGia ?? DBNull.Value
+            });
+            cmd.Parameters.Add(new SqlParameter("@TienCocYeuCau", SqlDbType.Decimal)
+            {
+                Precision = 12,
+                Scale = 2,
+                Value = (object?)model.TienCocYeuCau ?? DBNull.Value
+            });
+            cmd.Parameters.Add(new SqlParameter("@LyDoHuy", SqlDbType.NVarChar, 500)
+            {
+                Value = (object?)model.LyDoHuy ?? DBNull.Value
+            });
 
             Database.OpenConnection();
             try { return cmd.ExecuteNonQuery(); }
             finally { Database.CloseConnection(); }
         }
 
-        public int DonHang_Xoa(string MaDonHang)
-        {
-            var cmd = Database.GetDbConnection().CreateCommand();
-            cmd.CommandText = "dbo.DonHang_Xoa";
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add(new SqlParameter("@MaDonHang", MaDonHang));
+        public DbSet<LichSuTrangThaiDonHang> LichSuTrangThaiDonHangs { get; set; }
 
-            Database.OpenConnection();
-            try { return cmd.ExecuteNonQuery(); }
-            finally { Database.CloseConnection(); }
+        public List<LichSuTrangThaiDonHang> DonHang_LichSu(string maDonHang)
+        {
+            var p = new[] { new SqlParameter("@MaDonHang", maDonHang) };
+            return LichSuTrangThaiDonHangs
+                .FromSqlRaw("EXEC dbo.DonHang_LichSu @MaDonHang", p)
+                .ToList();
         }
+
         // 17. Thao tác trên bảng ChiTietDonHang
         public DbSet<ChiTietDonHang> ChiTietDonHangs { get; set; }
 

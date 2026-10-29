@@ -102,6 +102,9 @@ BEGIN
   VALUES(@Ma,@MaKH,@Gio,'CHO_NHAN_VIEN_XU_LY',@TenNguoiNhan,@DienThoaiNguoiNhan,@DiaChiGiaoHang,0,0,@Tong,@Tong,@GhiChu);
   INSERT dbo.ChiTietDonHang(MaDonHang,STT,MaBienThe,SoLuong,DonGiaTaiThoiDiemDat)
   SELECT @Ma,ROW_NUMBER() OVER(ORDER BY g.MaBienThe),g.MaBienThe,g.SoLuong,b.GiaBan FROM @GioHang g JOIN dbo.BienTheBanh b ON b.MaBienThe=g.MaBienThe;
+  INSERT dbo.LichSuTrangThaiDonHang
+      (MaDonHang,TrangThaiCu,TrangThaiMoi,NguoiThucHien,MaNVThucHien,ThoiDiem,LyDo)
+  VALUES(@Ma,NULL,'CHO_NHAN_VIEN_XU_LY','KHACH_HANG',NULL,@Gio,N'Khách gửi đơn hàng qua website.');
   COMMIT;
   SELECT @Ma;
  END TRY BEGIN CATCH IF XACT_STATE()<>0 ROLLBACK; THROW; END CATCH;

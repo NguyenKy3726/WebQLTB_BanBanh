@@ -119,3 +119,17 @@ AS
     FROM dbo.ThanhToan
     WHERE MaThanhToan = @MaThanhToan;
 GO
+
+-- Nhật ký xử lý trạng thái của một đơn hàng.
+CREATE OR ALTER PROC dbo.DonHang_LichSu
+    @MaDonHang char(11)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT MaLichSu,MaDonHang,TrangThaiCu,TrangThaiMoi,NguoiThucHien,
+           MaNVThucHien,ThoiDiem,LyDo
+    FROM dbo.LichSuTrangThaiDonHang
+    WHERE MaDonHang=@MaDonHang
+    ORDER BY MaLichSu;
+END;
+GO

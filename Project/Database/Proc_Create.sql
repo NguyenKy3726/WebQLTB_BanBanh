@@ -263,6 +263,13 @@ BEGIN
     VALUES
         (@MaDonHang, @MaKH, @MaNVXuLy, @Ngay, @NgayGiaoDuKien,
          @TenNguoiNhan, @DienThoaiNguoiNhan, @DiaChiGiaoHang, @PhiGiaoHang, @GhiChu);
+
+    INSERT dbo.LichSuTrangThaiDonHang
+        (MaDonHang,TrangThaiCu,TrangThaiMoi,NguoiThucHien,MaNVThucHien,ThoiDiem,LyDo)
+    VALUES
+        (@MaDonHang,NULL,'CHO_NHAN_VIEN_XU_LY',
+         CASE WHEN @MaNVXuLy IS NULL THEN 'HE_THONG' ELSE 'NHAN_VIEN' END,
+         @MaNVXuLy,@Ngay,N'Tạo đơn hàng mới.');
 END
 GO
 

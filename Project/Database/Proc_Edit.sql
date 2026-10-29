@@ -421,16 +421,14 @@ CREATE OR ALTER PROC dbo.DonHang_Sua
     @MaNVHoanTat tinyint=NULL,
     @NgayGiaoDuKien datetime2(0)=NULL,
     @TienCocYeuCau decimal(12,2)=NULL,
-    @GhiChu nvarchar(1000)=NULL
+    @GhiChu nvarchar(1000)=NULL,
+    @TrangThaiMongDoi varchar(30)=NULL,
+    @MaNVThucHien tinyint=NULL,
+    @LyDoHuy nvarchar(500)=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- Chạy độc lập; RAISERROR tại đây không tự rollback transaction của caller.
-    IF @@TRANCOUNT <> 0
-    BEGIN
-        RAISERROR(N'Hãy gọi proc sửa này ngoài transaction đang mở của caller.',16,1);
-        RETURN;
-    END;
+    -- Hỗ trợ transaction lồng để proc chuyển trạng thái ghi lịch sử cùng lần cập nhật.
     SET XACT_ABORT ON;
     BEGIN TRY
         BEGIN TRANSACTION;
@@ -457,6 +455,25 @@ BEGIN
                @CocCu=TienCocYeuCau,@TongCu=TongTienPhaiTra,
                @NgayGiaoDuKien=COALESCE(@NgayGiaoDuKien,NgayGiaoDuKien)
         FROM dbo.DonHang WHERE MaDonHang=@MaDonHang;
+        IF @TrangThaiMongDoi IS NOT NULL AND @Cu<>@TrangThaiMongDoi
+        BEGIN
+            ;THROW 50001,N'Trạng thái đơn đã thay đổi. Hãy tải lại trang trước khi thao tác.',1;
+        END;
+        IF @Cu IN ('HOAN_TAT','DA_HUY')
+        BEGIN
+            ;THROW 50001,N'Đơn đã hoàn tất hoặc đã hủy nên không thể tiếp tục chỉnh sửa.',1;
+        END;
+        IF @Cu<>@TrangThaiDonHang
+        BEGIN
+            IF @MaNVThucHien IS NULL OR NOT EXISTS(SELECT 1 FROM dbo.NhanVien WHERE MaNV=@MaNVThucHien)
+            BEGIN
+                ;THROW 50001,N'Thiếu nhân viên thực hiện hợp lệ cho thao tác chuyển trạng thái.',1;
+            END;
+            IF @TrangThaiDonHang='DA_HUY' AND NULLIF(LTRIM(RTRIM(@LyDoHuy)),N'') IS NULL
+            BEGIN
+                ;THROW 50001,N'Hãy nhập lý do hủy đơn.',1;
+            END;
+        END;
         IF @MaKH IS NOT NULL AND (@KHCu IS NULL OR @MaKH<>@KHCu)
         BEGIN
             ;THROW 50001,N'Không được đổi mã khách hàng của đơn.',1;
@@ -612,7 +629,7 @@ BEGIN
         END;
         IF @Cu<>'DA_HUY' AND @TrangThaiDonHang='DA_HUY'
         BEGIN
-            IF NULLIF(LTRIM(RTRIM(@GhiChu)),N'') IS NULL
+            IF NULLIF(LTRIM(RTRIM(@LyDoHuy)),N'') IS NULL
             BEGIN
                 ;THROW 50001,N'Hãy ghi rõ lý do hủy đơn.',1;
             END;
@@ -638,6 +655,15 @@ BEGIN
             TongTienHang=@Hang,TongTienPhaiTra=@PhaiTra,GhiChu=@GhiChu
         WHERE MaDonHang=@MaDonHang;
 
+        IF @Cu<>@TrangThaiDonHang
+        BEGIN
+            INSERT dbo.LichSuTrangThaiDonHang
+                (MaDonHang,TrangThaiCu,TrangThaiMoi,NguoiThucHien,MaNVThucHien,ThoiDiem,LyDo)
+            VALUES
+                (@MaDonHang,@Cu,@TrangThaiDonHang,'NHAN_VIEN',@MaNVThucHien,@Gio,
+                 CASE WHEN @TrangThaiDonHang='DA_HUY' THEN @LyDoHuy ELSE NULL END);
+        END;
+
         IF EXISTS
         (
             SELECT 1 FROM dbo.BienTheBanh b
@@ -657,6 +683,115 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
+END;
+GO
+
+-- Hành động theo nghiệp vụ; kiểm tra trạng thái nguồn và ghi người/giờ trong cùng transaction.
+CREATE OR ALTER PROC dbo.DonHang_ChuyenTrangThai
+    @MaDonHang char(11),
+    @TrangThaiHienTai varchar(30),
+    @HanhDong varchar(30),
+    @MaNVThucHien tinyint,
+    @NgayGiaoDuKien datetime2(0)=NULL,
+    @PhiGiaoHang decimal(12,2)=NULL,
+    @TienGiamGia decimal(12,2)=NULL,
+    @TienCocYeuCau decimal(12,2)=NULL,
+    @LyDoHuy nvarchar(500)=NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    IF @@TRANCOUNT<>0 THROW 50001,N'Hãy gọi thao tác chuyển trạng thái ngoài transaction đang mở.',1;
+    IF @TrangThaiHienTai IS NULL OR @HanhDong IS NULL
+        THROW 50001,N'Thiếu trạng thái hiện tại hoặc hành động cần thực hiện.',1;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        DECLARE @K int,@TrangThai varchar(30),@TrangThaiDich varchar(30),
+                @MaKH smallint,@MaNVXuLy tinyint,@MaNVXacNhan tinyint,@MaNVHoanTat tinyint,
+                @NgayGiaoCu datetime2(0),@CocCu decimal(12,2),
+                @Ten nvarchar(80),@DienThoai varchar(11),@DiaChi nvarchar(300),
+                @PhiCu decimal(12,2),@GiamCu decimal(12,2),@GhiChu nvarchar(1000);
+
+        EXEC @K=sys.sp_getapplock @Resource=N'DbQLTB:ProcSua:NghiepVu',
+            @LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=10000;
+        IF @K<0 THROW 50001,N'Không lấy được khóa xử lý đơn hàng. Hãy thử lại.',1;
+
+        SELECT @TrangThai=TrangThaiDonHang,@MaKH=MaKH,@MaNVXuLy=MaNVXuLy,
+               @MaNVXacNhan=MaNVXacNhan,@MaNVHoanTat=MaNVHoanTat,
+               @NgayGiaoCu=NgayGiaoDuKien,@CocCu=TienCocYeuCau,
+               @Ten=TenNguoiNhan,@DienThoai=DienThoaiNguoiNhan,@DiaChi=DiaChiGiaoHang,
+               @PhiCu=PhiGiaoHang,@GiamCu=TienGiamGia,@GhiChu=GhiChu
+        FROM dbo.DonHang WITH (UPDLOCK,HOLDLOCK)
+        WHERE MaDonHang=@MaDonHang;
+        IF @TrangThai IS NULL THROW 50001,N'Không tìm thấy đơn hàng.',1;
+        IF @TrangThai<>@TrangThaiHienTai
+            THROW 50001,N'Trạng thái đơn đã thay đổi. Hãy tải lại trang trước khi thao tác.',1;
+        IF NOT EXISTS(SELECT 1 FROM dbo.NhanVien WHERE MaNV=@MaNVThucHien)
+            THROW 50001,N'Không tìm thấy nhân viên đang thực hiện thao tác.',1;
+
+        IF @HanhDong='TIEP_NHAN' AND @TrangThai='CHO_NHAN_VIEN_XU_LY'
+        BEGIN
+            SET @TrangThaiDich='CHO_KHACH_XAC_NHAN';
+            IF @NgayGiaoDuKien IS NULL OR @TienCocYeuCau IS NULL
+                THROW 50001,N'Khi tiếp nhận cần nhập ngày giao dự kiến và tiền cọc (nhập 0 nếu không yêu cầu cọc).',1;
+            SET @PhiCu=ISNULL(@PhiGiaoHang,0);
+            SET @GiamCu=ISNULL(@TienGiamGia,0);
+            SET @CocCu=@TienCocYeuCau;
+        END
+        ELSE IF @HanhDong='KHACH_DONG_Y' AND @TrangThai='CHO_KHACH_XAC_NHAN'
+        BEGIN
+            SET @TrangThaiDich=CASE WHEN ISNULL(@CocCu,0)>0 THEN 'CHO_THANH_TOAN_COC' ELSE 'DA_XAC_NHAN' END;
+        END
+        ELSE IF @HanhDong='XAC_NHAN' AND @TrangThai='CHO_THANH_TOAN_COC'
+            SET @TrangThaiDich='DA_XAC_NHAN';
+        ELSE IF @HanhDong='BAT_DAU_CHUAN_BI' AND @TrangThai='DA_XAC_NHAN'
+            SET @TrangThaiDich='DANG_CHUAN_BI';
+        ELSE IF @HanhDong='SAN_SANG_GIAO' AND @TrangThai='DANG_CHUAN_BI'
+            SET @TrangThaiDich='SAN_SANG_GIAO';
+        ELSE IF @HanhDong='DANG_GIAO' AND @TrangThai='SAN_SANG_GIAO'
+            SET @TrangThaiDich='DANG_GIAO';
+        ELSE IF @HanhDong='HOAN_TAT' AND @TrangThai IN ('SAN_SANG_GIAO','DANG_GIAO')
+            SET @TrangThaiDich='HOAN_TAT';
+        ELSE IF @HanhDong='HUY' AND @TrangThai NOT IN ('HOAN_TAT','DA_HUY')
+        BEGIN
+            SET @TrangThaiDich='DA_HUY';
+            IF NULLIF(LTRIM(RTRIM(@LyDoHuy)),N'') IS NULL
+                THROW 50001,N'Vui lòng nhập lý do hủy đơn.',1;
+        END
+        ELSE
+            THROW 50001,N'Hành động này không hợp lệ với trạng thái hiện tại của đơn.',1;
+
+        SET @MaNVXuLy=COALESCE(@MaNVXuLy,@MaNVThucHien);
+        SET @MaNVXacNhan=CASE WHEN @TrangThaiDich='DA_XAC_NHAN' THEN @MaNVThucHien ELSE @MaNVXacNhan END;
+        SET @MaNVHoanTat=CASE WHEN @TrangThaiDich='HOAN_TAT' THEN @MaNVThucHien ELSE @MaNVHoanTat END;
+        SET @NgayGiaoCu=COALESCE(@NgayGiaoDuKien,@NgayGiaoCu);
+
+        EXEC dbo.DonHang_Sua
+            @MaDonHang=@MaDonHang,
+            @TrangThaiDonHang=@TrangThaiDich,
+            @TenNguoiNhan=@Ten,
+            @DienThoaiNguoiNhan=@DienThoai,
+            @DiaChiGiaoHang=@DiaChi,
+            @PhiGiaoHang=@PhiCu,
+            @TienGiamGia=@GiamCu,
+            @MaKH=@MaKH,
+            @MaNVXuLy=@MaNVXuLy,
+            @MaNVXacNhan=@MaNVXacNhan,
+            @MaNVHoanTat=@MaNVHoanTat,
+            @NgayGiaoDuKien=@NgayGiaoCu,
+            @TienCocYeuCau=@CocCu,
+            @GhiChu=@GhiChu,
+            @TrangThaiMongDoi=@TrangThaiHienTai,
+            @MaNVThucHien=@MaNVThucHien,
+            @LyDoHuy=@LyDoHuy;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE()<>0 ROLLBACK TRANSACTION;
         THROW;
     END CATCH;
 END;
@@ -772,8 +907,6 @@ BEGIN
             UPDATE dbo.BienTheBanh
             SET SoLuongThucTe=SoLuongThucTe+@Delta,SoLuongDaGiu=SoLuongDaGiu+@Delta
             WHERE MaBienThe=@MaBienThe;
-            IF @TrangThai='DA_XAC_NHAN'
-                UPDATE dbo.DonHang SET TrangThaiDonHang='DANG_CHUAN_BI' WHERE MaDonHang=@MaDonHang;
         END;
         SELECT @Tong=ISNULL(SUM(CONVERT(decimal(18,2),SoLuong)*DonGiaTaiThoiDiemDat),0)
         FROM dbo.ChiTietDonHang WHERE MaDonHang=@MaDonHang;
