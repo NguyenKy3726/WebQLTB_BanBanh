@@ -1,4 +1,4 @@
-﻿/* PHẦN GIỚI THIỆU */
+/* PHẦN GIỚI THIỆU */
 .catalog {
     padding-bottom: 80px;
 }
@@ -582,3 +582,33 @@
         padding-inline: 18px;
     }
 }
+
+/* BƯỚC 4: tìm kiếm, lọc và phân trang */
+.catalog [hidden] { display: none !important; }
+.catalog-search { position: relative; margin: 0; }
+.catalog-filter-form { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+.catalog-filter-panel__body { min-height: 0; }
+.catalog-filter-panel__footer { flex-shrink: 0; }
+.catalog-filter-panel { visibility: hidden; }
+.catalog-filter-panel--open { visibility: visible; }
+.catalog-filter-panel button, .catalog-chip, .catalog-page { cursor: pointer; }
+.catalog-active-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; }
+.catalog-active-filters:empty { display: none; }
+.catalog-active-filters .catalog-chip { min-height: 34px; padding: 6px 12px; font-size: 12px; }
+.filter-help { margin-top: 12px; color: var(--color-text-secondary); font-size: 12px; line-height: 1.7; }
+.filter-error { margin-top: 12px; color: var(--color-danger); font-size: 13px; }
+.catalog-pagination { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 32px; }
+.catalog-page { min-width: 42px; min-height: 42px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); color: var(--color-text); }
+.catalog-page[aria-current="page"] { background: var(--color-primary); color: var(--color-white); border-color: var(--color-primary); }
+.catalog-page:disabled { opacity: .4; cursor: default; }
+.catalog button:focus-visible, .catalog input:focus-visible, .catalog select:focus-visible { outline: 2px solid var(--color-accent-dark); outline-offset: 3px; }
+.catalog-sort select { max-width: 190px; min-width: 0; }
+@media (max-width: 480px) {
+    .catalog-sort { min-width: 0; }
+    .catalog-sort select { max-width: 160px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .catalog-filter-panel, .product-card, .product-card__image { transition: none; }
+}
+
+

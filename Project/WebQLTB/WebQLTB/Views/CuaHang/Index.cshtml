@@ -1,225 +1,123 @@
 @model List<WebQLTB.Models.ProductCardViewModel>
-
 @{
     ViewData["Title"] = "Mua bánh";
+    var categories = ViewBag.Categories as Dictionary<byte, string>
+                     ?? new Dictionary<byte, string>();
 }
-
 @section Styles {
-    <link rel="stylesheet"
-          href="~/css/pages/products.css"
-          asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/products.css" asp-append-version="true" />
 }
-
-<section class="catalog">
+<section class="catalog" id="catalog" data-page-size="10">
     <div class="catalog__intro">
-        <p class="catalog__eyebrow">
-            WHISKFUL COLLECTION
-        </p>
-
-        <h1 class="catalog__title">
-            Một chiếc bánh, một niềm vui
-        </h1>
-
+        <p class="catalog__eyebrow">WHISKFUL COLLECTION</p>
+        <h1 class="catalog__title">Một chiếc bánh, một niềm vui</h1>
         <p class="catalog__description">
             Khám phá những chiếc bánh dành cho sinh nhật,
             ngày kỷ niệm và những khoảnh khắc ngọt ngào.
         </p>
     </div>
-
     <div class="container catalog__content">
-        <h2 class="catalog__heading">
-            Khám phá các mẫu bánh
-            <span class="catalog__count">
-                @Model.Count mẫu bánh
-            </span>
-        </h2>
         <section class="catalog-tools" aria-label="Tìm và lọc bánh">
-
-            <div class="catalog-search">
-                <label class="visually-hidden" for="catalog-search-input">
-                    Tìm bánh theo tên hoặc mô tả
-                </label>
-
+            <form class="catalog-search" id="catalog-search-form" role="search">
+                <label class="visually-hidden" for="catalog-search-input">Tìm theo tên, mô tả hoặc loại bánh</label>
                 <span class="catalog-search__icon" aria-hidden="true">⌕</span>
-
-                <input id="catalog-search-input"
-                       class="catalog-search__input"
-                       type="search"
-                       placeholder="Tìm bánh theo tên, dịp, phong cách, hương vị..." />
-
-                <button class="button button--primary catalog-search__button"
-                        type="button">
-                    Tìm bánh
-                </button>
-            </div>
-
+                <input id="catalog-search-input" class="catalog-search__input"
+                       type="search" placeholder="Tìm theo tên, mô tả hoặc loại bánh..." />
+                <button class="button button--primary catalog-search__button" type="submit">Tìm bánh</button>
+            </form>
             <div class="catalog-tools__quick">
                 <span class="catalog-tools__quick-label">Chọn nhanh</span>
-
                 <div class="catalog-tools__chips">
-                    <button class="catalog-chip" type="button">Bánh kem</button>
-                    <button class="catalog-chip" type="button">Bánh mousse</button>
-                    <button class="catalog-chip" type="button">Bánh quy</button>
-                    <button class="catalog-chip" type="button">Bánh su</button>
-                    <button class="catalog-chip" type="button">Bánh mì ngọt</button>
+                    @foreach (var category in categories)
+                    {
+                        <button class="catalog-chip" type="button"
+                                data-category="@category.Value" aria-pressed="false">@category.Value</button>
+                    }
                 </div>
             </div>
-
-            <div class="catalog-tools__results">
+            <div class="catalog-tools__results" id="catalog-results">
                 <div>
-                    <h2 class="catalog-tools__title">Bánh được yêu thích</h2>
-                    <p class="catalog-tools__count">
-                        @Model.Count mẫu bánh
-                    </p>
+                    <h2 class="catalog-tools__title" tabindex="-1">Khám phá các mẫu bánh</h2>
+                    <p class="catalog-tools__count" role="status" aria-live="polite">@Model.Count mẫu bánh</p>
                 </div>
-
                 <div class="catalog-tools__actions">
+                    <button class="catalog-filter-button" id="open-catalog-filter" type="button"
+                            aria-controls="catalog-filter-panel" aria-expanded="false">☷ Bộ lọc</button>
                     <label class="catalog-sort">
                         <span>Sắp xếp:</span>
-
-                        <select aria-label="Sắp xếp sản phẩm">
-                            <option>Phổ biến nhất</option>
-                            <option>Mới nhất</option>
-                            <option>Tên A–Z</option>
-                            <option>Giá thấp đến cao</option>
-                            <option>Giá cao đến thấp</option>
+                        <select id="catalog-sort" aria-label="Sắp xếp sản phẩm">
+                            <option value="default">Mặc định</option>
+                            <option value="name-asc">Tên A–Z</option>
+                            <option value="name-desc">Tên Z–A</option>
+                            <option value="price-asc">Giá thấp đến cao</option>
+                            <option value="price-desc">Giá cao đến thấp</option>
                         </select>
                     </label>
-
-                    <button class="catalog-filter-button"
-                            id="open-catalog-filter"
-                            type="button"
-                            aria-controls="catalog-filter-panel"
-                            aria-expanded="false">
-                        <span aria-hidden="true">☷</span>
-                        Bộ lọc
-                    </button>
                 </div>
             </div>
+            <div class="catalog-active-filters" id="catalog-active-filters"
+                 aria-label="Điều kiện đang áp dụng"></div>
         </section>
-
-        <div class="catalog-filter-backdrop"
-             id="catalog-filter-backdrop"
-             hidden>
+        <p id="catalog-no-results" class="catalog__empty" hidden="@(Model.Count > 0)">
+            Không tìm thấy bánh phù hợp. Hãy thử đổi từ khóa hoặc xóa bớt điều kiện.
+        </p>
+        <div class="product-grid" id="catalog-grid">
+            @foreach (var banh in Model)
+            {
+                <partial name="~/Views/Shared/_ProductCard.cshtml" model="banh" />
+            }
         </div>
-
-        <aside class="catalog-filter-panel"
-               id="catalog-filter-panel"
-               aria-labelledby="catalog-filter-title"
-               aria-hidden="true">
-
-            <div class="catalog-filter-panel__header">
-                <div>
-                    <h2 id="catalog-filter-title">☷ Bộ lọc</h2>
-                    <p>@Model.Count mẫu bánh</p>
-                </div>
-
-                <button class="catalog-filter-panel__close"
-                        id="close-catalog-filter"
-                        type="button"
-                        aria-label="Đóng bộ lọc">
-                    ×
-                </button>
+        <nav id="catalog-pagination" class="catalog-pagination" aria-label="Phân trang sản phẩm" hidden></nav>
+        <noscript><p>Bật JavaScript để sử dụng tìm kiếm, bộ lọc và phân trang.</p></noscript>
+    </div>
+    <div class="catalog-filter-backdrop" id="catalog-filter-backdrop" hidden></div>
+    <aside class="catalog-filter-panel" id="catalog-filter-panel" role="dialog"
+           aria-modal="true" aria-labelledby="catalog-filter-title" aria-hidden="true" inert>
+        <div class="catalog-filter-panel__header">
+            <div>
+                <h2 id="catalog-filter-title">☷ Bộ lọc</h2>
+                <p id="catalog-filter-count">@Model.Count mẫu bánh</p>
             </div>
-
+            <button class="catalog-filter-panel__close" id="close-catalog-filter"
+                    type="button" aria-label="Đóng bộ lọc">×</button>
+        </div>
+        <form id="catalog-filter-form" class="catalog-filter-form">
             <div class="catalog-filter-panel__body">
                 <section class="filter-group">
                     <h3>Danh mục</h3>
-
                     <div class="filter-category-grid">
-                        @{
-                            var loaiBanhs =
-                                ViewBag.Categories as Dictionary<byte, string>
-                                ?? new Dictionary<byte, string>();
-                        }
-
-                        @foreach (var loai in loaiBanhs)
+                        @foreach (var category in categories)
                         {
                             <label class="filter-option">
-                                <input type="checkbox"
-                                       class="filter-category"
-                                       value="@loai.Value" />
-
-                                <span>@loai.Value</span>
+                                <input type="checkbox" class="filter-category" value="@category.Value" />
+                                <span>@category.Value</span>
                             </label>
                         }
                     </div>
+                    <p class="filter-help">Có thể chọn nhiều loại bánh.</p>
                 </section>
-
                 <section class="filter-group">
-                    <h3>Khoảng giá</h3>
-
+                    <h3>Khoảng giá (đ)</h3>
                     <div class="filter-price">
-                        <label>
-                            <span>Giá từ</span>
-                            <input type="number"
-                                   min="0"
-                                   step="10000"
-                                   placeholder="0" />
+                        <label><span>Giá từ</span>
+                            <input id="filter-price-min" type="number" min="0" step="1" placeholder="Không giới hạn" />
                         </label>
-
-                        <label>
-                            <span>Giá đến</span>
-                            <input type="number"
-                                   min="0"
-                                   step="10000"
-                                   placeholder="500000" />
+                        <label><span>Giá đến</span>
+                            <input id="filter-price-max" type="number" min="0" step="1" placeholder="Không giới hạn" />
                         </label>
                     </div>
-
-                    <div class="filter-price">
-                        <label>
-                            <span>Giá từ</span>
-                            <input id="filter-price-min"
-                                   type="number"
-                                   min="0"
-                                   step="10000"
-                                   placeholder="0" />
-                        </label>
-
-                        <label>
-                            <span>Giá đến</span>
-                            <input id="filter-price-max"
-                                   type="number"
-                                   min="0"
-                                   step="10000"
-                                   placeholder="500000" />
-                        </label>
-                    </div>
+                    <p class="filter-help">Dựa trên giá thấp nhất của biến thể đang bán.</p>
+                    <p id="catalog-price-error" class="filter-error" role="alert" hidden></p>
                 </section>
             </div>
-
             <div class="catalog-filter-panel__footer">
-                <button class="filter-clear"
-                        id="clear-catalog-filter"
-                        type="button">
-                    Xóa tất cả
-                </button>
-
-                <button class="button button--dark"
-                        id="apply-catalog-filter"
-                        type="button">
-                    Áp dụng
-                </button>
+                <button class="filter-clear" id="clear-catalog-filter" type="button">Xóa tất cả</button>
+                <button class="button button--dark" id="apply-catalog-filter" type="submit">Áp dụng</button>
             </div>
-        </aside>
-        @if (Model.Count == 0)
-        {
-            <p id="catalog-no-results"
-               class="catalog__empty"
-               hidden>
-                Không tìm thấy bánh phù hợp với bộ lọc.
-            </p>
-        }
-        else
-        {
-            <div class="product-grid">
-                @foreach (var banh in Model)
-                {
-                    <partial name="~/Views/Shared/_ProductCard.cshtml"
-                             model="banh" />
-                }
-            </div>
-        }
-    </div>
+        </form>
+    </aside>
 </section>
+@section Scripts {
+    <script src="~/js/catalog.js" asp-append-version="true"></script>
+}
+
