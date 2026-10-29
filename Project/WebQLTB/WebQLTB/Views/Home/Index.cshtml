@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Chào mừng đến với tiệm bánh của tao</h1>
+    <p>Các chức năng hiện có</p>
+</div>
+<div class="d-flex flex-wrap justify-content-center gap-3">
+    <a asp-controller="NhanViens" asp-action="Index" class="btn btn-outline-primary">Nhân viên</a>
+
+    <a asp-controller="Quyens" asp-action="Index" class="btn btn-outline-primary">Quyền</a>
+
+    <a asp-controller="LoaiBanhs" asp-action="Index" class="btn btn-outline-primary">Loại bánh</a>
+
+
+
+    <a asp-controller="KhachHangs" asp-action="Index" class="btn btn-outline-primary">Khách hàng</a>
+
+    <a asp-controller="PhanQuyens" asp-action="Index" class="btn btn-outline-primary">Phân quyền</a>
+
+
+    <a asp-controller="SanPhams" asp-action="Index" class="btn btn-outline-primary">Sản phẩm</a>
+
+    <a asp-controller="HinhAnhBanhs" asp-action="Index" class="btn btn-outline-primary">Hình ảnh bánh</a>
+
+    <a asp-controller="BienTheBanhs" asp-action="Index" class="btn btn-outline-primary">Size bánh</a>
+
+
+
+    <a asp-controller="DonHangs" asp-action="Index" class="btn btn-outline-primary">Đơn hàng</a>
+
+
+
+    <a asp-controller="ChiTietDonHangs" asp-action="Index" class="btn btn-outline-primary">Chi tiết đơn hàng</a>
+
+    <a asp-controller="ThanhToans" asp-action="Index" class="btn btn-outline-primary">Thanh toán</a>
+</div>

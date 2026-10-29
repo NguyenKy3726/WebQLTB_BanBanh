@@ -1,0 +1,71 @@
+@model IEnumerable<WebQLTB.Models.BienTheBanh>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Bánh
+            </th>
+            <th>
+                Tên biến thể
+            </th>
+            <th>
+                Giá bán
+            </th>
+            <th>
+                Số lượng thực tế
+            </th>
+            <th>
+                Số lượng đã giữ
+            </th>
+            <th>
+                Số ngày chuẩn bị dự kiến
+            </th>
+            <th>
+                Trạng thái bán
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @(ViewBag.TenSP[item.MaSP])
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.TenBienThe)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.GiaBan)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.SoLuongThucTe)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.SoLuongDaGiu)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.SoNgayChuanBiDuKien)
+            </td>
+            <td>
+                @(item.TrangThaiBan ? "Đang bán" : "Ngừng bán")
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-mabienthe="@item.MaBienThe">Edit</a> |
+                <a asp-action="Details" asp-route-mabienthe="@item.MaBienThe">Details</a> |
+                <a asp-action="Delete" asp-route-mabienthe="@item.MaBienThe">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

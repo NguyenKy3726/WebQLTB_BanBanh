@@ -1,0 +1,10 @@
+@model SanPham
+@{ ViewData["Title"]=Model.TenSP; var variants=ViewBag.Variants as List<BienTheBanh> ?? new(); }
+<a asp-action="Index">← Cửa hàng</a><h1>@Model.TenSP</h1><p>@Model.MoTaChiTiet</p>
+@if(variants.Count==0){<p>Sản phẩm hiện chưa có lựa chọn bán.</p>}
+@foreach(var v in variants){<form asp-action="ThemVaoGio" method="post" class="border rounded p-3 mb-2">
+ <input type="hidden" name="maBienThe" value="@v.MaBienThe" />
+ <strong>@v.TenBienThe</strong> — @v.GiaBan.ToString("N0") ₫ <small>Chuẩn bị khoảng @v.SoNgayChuanBiDuKien ngày</small>
+ <label>Số lượng <input type="number" name="soLuong" value="1" min="1" max="50" /></label>
+ <button class="btn btn-primary">Thêm vào giỏ</button>@Html.AntiForgeryToken()
+</form>}

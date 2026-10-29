@@ -1,0 +1,8 @@
+@model List<GioHangItem>
+@{ ViewData["Title"]="Giỏ hàng"; }
+<h1>Giỏ hàng</h1>
+@if(Model.Count==0){<p>Giỏ hàng đang trống.</p><a asp-action="Index">Chọn bánh</a>}else{
+<table class="table"><thead><tr><th>Bánh</th><th>Giá</th><th>SL</th><th>Tạm tính</th><th></th></tr></thead><tbody>
+@foreach(var x in Model){<tr><td>@x.TenSP — @x.TenBienThe</td><td>@x.DonGia.ToString("N0") ₫</td><td>@x.SoLuong</td><td>@((x.DonGia*x.SoLuong).ToString("N0")) ₫</td><td><form asp-action="XoaKhoiGio" method="post"><input type="hidden" name="maBienThe" value="@x.MaBienThe"/><button class="btn btn-outline-danger">Xóa</button>@Html.AntiForgeryToken()</form></td></tr>}
+</tbody></table><p>Tạm tính: <strong>@Model.Sum(x=>x.DonGia*x.SoLuong).ToString("N0") ₫</strong></p><a class="btn btn-primary" asp-action="DatHang">Tiếp tục đặt hàng</a>
+}

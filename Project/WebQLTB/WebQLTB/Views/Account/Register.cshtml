@@ -1,0 +1,12 @@
+@{ ViewData["Title"]="Tạo tài khoản"; }
+<h1>Tạo tài khoản khách hàng</h1><div asp-validation-summary="All" class="text-danger"></div>
+<form asp-action="Register" method="post">
+<label>Họ</label><input name="HoKH" class="form-control" required maxlength="30"/>
+<label>Tên</label><input name="TenKH" class="form-control" required maxlength="20"/>
+<label>Tên đăng nhập</label><input name="TenDN" class="form-control" required maxlength="50"/>
+<label>Mật khẩu</label><input name="MatKhau" type="password" class="form-control" required maxlength="50"/>
+<label>Điện thoại</label><input name="DienThoai" class="form-control" maxlength="11"/>
+<label>Email</label><input name="Email" type="email" class="form-control" maxlength="40"/>
+<label>Địa chỉ thường dùng</label><input name="DiaChiThuongDung" class="form-control" maxlength="200"/>
+<button class="btn btn-primary mt-3">Tạo tài khoản</button>@Html.AntiForgeryToken()
+</form>

@@ -1,0 +1,53 @@
+@model IEnumerable<WebQLTB.Models.HinhAnhBanh>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Bánh
+            </th>
+            <th>
+                Link
+            </th>
+            <th>
+                Ảnh đại diện
+            </th>
+            <th>
+                Thứ tự 
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @(ViewBag.TenSP[item.MaSP])
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.DuongDanAnh)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.LaAnhDaiDien)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.ThuTuHienThi)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-maanh="@item.MaAnh">Edit</a> |
+                <a asp-action="Details" asp-route-maanh="@item.MaAnh">Details</a> |
+                <a asp-action="Delete" asp-route-maanh="@item.MaAnh">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

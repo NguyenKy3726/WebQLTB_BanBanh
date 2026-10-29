@@ -1,0 +1,11 @@
+@model DatHangViewModel
+@{ ViewData["Title"]="Xác nhận đặt hàng"; }
+<h1>Thông tin giao hàng</h1><div asp-validation-summary="All" class="text-danger"></div>
+<form asp-action="DatHang" method="post">
+<label asp-for="TenNguoiNhan">Người nhận</label><input asp-for="TenNguoiNhan" class="form-control" required maxlength="80"/>
+<label asp-for="DienThoaiNguoiNhan">Điện thoại</label><input asp-for="DienThoaiNguoiNhan" class="form-control" required maxlength="11"/>
+<label asp-for="DiaChiGiaoHang">Địa chỉ giao hàng</label><input asp-for="DiaChiGiaoHang" class="form-control" required maxlength="300"/>
+<label asp-for="GhiChu">Ghi chú</label><textarea asp-for="GhiChu" class="form-control"></textarea>
+<p>Giá sẽ được xác nhận lại theo giá bán hiện tại. Đơn chỉ được giữ bánh sau khi nhân viên xác nhận.</p>
+<button class="btn btn-primary">Gửi đơn</button>@Html.AntiForgeryToken()
+</form>

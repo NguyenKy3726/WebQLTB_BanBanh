@@ -1,0 +1,12 @@
+@model IEnumerable<SanPham>
+@{ ViewData["Title"]="Cửa hàng bánh"; }
+<h1>Bánh mới làm mỗi ngày</h1>
+<p>Chọn bánh và kích thước phù hợp; hệ thống sẽ xác nhận thời gian giao sau khi nhận đơn.</p>
+<div class="row g-3">
+@foreach(var item in Model) {
+ <div class="col-md-4"><article class="card h-100"><div class="card-body">
+ <h2 class="h5">@item.TenSP</h2><p>@item.MoTaNgan</p>
+ <a class="btn btn-primary" asp-action="Details" asp-route-id="@item.MaSP">Xem bánh</a>
+ </div></article></div>
+}
+</div>

@@ -1,0 +1,96 @@
+@model WebQLTB.Models.ThanhToan
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>ThanhToan</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            Mã đơn hàng
+        </dt>
+        <dd class = "col-sm-10">
+            @Model.MaDonHang
+        </dd>
+  
+        <dt class = "col-sm-2">
+            Mã thanh toán gốc
+        </dt>
+        <dd class = "col-sm-10">
+            @(Model.MaThanhToanGoc ?? "Không có")
+        </dd>
+   
+        <dt class = "col-sm-2">
+            Loại giao dịch
+        </dt>
+        <dd class = "col-sm-10">
+            @ViewBag.TenLoaiGiaoDich[Model.LoaiGiaoDich]
+        </dd>
+ 
+        <dt class = "col-sm-2">
+            Số tiền
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.SoTien)
+        </dd>
+ 
+        <dt class = "col-sm-2">
+            Phương thức thanh toán
+        </dt>
+        <dd class = "col-sm-10">
+            @ViewBag.TenPhuongThuc[Model.PhuongThuc]
+        </dd>
+   
+        <dt class = "col-sm-2">
+            Trạng thái thanh toán
+        </dt>
+        <dd class = "col-sm-10">
+            @ViewBag.TenTrangThaiThanhToan[Model.TrangThaiThanhToan]
+        </dd>
+  
+        <dt class = "col-sm-2">
+            Thời điểm tạo
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.ThoiGianTao)
+        </dd>
+    
+        <dt class = "col-sm-2">
+            Thời điểm xác nhận
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.ThoiGianXacNhan)
+        </dd>
+   
+        <dt class = "col-sm-2">
+            Nhân viên xác nhận
+        </dt>
+        <dd class = "col-sm-10">
+            @(Model.MaNVXacNhan.HasValue
+                ? ViewBag.TenNV[Model.MaNVXacNhan.Value]
+                : "Chưa xác nhận")
+        </dd>
+  
+        <dt class = "col-sm-2">
+            Đường dẫn chứng từ
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DuongDanChungTu)
+        </dd>
+   
+        <dt class = "col-sm-2">
+            Ghi chú
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.GhiChu)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.MaThanhToan">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

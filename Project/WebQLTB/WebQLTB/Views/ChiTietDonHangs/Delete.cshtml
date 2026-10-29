@@ -1,0 +1,95 @@
+@model WebQLTB.Models.ChiTietDonHang
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+<h1>Delete</h1>
+
+<h3>Are you sure you want to delete this?</h3>
+<div>
+    <h4>WebQLTB.Models.ChiTietDonHang</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Số thứ tự
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.STT)
+        </dd>
+
+        <dt class="col-sm-2">
+            Mã đơn hàng
+        </dt>
+        <dd class="col-sm-10">
+            @Model.MaDonHang
+        </dd>
+
+        <dt class="col-sm-2">
+            Biến thể
+        </dt>
+        <dd class="col-sm-10">
+            @ViewBag.TenBienThe[Model.MaBienThe]
+        </dd>
+
+        <dt class="col-sm-2">
+            Số lượng
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.SoLuong)
+        </dd>
+
+        <dt class="col-sm-2">
+            Đơn giá thời điểm đặt
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.DonGiaTaiThoiDiemDat)
+        </dd>
+
+        <dt class="col-sm-2">
+            Số lượng có sẵn đã giữ
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.SoLuongCoSanDaGiu)
+        </dd>
+
+        <dt class="col-sm-2">
+            Số lượng cần làm
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.SoLuongCanLam)
+        </dd>
+
+        <dt class="col-sm-2">
+            Sô lượng đã làm
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.SoLuongDaLam)
+        </dd>
+
+        <dt class="col-sm-2">
+            Ngày dự kiến có hàng
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.NgayDuKienCoHang)
+        </dd>
+
+        <dt class="col-sm-2">
+            Ghi chú
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.GhiChu)
+        </dd>
+    </dl>
+    @if (ViewBag.LoiXoa != null)
+    {
+        <div class="alert alert-danger">
+            @ViewBag.LoiXoa
+        </div>
+    }
+    <form asp-action="Delete">
+        <input type="hidden" asp-for="MaDonHang" />
+        <input type="submit" value="Delete" class="btn btn-danger" /> |
+        <a asp-action="Index">Back to List</a>
+    </form>
+</div>

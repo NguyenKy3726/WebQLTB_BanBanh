@@ -1,0 +1,87 @@
+@model WebQLTB.Models.ChiTietDonHang
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>ChiTietDonHang</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            Số thứ tự
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.STT)
+        </dd>
+  
+        <dt class="col-sm-2">
+            Mã đơn hàng
+        </dt>
+        <dd class="col-sm-10">
+            @Model.MaDonHang
+        </dd>
+
+        <dt class = "col-sm-2">
+            Biến thể
+        </dt>
+        <dd class = "col-sm-10">
+            @ViewBag.TenBienThe[Model.MaBienThe]
+        </dd>
+   
+        <dt class = "col-sm-2">
+            Số lượng
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.SoLuong)
+        </dd>
+   
+        <dt class = "col-sm-2">
+            Đơn giá thời điểm đặt
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DonGiaTaiThoiDiemDat)
+        </dd>
+   
+        <dt class = "col-sm-2">
+            Số lượng có sẵn đã giữ
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.SoLuongCoSanDaGiu)
+        </dd>
+  
+        <dt class = "col-sm-2">
+            Số lượng cần làm
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.SoLuongCanLam)
+        </dd>
+ 
+        <dt class = "col-sm-2">
+            Sô lượng đã làm
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.SoLuongDaLam)
+        </dd>
+   
+        <dt class = "col-sm-2">
+            Ngày dự kiến có hàng
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.NgayDuKienCoHang)
+        </dd>
+  
+        <dt class = "col-sm-2">
+            Ghi chú
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.GhiChu)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.MaDonHang">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

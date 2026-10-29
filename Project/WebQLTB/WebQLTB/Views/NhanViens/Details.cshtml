@@ -1,0 +1,66 @@
+@model WebQLTB.Models.NhanVien
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>NhanVien</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            Họ
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.HoNV)
+        </dd>
+
+        <dt class = "col-sm-2">
+            Tên
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.TenNV)
+        </dd>
+
+        <dt class = "col-sm-2">
+            Điện thoại
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DienThoai)
+        </dd>
+
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Email)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Email)
+        </dd>
+
+        <dt class = "col-sm-2">
+            Tên đăng nhập
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.TenDN)
+        </dd>
+
+        <dt class = "col-sm-2">
+            Mật khẩu
+        </dt>
+        <dd class = "col-sm-10">
+            ...
+        </dd>
+
+        <dt class = "col-sm-2">
+            Avatar
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.AnhNV)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.MaNV">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

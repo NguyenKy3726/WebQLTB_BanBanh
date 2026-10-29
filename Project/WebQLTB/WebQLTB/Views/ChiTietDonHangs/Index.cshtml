@@ -1,0 +1,89 @@
+@model IEnumerable<WebQLTB.Models.ChiTietDonHang>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Số thứ tự
+            </th>
+            <th>
+                Mã đơn hàng
+            </th>
+            <th>
+                Biến thể
+            </th>
+            <th>
+                Số lượng
+            </th>
+            <th>
+                Đơn giá thời điểm đặt
+            </th>
+            <th>
+                Số lượng có sẵn đã giữ
+            </th>
+            <th>
+                Số lượng cần làm
+            </th>
+            <th>
+                Số lượng đã làm
+            </th>
+            <th>
+                Ngày dự kiến có hàng
+            </th>
+            <th>
+                Ghi chú
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(model => item.STT)
+            </td>
+            <td>
+                @item.MaDonHang
+            </td>
+            <td>
+                @ViewBag.TenBienThe[item.MaBienThe]
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.SoLuong)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.DonGiaTaiThoiDiemDat)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.SoLuongCoSanDaGiu)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.SoLuongCanLam)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.SoLuongDaLam)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.NgayDuKienCoHang)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.GhiChu)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-madonhang="@item.MaDonHang" asp-route-stt="@item.STT">Edit</a> |
+                <a asp-action="Details" asp-route-madonhang="@item.MaDonHang" asp-route-stt="@item.STT">Details</a> |
+                <a asp-action="Delete" asp-route-madonhang="@item.MaDonHang" asp-route-stt="@item.STT">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

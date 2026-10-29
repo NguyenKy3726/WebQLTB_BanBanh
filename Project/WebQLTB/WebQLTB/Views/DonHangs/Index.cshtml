@@ -1,0 +1,145 @@
+@model IEnumerable<WebQLTB.Models.DonHang>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Khách hàng
+            </th>
+            <th>
+                Nhân viên xử lý
+            </th>
+            <th>
+                Nhân viên xác nhận
+            </th>
+            <th>
+                Nhân viên hoàn tất
+            </th>
+            <th>
+                Thời điểm đặt
+            </th>
+            <th>
+                Thời điểm xác nhận
+            </th>
+            <th>
+                Thời điển hoàn tất
+            </th>
+            <th>
+                Ngày giao hàng dự kiến
+            </th>
+            <th>
+                Trạng thái đơn hàng
+            </th>
+            <th>
+                Người nhận
+            </th>
+            <th>
+                Điện thoại người nhận
+            </th>
+            <th>
+                Địa chỉ giao hàng
+            </th>
+            <th>
+                Phí giao hàng
+            </th>
+            <th>
+                Giảm giá
+            </th>
+            <th>
+                Tiền cọc
+            </th>
+            <th>
+                Tổng tiền
+            </th>
+            <th>
+                Tổng tiền thanh toán
+            </th>
+            <th>
+                Ghi chú
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @(item.MaKH.HasValue
+                    ? ViewBag.TenKH[item.MaKH.Value]
+                    : "Khách lẻ")
+            </td>
+            <td>
+                @item.MaNVXuLy - @(item.MaNVXuLy.HasValue
+                    ? ViewBag.TenNV[item.MaNVXuLy.Value]
+                    : "Chưa phân công")
+            </td>
+            <td>
+                @item.MaNVHoanTat - @(item.MaNVXacNhan.HasValue
+                    ? ViewBag.TenNV[item.MaNVXacNhan.Value]
+                    : "Chưa xác nhận")
+            </td>
+            <td>
+                @item.MaNVHoanTat - @(item.MaNVHoanTat.HasValue
+                    ? ViewBag.TenNV[item.MaNVHoanTat.Value]
+                    : "Chưa hoàn tất")
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.NgayDat)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.NgayXacNhan)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.NgayHoanTat)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.NgayGiaoDuKien)
+            </td>
+            <td>
+                @ViewBag.TenTrangThaiDonHang[item.TrangThaiDonHang]
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.TenNguoiNhan)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.DienThoaiNguoiNhan)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.DiaChiGiaoHang)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.PhiGiaoHang)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.TienGiamGia)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.TienCocYeuCau)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.TongTienHang)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.TongTienPhaiTra)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.GhiChu)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-madonhang="@item.MaDonHang">Edit</a> |
+                <a asp-action="Details" asp-route-madonhang="@item.MaDonHang">Details</a> |
+                <a asp-action="Delete" asp-route-madonhang="@item.MaDonHang">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

@@ -1,0 +1,88 @@
+@model WebQLTB.Models.SanPham
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>SanPham</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="MaSP" />
+            <div class="form-group">
+                <label asp-for="MaLoaiBanh">Loại bánh</label>
+
+                <select asp-for="MaLoaiBanh"
+                        asp-items="ViewBag.MaLoaiBanh"
+                        class="form-control"
+                        disabled>
+                </select>
+
+                <input type="hidden" asp-for="MaLoaiBanh" />
+
+                <span asp-validation-for="MaLoaiBanh" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Tên sản phẩm</label>
+                <input asp-for="TenSP" class="form-control" />
+                <span asp-validation-for="TenSP" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Mô tả</label>
+                <input asp-for="MoTaNgan" class="form-control" />
+                <span asp-validation-for="MoTaNgan" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Thành phần</label>
+                <input asp-for="MoTaChiTiet" class="form-control" />
+                <span asp-validation-for="MoTaChiTiet" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TrangThaiHienThi">Trạng thái hiển thị</label>
+
+                <select asp-for="TrangThaiHienThi"
+                        asp-items="ViewBag.TrangThaiHienThi"
+                        class="form-control">
+                    <option value="">-- Chọn trạng thái hiển thị --</option>
+                </select>
+
+                <span asp-validation-for="TrangThaiHienThi" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Nhân viên tạo</label>
+                <input asp-for="MaNVTao" class="form-control" />
+                <span asp-validation-for="MaNVTao" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Ngày tạo</label>
+                <input asp-for="NgayTao" class="form-control" />
+                <span asp-validation-for="NgayTao" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Nhân viên cập nhật</label>
+                <input asp-for="MaNVCapNhat" class="form-control" />
+                <span asp-validation-for="MaNVCapNhat" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Ngày cập nhật</label>
+                <input asp-for="NgayCapNhat" class="form-control" />
+                <span asp-validation-for="NgayCapNhat" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -1,0 +1,31 @@
+@model WebQLTB.Models.Quyen
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Quyen</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            Quyền
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.TenQuyen)
+        </dd>
+    
+        <dt class = "col-sm-2">
+            Mô tả
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.MoTa)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.MaQuyen">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

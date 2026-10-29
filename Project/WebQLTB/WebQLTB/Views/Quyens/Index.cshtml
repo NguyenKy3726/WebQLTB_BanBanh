@@ -1,0 +1,41 @@
+@model IEnumerable<WebQLTB.Models.Quyen>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Quyền
+            </th>
+            <th>
+                Mô tả
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(model => item.TenQuyen)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.MoTa)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-maquyen="@item.MaQuyen">Edit</a> |
+                <a asp-action="Details" asp-route-maquyen="@item.MaQuyen">Details</a> |
+                <a asp-action="Delete" asp-route-maquyen="@item.MaQuyen">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

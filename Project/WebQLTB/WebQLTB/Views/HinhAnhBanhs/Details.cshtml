@@ -1,0 +1,45 @@
+@model WebQLTB.Models.HinhAnhBanh
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>HinhAnhBanh</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            Bánh
+        </dt>
+        <dd class = "col-sm-10">
+            @(ViewBag.TenSP[Model.MaSP])
+        </dd>
+
+        <dt class = "col-sm-2">
+            Link
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DuongDanAnh)
+        </dd>
+    
+        <dt class = "col-sm-2">
+            Ảnh đại diện
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.LaAnhDaiDien)
+        </dd>
+ 
+        <dt class = "col-sm-2">
+            Thứ tự
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.ThuTuHienThi)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.MaAnh">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

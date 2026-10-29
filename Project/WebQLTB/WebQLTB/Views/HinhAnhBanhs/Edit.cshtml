@@ -1,0 +1,60 @@
+@model WebQLTB.Models.HinhAnhBanh
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>HinhAnhBanh</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="MaAnh" />
+            <div class="form-group">
+                <label asp-for="MaSP">Bánh</label>
+
+                <select asp-for="MaSP"
+                        asp-items="ViewBag.MaSP"
+                        class="form-control"
+                        disabled>
+                </select>
+
+                <input type="hidden" asp-for="MaSP" />
+
+                <span asp-validation-for="MaSP" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Link</label>
+                <input asp-for="DuongDanAnh" class="form-control" />
+                <span asp-validation-for="DuongDanAnh" class="text-danger"></span>
+            </div>
+            <div class="form-group form-check">
+                <label class="form-check-label">
+                    <input asp-for="LaAnhDaiDien" class="form-check-input" />
+                    Ảnh đại diện
+                </label>
+
+                <span asp-validation-for="LaAnhDaiDien" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label>Thứ tự</label>
+                <input asp-for="ThuTuHienThi" class="form-control" />
+                <span asp-validation-for="ThuTuHienThi" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

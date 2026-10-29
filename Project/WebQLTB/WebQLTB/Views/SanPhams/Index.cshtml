@@ -1,0 +1,85 @@
+@model IEnumerable<WebQLTB.Models.SanPham>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Loại bánh
+            </th>
+            <th>
+                Tên sản phẩm
+            </th>
+            <th>
+                Mô tả
+            </th>
+            <th>
+                Thành phần
+            </th>
+            <th>
+                Trạng thái
+            </th>
+            <th>
+                Nhân viên tạo
+            </th>
+            <th>
+                Ngày tạo
+            </th>
+            <th>
+                Nhân viên cập nhật
+            </th>
+            <th>
+                Ngày cập nhật
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @(ViewBag.TenLoaiBanh[item.MaLoaiBanh])
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.TenSP)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.MoTaNgan)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.MoTaChiTiet)
+            </td>
+            <td>
+                @(ViewBag.TenTrangThaiHienThi[item.TrangThaiHienThi])
+            </td>
+            <td>
+                @(ViewBag.TenNV[item.MaNVTao])
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.NgayTao)
+            </td>
+            <td>
+                @(item.MaNVCapNhat.HasValue
+                    ? ViewBag.TenNV[item.MaNVCapNhat.Value]
+                    : "_")
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.NgayCapNhat)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-masp="@item.MaSP">Edit</a> |
+                <a asp-action="Details" asp-route-masp="@item.MaSP">Details</a> |
+                <a asp-action="Delete" asp-route-masp="@item.MaSP">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

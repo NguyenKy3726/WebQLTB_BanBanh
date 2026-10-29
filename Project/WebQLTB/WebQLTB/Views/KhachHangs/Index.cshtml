@@ -1,0 +1,71 @@
+@model IEnumerable<WebQLTB.Models.KhachHang>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Họ
+            </th>
+            <th>
+                Tên
+            </th>
+            <th>
+                Điện thoại
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Email)
+            </th>
+            <th>
+                Địa chỉ
+            </th>
+            <th>
+                Tên đăng nhập
+            </th>
+            <th>
+                Mật khẩu
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(model => item.HoKH)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.TenKH)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.DienThoai)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.Email)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.DiaChiThuongDung)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.TenDN)
+            </td>
+            <td>
+                ...
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-makh="@item.MaKH">Edit</a> |
+                <a asp-action="Details" asp-route-makh="@item.MaKH">Details</a> |
+                <a asp-action="Delete" asp-route-makh="@item.MaKH">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

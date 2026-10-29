@@ -1,0 +1,6 @@
+@model IEnumerable<DonHang>
+@{ ViewData["Title"]="Đơn của tôi"; }
+<h1>Đơn hàng của tôi</h1>@if(TempData["ThongBao"] is string msg){<div class="alert alert-success">@msg</div>}
+<table class="table"><thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Trạng thái</th><th>Tổng tiền</th></tr></thead><tbody>
+@foreach(var x in Model){<tr><td>@x.MaDonHang</td><td>@x.NgayDat</td><td>@x.TrangThaiDonHang</td><td>@x.TongTienPhaiTra.ToString("N0") ₫</td></tr>}
+</tbody></table>

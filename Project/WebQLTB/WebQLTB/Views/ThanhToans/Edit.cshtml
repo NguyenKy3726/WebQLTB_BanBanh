@@ -1,0 +1,128 @@
+@model WebQLTB.Models.ThanhToan
+
+@{
+    ViewData["Title"] = "Edit";
+}
+@{
+    bool daXuLy = Model.TrangThaiThanhToan == "SUCCESS"
+               || Model.TrangThaiThanhToan == "REJECTED";
+}
+<h1>Edit</h1>
+
+<h4>ThanhToan</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="MaThanhToan" />
+            <div class="form-group">
+                <label asp-for="MaDonHang">Mã đơn hàng</label>
+                <input asp-for="MaDonHang" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label asp-for="MaThanhToanGoc">Mã thanh toán gốc</label>
+                <input asp-for="MaThanhToanGoc" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label>Loại giao dịch</label>
+
+                <input class="form-control"
+                       value="@(Model.LoaiGiaoDich == "PAYMENT" ? "Thu tiền" : "Hoàn tiền")"
+                       readonly />
+
+                <input type="hidden" asp-for="LoaiGiaoDich" />
+            </div>
+            <div class="form-group">
+                <label asp-for="SoTien">Số tiền</label>
+
+                <input asp-for="SoTien"
+                       class="form-control"
+                       readonly="@daXuLy" />
+
+                <span asp-validation-for="SoTien" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PhuongThuc">Phương thức thanh toán</label>
+
+                <select asp-for="PhuongThuc"
+                        asp-items="ViewBag.PhuongThuc"
+                        class="form-control"
+                        disabled="@daXuLy">
+                </select>
+
+                @if (daXuLy)
+                {
+                    <input type="hidden" asp-for="PhuongThuc" />
+                }
+
+                <span asp-validation-for="PhuongThuc" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TrangThaiThanhToan">Trạng thái thanh toán</label>
+
+                <select asp-for="TrangThaiThanhToan"
+                        asp-items="ViewBag.TrangThaiThanhToan"
+                        class="form-control"
+                        disabled="@daXuLy">
+                </select>
+
+                @if (daXuLy)
+                {
+                    <input type="hidden" asp-for="TrangThaiThanhToan" />
+                }
+
+                <span asp-validation-for="TrangThaiThanhToan"
+                      class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ThoiGianTao" class="control-label">Thời điểm tạo</label>
+                <input asp-for="ThoiGianTao" class="form-control" />
+                <span asp-validation-for="ThoiGianTao" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ThoiGianXacNhan" class="control-label">Thời điểm xác nhận</label>
+                <input asp-for="ThoiGianXacNhan" class="form-control" />
+                <span asp-validation-for="ThoiGianXacNhan" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MaNVXacNhan">Nhân viên xác nhận</label>
+
+                <select asp-for="MaNVXacNhan"
+                        asp-items="ViewBag.MaNVXacNhan"
+                        class="form-control"
+                        disabled="@daXuLy">
+                    <option value="">-- Chưa xác nhận --</option>
+                </select>
+
+                @if (daXuLy)
+                {
+                    <input type="hidden" asp-for="MaNVXacNhan" />
+                }
+
+                <span asp-validation-for="MaNVXacNhan" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DuongDanChungTu" class="control-label">Đường dẫn chứng từ</label>
+                <input asp-for="DuongDanChungTu" class="form-control" />
+                <span asp-validation-for="DuongDanChungTu" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="GhiChu" class="control-label">Ghi chú</label>
+                <input asp-for="GhiChu" class="form-control" />
+                <span asp-validation-for="GhiChu" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
