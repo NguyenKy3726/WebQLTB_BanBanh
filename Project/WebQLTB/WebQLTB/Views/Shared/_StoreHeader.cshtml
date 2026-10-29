@@ -1,0 +1,176 @@
+﻿@using System.Text.Json
+@using WebQLTB.Models
+
+@{
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+    var action = ViewContext.RouteData.Values["action"]?.ToString();
+
+    var role = Context.Session.GetString("Role");
+    var displayName = Context.Session.GetString("DisplayName");
+
+    var isCustomer = role == "KhachHang";
+    var isEmployee = role == "NhanVien";
+    var isLoggedIn = isCustomer || isEmployee;
+
+    var isHome = controller == "Home" && action == "Index";
+    var isCatalog = controller == "CuaHang"
+        && (action == "Index" || action == "Details");
+
+    var cartJson = Context.Session.GetString("GioHang") ?? "[]";
+
+    var cart = JsonSerializer.Deserialize<List<GioHangItem>>(cartJson)
+        ?? new List<GioHangItem>();
+
+    var cartCount = cart.Sum(item => item.SoLuong);
+}
+
+<header class="header">
+    <div class="container header__container">
+        <a class="header__brand"
+           asp-controller="Home"
+           asp-action="Index">
+
+            <img class="header__logo"
+                 src="~/assets/images/logo/whiskful-logo.png"
+                 alt="Whiskful — Trang chủ" />
+        </a>
+
+        <nav id="store-navigation"
+             class="header__nav"
+             aria-label="Điều hướng chính">
+
+            <ul class="header__nav-list">
+                <li>
+                    <a class="header__nav-link @(isHome ? "header__nav-link--active" : "")"
+                       asp-controller="Home"
+                       asp-action="Index">
+                        Trang chủ
+                    </a>
+                </li>
+
+                <li>
+                    <a class="header__nav-link @(isCatalog ? "header__nav-link--active" : "")"
+                       asp-controller="CuaHang"
+                       asp-action="Index">
+                        Mua bánh
+                    </a>
+                </li>
+
+                @if (isCustomer)
+                {
+                    <li>
+                        <a class="header__nav-link"
+                           asp-controller="CuaHang"
+                           asp-action="DonDatHang">
+                            Đơn của tôi
+                        </a>
+                    </li>
+                }
+
+                <li class="header__mobile-item">
+                    @if (isLoggedIn)
+                    {
+                        <a class="header__nav-link"
+                           asp-controller="Account"
+                           asp-action="Logout">
+                            Đăng xuất
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="header__nav-link"
+                           asp-controller="Account"
+                           asp-action="Login">
+                            Đăng nhập
+                        </a>
+                    }
+                </li>
+
+                @if (!isLoggedIn)
+                {
+                    <li class="header__mobile-item">
+                        <a class="header__nav-link"
+                           asp-controller="Account"
+                           asp-action="Register">
+                            Đăng ký
+                        </a>
+                    </li>
+                }
+
+                @if (isEmployee)
+                {
+                    var managementController =
+                        Context.Session.GetString("Permission:ADMIN") == "1"
+                            ? "SanPhams"
+                            : "DonHangs";
+
+                    <li>
+                        <a class="header__nav-link"
+                           asp-controller="@managementController"
+                           asp-action="Index">
+                            Quản lý
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+
+        <div class="header__actions">
+            @if (isLoggedIn)
+            {
+                <span class="header__text-link">
+                    @displayName
+                </span>
+
+                <a class="header__text-link"
+                   asp-controller="Account"
+                   asp-action="Logout">
+                    Đăng xuất
+                </a>
+            }
+            else
+            {
+                <a class="header__text-link"
+                   asp-controller="Account"
+                   asp-action="Login">
+                    Đăng nhập
+                </a>
+
+                <a class="header__text-link"
+                   asp-controller="Account"
+                   asp-action="Register">
+                    Đăng ký
+                </a>
+            }
+
+            <a class="header__cart-button"
+               asp-controller="CuaHang"
+               asp-action="GioHang"
+               aria-label="Mở giỏ hàng">
+
+                <span class="header__cart-icon"
+                      aria-hidden="true">🛍</span>
+
+                <span class="header__cart-count">
+                    @cartCount
+                </span>
+            </a>
+
+            <a class="button button--dark"
+               asp-controller="CuaHang"
+               asp-action="Index">
+                Đặt bánh ngay
+            </a>
+
+            <button class="header__burger"
+                    type="button"
+                    aria-label="Mở menu"
+                    aria-controls="store-navigation"
+                    aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </div>
+</header>

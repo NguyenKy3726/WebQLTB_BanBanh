@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] | Whiskful</title>
+
+    <link rel="stylesheet"
+          href="~/css/variables.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/reset.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/common.css"
+          asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
+
+    <link rel="stylesheet"
+          href="~/css/responsive.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/store.css"
+          asp-append-version="true" />
+</head>
+
+<body id="top" class="store">
+    <partial name="_StoreHeader" />
+
+    <main class="store__main">
+        @RenderBody()
+    </main>
+
+    <partial name="_StoreFooter" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <script src="~/js/store.js"
+            asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

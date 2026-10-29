@@ -1,0 +1,65 @@
+﻿@model WebQLTB.Models.ProductCardViewModel
+@using System.Globalization
+
+<article class="product-card" data-category="@Model.TenLoaiBanh" data-price="@Model.GiaThapNhat?.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+    <a class="product-card__media"
+       asp-controller="CuaHang"
+       asp-action="Details"
+       asp-route-id="@Model.MaSP">
+
+        @if (!string.IsNullOrWhiteSpace(Model.DuongDanAnh))
+        {
+            <img class="product-card__image"
+                 src="@Url.Content(Model.DuongDanAnh)"
+                 alt="@Model.TenSP"
+                 loading="lazy" />
+        }
+        else
+        {
+            <span class="product-card__missing-image">
+                Chưa có ảnh bánh
+            </span>
+        }
+
+        <span class="product-card__tag">
+            @Model.TenLoaiBanh
+        </span>
+    </a>
+
+    <div class="product-card__body">
+        <h2 class="product-card__name">
+            <a asp-controller="CuaHang"
+               asp-action="Details"
+               asp-route-id="@Model.MaSP">
+                @Model.TenSP
+            </a>
+        </h2>
+
+        <p class="product-card__description">
+            @Model.MoTaNgan
+        </p>
+
+        <div class="product-card__bottom">
+            @if (Model.GiaThapNhat.HasValue)
+            {
+                <p class="product-card__price">
+                    @if (Model.SoBienTheDangBan > 1)
+                    {
+                        <span class="product-card__price-prefix">
+                            Từ
+                        </span>
+                    }
+
+                    @(Model.GiaThapNhat.Value.ToString(
+                        "N0", CultureInfo.GetCultureInfo("vi-VN")))đ
+                </p>
+            }
+            else
+            {
+                <p class="product-card__price-note">
+                    Tạm ngừng bán
+                </p>
+            }
+        </div>
+    </div>
+</article>

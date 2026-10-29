@@ -1,0 +1,28 @@
+/* Được nạp ở các trang mới; có thể thêm vào index khi làm responsive trang chủ. */
+@media (max-width: 1250px) {
+    .header__container { gap: 16px; }
+    .header__logo { max-width: 180px; }
+    .header__nav-list { gap: 20px; }
+    .header__actions { gap: 16px; }
+    .header__actions > .button { display: none; }
+}
+@media (max-width: 1200px) {
+    .header { height: auto; min-height: 80px; padding: 14px 0; }
+    .header__container { flex-wrap: wrap; }
+    .header__brand { margin-right: auto; }
+    .header__logo { max-width: 160px; }
+    .header__nav { display: none; order: 3; width: 100%; }
+    .header__nav--open { display: block; }
+    .header__nav-list { flex-wrap: wrap; justify-content: center; gap: 16px; }
+    .header__burger { display: flex; flex-direction: column; gap: 5px; justify-content: center; padding: 8px; width: 36px; height: 36px; background: transparent; }
+    .header__burger span { display: block; width: 20px; height: 2px; background: var(--color-primary-dark); }
+    .header__nav-link, .header__text-link { font-size: 10px; letter-spacing: .04em; }
+}
+@media (max-width: 600px) {
+    .container { width: calc(100% - 32px); }
+    .header__container { gap: 10px; }
+    .header__logo { max-width: 125px; }
+    .header__actions { gap: 10px; }
+    .header__actions > .header__text-link:first-child { display: none; }
+    .header__cart-button { width: 32px; }
+}

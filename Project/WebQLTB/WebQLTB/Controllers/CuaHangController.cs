@@ -13,9 +13,57 @@ public class CuaHangController : Controller
 
     public IActionResult Index()
     {
-        var categories = _db.LoaiBanh_DS().ToDictionary(x => x.MaLoaiBanh, x => x.TenLoaiBanh);
+        // Lấy dữ liệu một lần cho mỗi danh sách.
+        var sanPhams = _db.SanPham_DS()
+            .Where(sp => sp.TrangThaiHienThi == "PUBLISHED")
+            .ToList();
+
+        var loaiBanhs = _db.LoaiBanh_DS()
+            .ToDictionary(lb => lb.MaLoaiBanh, lb => lb.TenLoaiBanh);
+
+        var anhTheoSanPham = _db.HinhAnhBanh_DS()
+            .ToLookup(anh => anh.MaSP);
+
+        var bienTheTheoSanPham = _db.BienTheBanh_DS()
+            .Where(bt => bt.TrangThaiBan)
+            .ToLookup(bt => bt.MaSP);
+
+        var danhSach = sanPhams.Select(sp =>
+        {
+            // Ưu tiên ảnh đại diện, sau đó theo thứ tự hiển thị.
+            var anhDaiDien = anhTheoSanPham[sp.MaSP]
+                .OrderByDescending(anh => anh.LaAnhDaiDien)
+                .ThenBy(anh => anh.ThuTuHienThi)
+                .ThenBy(anh => anh.MaAnh)
+                .FirstOrDefault();
+
+            var bienThes = bienTheTheoSanPham[sp.MaSP].ToList();
+
+            return new ProductCardViewModel
+            {
+                MaSP = sp.MaSP,
+                TenSP = sp.TenSP,
+                MoTaNgan = sp.MoTaNgan,
+
+                TenLoaiBanh = loaiBanhs.TryGetValue(
+                    sp.MaLoaiBanh, out var tenLoai)
+                        ? tenLoai
+                        : "Bánh Whiskful",
+
+                DuongDanAnh = anhDaiDien?.DuongDanAnh,
+
+                GiaThapNhat = bienThes.Count > 0
+                    ? bienThes.Min(bt => bt.GiaBan)
+                    : (decimal?)null,
+
+                SoBienTheDangBan = bienThes.Count
+            };
+        }).ToList();
+        var categories = _db.LoaiBanh_DS()
+            .ToDictionary(x => x.MaLoaiBanh, x => x.TenLoaiBanh);
+
         ViewBag.Categories = categories;
-        return View(_db.SanPham_DS().Where(x => x.TrangThaiHienThi == "PUBLISHED").ToList());
+        return View(danhSach);
     }
 
     public IActionResult Details(string id)

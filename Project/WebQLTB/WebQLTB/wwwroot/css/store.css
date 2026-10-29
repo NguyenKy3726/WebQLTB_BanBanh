@@ -1,0 +1,54 @@
+﻿.store {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.store__main {
+    flex: 1;
+    min-width: 0;
+}
+
+.header__logo {
+    height: auto;
+    object-fit: contain;
+}
+
+.header__mobile-item {
+    display: none;
+}
+
+/* Nội dung tạm để kiểm tra khung giao diện */
+.setup-preview {
+    padding-block: 90px;
+    text-align: center;
+}
+
+.setup-preview__title {
+    margin-bottom: 20px;
+    color: var(--color-primary-dark);
+    font-family: var(--font-heading);
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: 500;
+    line-height: 1.1;
+}
+
+.setup-preview__description {
+    max-width: 600px;
+    margin: 0 auto 28px;
+    color: var(--color-text-secondary);
+}
+
+@media (max-width: 1200px) {
+    .header__mobile-item {
+        display: block;
+    }
+
+    .header__nav--open {
+        display: block;
+    }
+
+    .header__nav-list {
+        padding-block: 16px;
+    }
+}

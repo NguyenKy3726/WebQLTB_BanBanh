@@ -1,0 +1,56 @@
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500&display=swap");
+
+:root {
+    /* Màu thương hiệu */
+    --color-primary: #6f3517;
+    --color-primary-light: #8b5e3c;
+    --color-primary-dark: #4b2412;
+
+    /* Màu nhấn */
+    --color-accent: #d6a653;
+    --color-accent-light: #ebc980;
+    --color-accent-dark: #b78430;
+
+    /* Màu nền */
+    --color-background: #f8f0e7;
+    --color-background-secondary: #ead8c7;
+    --color-surface: #fffdf9;
+    --color-white: #ffffff;
+
+    /* Màu chữ */
+    --color-text: #30241e;
+    --color-text-secondary: #7e7068;
+    --color-text-light: #fffaf4;
+
+    /* Đường viền */
+    --color-border: #dcc6b5;
+    --color-border-light: rgba(111, 53, 23, 0.15);
+
+    /* Trạng thái */
+    --color-success: #557153;
+    --color-danger: #a94442;   
+    --color-warning: #d6a653;
+
+    /* Font chữ */
+    --font-heading: "Cormorant Garamond", Georgia, serif;
+    --font-body: "Be Vietnam Pro", Arial, sans-serif;
+
+    /* Kích thước */
+    --container-width: 1440px;
+    --header-height: 96px;
+
+    /* Bo góc */
+    --radius-small: 8px;
+    --radius-medium: 16px;
+    --radius-large: 28px;
+    --radius-pill: 999px;
+
+    /* Đổ bóng */
+    --shadow-small: 0 4px 16px rgba(75, 36, 18, 0.08);
+    --shadow-medium: 0 14px 40px rgba(75, 36, 18, 0.14);
+    --shadow-large: 0 24px 70px rgba(75, 36, 18, 0.2);
+
+    /* Hiệu ứng */
+    --transition-fast: 0.2s ease;
+    --transition-normal: 0.35s ease;
+}

@@ -1,38 +1,217 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Trang chủ";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Chào mừng đến với tiệm bánh của tao</h1>
-    <p>Các chức năng hiện có</p>
-</div>
-<div class="d-flex flex-wrap justify-content-center gap-3">
-    <a asp-controller="NhanViens" asp-action="Index" class="btn btn-outline-primary">Nhân viên</a>
+@section Styles {
+    <link rel="stylesheet"
+          href="~/css/pages/home.css"
+          asp-append-version="true" />
+}
 
-    <a asp-controller="Quyens" asp-action="Index" class="btn btn-outline-primary">Quyền</a>
+<section class="hero">
+    <div class="hero__overlay"></div>
 
-    <a asp-controller="LoaiBanhs" asp-action="Index" class="btn btn-outline-primary">Loại bánh</a>
+    <div class="container hero__container">
 
+        <!-- CỘT 1: NỘI DUNG GIỚI THIỆU -->
+        <div class="hero__content">
+            <p class="hero__eyebrow">
+                BAKING SWEET WISHES
+            </p>
 
+            <h1 class="hero__title">
+                Chiếc bánh dành riêng
+                <em>cho khoảnh khắc của bạn.</em>
+            </h1>
 
-    <a asp-controller="KhachHangs" asp-action="Index" class="btn btn-outline-primary">Khách hàng</a>
+            <p class="hero__description">
+                Những chiếc bánh được làm thủ công từ nguyên liệu
+                chọn lọc, dành riêng cho sinh nhật, lễ kỷ niệm
+                và những ngày đáng nhớ.
+            </p>
 
-    <a asp-controller="PhanQuyens" asp-action="Index" class="btn btn-outline-primary">Phân quyền</a>
+            <div class="hero__buttons">
+                <a class="button button--primary"
+                   asp-controller="CuaHang"
+                   asp-action="Index">
+                    Khám phá các mẫu bánh
+                    <span aria-hidden="true">→</span>
+                </a>
 
+                <a class="button button--outline"
+                   href="#categories">
+                    Câu chuyện Whiskful
+                </a>
+            </div>
 
-    <a asp-controller="SanPhams" asp-action="Index" class="btn btn-outline-primary">Sản phẩm</a>
+            <div class="hero__benefits">
+                <article class="benefit">
+                    <span class="benefit__icon"
+                          aria-hidden="true">♡</span>
 
-    <a asp-controller="HinhAnhBanhs" asp-action="Index" class="btn btn-outline-primary">Hình ảnh bánh</a>
+                    <div>
+                        <h2>Làm bánh thủ công</h2>
+                        <p>Tỉ mỉ trong từng chi tiết</p>
+                    </div>
+                </article>
 
-    <a asp-controller="BienTheBanhs" asp-action="Index" class="btn btn-outline-primary">Size bánh</a>
+                <article class="benefit">
+                    <span class="benefit__icon"
+                          aria-hidden="true">◇</span>
 
+                    <div>
+                        <h2>Nguyên liệu chọn lọc</h2>
+                        <p>Tươi mới và chất lượng</p>
+                    </div>
+                </article>
 
+                <article class="benefit">
+                    <span class="benefit__icon"
+                          aria-hidden="true">⌁</span>
 
-    <a asp-controller="DonHangs" asp-action="Index" class="btn btn-outline-primary">Đơn hàng</a>
+                    <div>
+                        <h2>Giao bánh đúng hẹn</h2>
+                        <p>Trọn vẹn mọi khoảnh khắc</p>
+                    </div>
+                </article>
+            </div>
+        </div>
 
+        <!-- CỘT 2: ẢNH BÁNH -->
+        <div class="hero-product">
+            <div class="hero-product__glow"
+                 aria-hidden="true"></div>
 
+            <img class="hero-product__cake"
+                 src="~/assets/images/banners/hero-cake.png"
+                 alt="Bánh Whiskful nhiều tầng trang trí hoa" />
 
-    <a asp-controller="ChiTietDonHangs" asp-action="Index" class="btn btn-outline-primary">Chi tiết đơn hàng</a>
+            <div class="hero-product__shadow"
+                 aria-hidden="true"></div>
+        </div>
 
-    <a asp-controller="ThanhToans" asp-action="Index" class="btn btn-outline-primary">Thanh toán</a>
-</div>
+        <!-- CỘT 3: ĐẶT BÁNH NHANH -->
+        <aside class="quick-order">
+            <div class="quick-order__heading">
+                <div>
+                    <span class="quick-order__label">
+                        GỢI Ý DÀNH CHO BẠN
+                    </span>
+
+                    <h2>Đặt bánh nhanh</h2>
+                </div>
+
+                <span class="quick-order__decoration"
+                      aria-hidden="true">✦</span>
+            </div>
+
+            <form id="quickOrderForm">
+                <div class="form-field">
+                    <label class="form-field__label"
+                           for="occasion">
+                        Dịp sử dụng
+                    </label>
+
+                    <select class="form-field__control"
+                            id="occasion"
+                            name="occasion">
+                        <option value="">Chọn dịp của bạn</option>
+                        <option value="birthday">Sinh nhật</option>
+                        <option value="anniversary">Kỷ niệm</option>
+                        <option value="wedding">Đám cưới</option>
+                        <option value="event">Sự kiện</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-field__label"
+                           for="flavor">
+                        Hương vị yêu thích
+                    </label>
+
+                    <select class="form-field__control"
+                            id="flavor"
+                            name="flavor">
+                        <option value="">Chọn hương vị</option>
+                        <option value="chocolate">Chocolate</option>
+                        <option value="strawberry">Dâu</option>
+                        <option value="vanilla">Vani</option>
+                        <option value="matcha">Trà xanh</option>
+                        <option value="tiramisu">Tiramisu</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label class="form-field__label"
+                           for="budget">
+                        Khoảng giá
+                    </label>
+
+                    <select class="form-field__control"
+                            id="budget"
+                            name="budget">
+                        <option value="">Chọn khoảng giá</option>
+
+                        <option value="under-300">
+                            Dưới 300.000đ
+                        </option>
+
+                        <option value="300-500">
+                            300.000đ – 500.000đ
+                        </option>
+
+                        <option value="500-1000">
+                            500.000đ – 1.000.000đ
+                        </option>
+
+                        <option value="over-1000">
+                            Trên 1.000.000đ
+                        </option>
+                    </select>
+                </div>
+
+                <button class="button button--primary quick-order__button"
+                        type="button">
+                    Xem bánh phù hợp
+                    <span aria-hidden="true">→</span>
+                </button>
+            </form>
+
+            <div class="custom-cake-link">
+                <span>
+                    Bạn muốn một mẫu bánh riêng?
+                </span>
+
+                <strong>
+                    Gửi yêu cầu
+                    <span aria-hidden="true">→</span>
+                </strong>
+            </div>
+        </aside>
+    </div>
+
+    <a class="scroll-indicator" href="#categories">
+        <span>Cuộn xuống khám phá</span>
+
+        <span class="scroll-indicator__arrow"
+              aria-hidden="true">⌄</span>
+    </a>
+</section>
+
+<section class="categories" id="categories">
+    <div class="container">
+        <p class="section-heading__eyebrow">
+            KHÁM PHÁ WHISKFUL
+        </p>
+
+        <h2 class="section-heading__title">
+            Bánh ngọt cho mọi dịp đặc biệt
+        </h2>
+
+        <p class="categories__description">
+            Whiskful chăm chút từng chiếc bánh, từ nguyên liệu
+            đến cách trang trí, để cùng bạn lưu giữ
+            những khoảnh khắc đáng nhớ.
+        </p>
+    </div>
+</section>
