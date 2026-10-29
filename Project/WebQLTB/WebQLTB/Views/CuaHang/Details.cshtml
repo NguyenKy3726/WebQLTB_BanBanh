@@ -1,10 +1,184 @@
-@model SanPham
-@{ ViewData["Title"]=Model.TenSP; var variants=ViewBag.Variants as List<BienTheBanh> ?? new(); }
-<a asp-action="Index">← Cửa hàng</a><h1>@Model.TenSP</h1><p>@Model.MoTaChiTiet</p>
-@if(variants.Count==0){<p>Sản phẩm hiện chưa có lựa chọn bán.</p>}
-@foreach(var v in variants){<form asp-action="ThemVaoGio" method="post" class="border rounded p-3 mb-2">
- <input type="hidden" name="maBienThe" value="@v.MaBienThe" />
- <strong>@v.TenBienThe</strong> — @v.GiaBan.ToString("N0") ₫ <small>Chuẩn bị khoảng @v.SoNgayChuanBiDuKien ngày</small>
- <label>Số lượng <input type="number" name="soLuong" value="1" min="1" max="50" /></label>
- <button class="btn btn-primary">Thêm vào giỏ</button>@Html.AntiForgeryToken()
-</form>}
+@model WebQLTB.Models.SanPham
+@using System.Globalization
+@using WebQLTB.Models
+@{
+    ViewData["Title"] = Model.TenSP;
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var variants = (ViewBag.Variants as IEnumerable<BienTheBanh> ?? Enumerable.Empty<BienTheBanh>())
+        .Where(v => v.TrangThaiBan).OrderBy(v => v.GiaBan).ThenBy(v => v.MaBienThe).ToList();
+    var images = (ViewBag.Images as IEnumerable<HinhAnhBanh> ?? Enumerable.Empty<HinhAnhBanh>())
+        .Where(a => !string.IsNullOrWhiteSpace(a.DuongDanAnh))
+        .OrderByDescending(a => a.LaAnhDaiDien).ThenBy(a => a.ThuTuHienThi).ThenBy(a => a.MaAnh).ToList();
+    var selected = variants.FirstOrDefault();
+    var firstImage = images.FirstOrDefault();
+    var available = selected == null ? 0 : Math.Max(0, selected.SoLuongThucTe - selected.SoLuongDaGiu);
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/product-detail.css" asp-append-version="true" />
+}
+<article class="cake-detail container" id="cake-detail">
+    <nav class="cake-detail__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span aria-hidden="true">/</span>
+        <a asp-controller="CuaHang" asp-action="Index">Mua bánh</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">@Model.TenSP</span>
+    </nav>
+    <div class="cake-detail__layout">
+        <section class="cake-gallery" aria-label="Hình ảnh bánh">
+            <div class="cake-gallery__stage">
+                @if (firstImage != null)
+                {
+                    <img id="cake-main-image" class="cake-gallery__main"
+                         src="@Url.Content(firstImage.DuongDanAnh)" alt="@Model.TenSP"
+                         decoding="async" fetchpriority="high" />
+                    <button id="cake-zoom-open" class="cake-gallery__zoom" type="button"
+                            aria-label="Phóng to ảnh bánh" aria-haspopup="dialog" hidden>⤢ Xem ảnh lớn</button>
+                }
+                <p id="cake-image-empty" class="cake-gallery__empty" role="status" hidden="@(firstImage != null)">
+                    Hình ảnh bánh đang được cập nhật.
+                </p>
+            </div>
+            @if (images.Count > 1)
+            {
+                <div class="cake-gallery__thumbnails" aria-label="Chọn ảnh bánh">
+                    @for (var i = 0; i < images.Count; i++)
+                    {
+                        <button class="cake-gallery__thumbnail" type="button"
+                                data-image-src="@Url.Content(images[i].DuongDanAnh)"
+                                data-image-alt="@Model.TenSP — ảnh @(i + 1)"
+                                aria-controls="cake-main-image" aria-label="Xem ảnh @(i + 1)"
+                                aria-pressed="@(i == 0 ? "true" : "false")">
+                            <img src="@Url.Content(images[i].DuongDanAnh)" alt="" loading="lazy" />
+                        </button>
+                    }
+                </div>
+            }
+            <p class="cake-gallery__caption">WHISKFUL · BAKING SWEET WISHES</p>
+        </section>
+
+        <section class="cake-detail__content" aria-labelledby="cake-title">
+            <p class="cake-detail__eyebrow">MỘT CHIẾC BÁNH, MỘT NIỀM VUI</p>
+            <h1 class="cake-detail__title" id="cake-title">@Model.TenSP</h1>
+            <p class="cake-detail__code">Mã bánh: @Model.MaSP</p>
+            @if (!string.IsNullOrWhiteSpace(Model.MoTaNgan))
+            {
+                <p class="cake-detail__description">@Model.MoTaNgan</p>
+            }
+
+            @if (selected != null)
+            {
+                <div class="cake-detail__price-block">
+                    <span class="cake-detail__label">Giá lựa chọn hiện tại</span>
+                    <p class="cake-detail__price" id="cake-unit-price" aria-live="polite">@selected.GiaBan.ToString("N0", culture)đ</p>
+                </div>
+                <form id="cake-order-form" asp-controller="CuaHang" asp-action="ThemVaoGio"
+                      method="post" asp-antiforgery="false">
+                    @Html.AntiForgeryToken()
+                    <fieldset class="cake-variants">
+                        <legend>Chọn kích thước / phiên bản</legend>
+                        <div class="cake-variants__options">
+                            @foreach (var variant in variants)
+                            {
+                                <label class="cake-variant">
+                                    <input type="radio" name="maBienThe" value="@variant.MaBienThe"
+                                           required checked="@(variant.MaBienThe == selected.MaBienThe)"
+                                           data-price="@variant.GiaBan.ToString(CultureInfo.InvariantCulture)"
+                                           data-days="@variant.SoNgayChuanBiDuKien"
+                                           data-available="@Math.Max(0, variant.SoLuongThucTe - variant.SoLuongDaGiu)" />
+                                    <span class="cake-variant__body">
+                                        <strong>@variant.TenBienThe</strong>
+                                        <span>@variant.GiaBan.ToString("N0", culture)đ</span>
+                                    </span>
+                                </label>
+                            }
+                        </div>
+                    </fieldset>
+                    <div class="cake-availability" aria-live="polite" aria-atomic="true">
+                        <p id="cake-availability">
+                            @(available > 0 ? $"Tồn khả dụng tham khảo: {available} bánh." : "Nhận đặt trước — nhân viên sẽ xác nhận khả năng đáp ứng.")
+                        </p>
+                        <p id="cake-preparation">
+                            @(selected.SoNgayChuanBiDuKien > 0
+                                ? $"Thời gian chuẩn bị dự kiến: khoảng {selected.SoNgayChuanBiDuKien} ngày."
+                                : "Thời gian nhận bánh sẽ được nhân viên xác nhận.")
+                        </p>
+                    </div>
+                    <div class="cake-detail__purchase">
+                        <div>
+                            <label class="cake-detail__label" for="cake-quantity">Số lượng</label>
+                            <div class="cake-quantity">
+                                <button id="cake-quantity-minus" type="button" aria-label="Giảm số lượng" disabled>−</button>
+                                <input id="cake-quantity" name="soLuong" type="number" min="1" max="50"
+                                       step="1" value="1" required inputmode="numeric" />
+                                <button id="cake-quantity-plus" type="button" aria-label="Tăng số lượng">+</button>
+                            </div>
+                        </div>
+                        <div class="cake-detail__subtotal">
+                            <span class="cake-detail__label">Tạm tính</span>
+                            <strong id="cake-subtotal" aria-live="polite">@selected.GiaBan.ToString("N0", culture)đ</strong>
+                        </div>
+                    </div>
+                    <button class="button button--primary cake-detail__add" id="cake-add-button" type="submit">
+                        Thêm vào giỏ hàng →
+                    </button>
+                    <p class="cake-detail__hint">Tạm tính chưa bao gồm phí giao hàng. Thêm vào giỏ chưa tạo đơn hàng hoặc giữ bánh.</p>
+                    <noscript><p>Bạn vẫn có thể chọn phiên bản, nhập số lượng và thêm giỏ. Bật JavaScript để xem tạm tính, đổi ảnh và dùng nút tăng/giảm.</p></noscript>
+                </form>
+            }
+            else
+            {
+                <div class="cake-detail__unavailable" role="status">
+                    <strong>Bánh hiện chưa có phiên bản đang bán.</strong>
+                    <p>Bạn có thể quay lại bộ sưu tập để xem các mẫu bánh khác.</p>
+                </div>
+            }
+            <a class="cake-detail__back" asp-controller="CuaHang" asp-action="Index">← Tiếp tục khám phá các mẫu bánh</a>
+        </section>
+    </div>
+
+    <section class="cake-information" aria-labelledby="cake-information-title">
+        <h2 id="cake-information-title">Một chút về chiếc bánh</h2>
+        <div class="cake-information__grid">
+            <div class="cake-information__description">
+                @if (!string.IsNullOrWhiteSpace(Model.MoTaChiTiet))
+                {
+                    <p>@Model.MoTaChiTiet</p>
+                }
+                else if (!string.IsNullOrWhiteSpace(Model.MoTaNgan))
+                {
+                    <p>@Model.MoTaNgan</p>
+                }
+                else
+                {
+                    <p>Mô tả chi tiết đang được cập nhật.</p>
+                }
+            </div>
+            <div class="cake-information__notes">
+                <details open>
+                    <summary>Thời gian chuẩn bị</summary>
+                    <p>Thời gian dự kiến được hiển thị theo phiên bản bạn chọn. Nhân viên sẽ xác nhận thời điểm nhận bánh khi xử lý đơn.</p>
+                </details>
+                <details>
+                    <summary>Đặt trước và số lượng</summary>
+                    <p>Bánh chưa có sẵn vẫn có thể được thêm vào giỏ để đặt trước. Số lượng và khả năng đáp ứng cần được cửa hàng xác nhận.</p>
+                </details>
+                <details>
+                    <summary>Yêu cầu trang trí và dị ứng</summary>
+                    <p>Bạn có thể ghi yêu cầu khi đặt hàng. Nếu cần kiểm tra thành phần gây dị ứng hoặc điều chỉnh mẫu bánh, hãy trao đổi với cửa hàng trước khi xác nhận đơn.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+    <dialog class="cake-lightbox" id="cake-lightbox" aria-labelledby="cake-lightbox-title">
+        <div class="cake-lightbox__header">
+            <h2 id="cake-lightbox-title">Ảnh bánh — @Model.TenSP</h2>
+            <button id="cake-zoom-close" type="button" aria-label="Đóng ảnh lớn">×</button>
+        </div>
+        <img id="cake-zoom-image" alt="" />
+    </dialog>
+</article>
+@section Scripts {
+    <script src="~/js/product-detail.js" asp-append-version="true"></script>
+}
+
