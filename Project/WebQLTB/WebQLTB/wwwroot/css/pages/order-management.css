@@ -107,7 +107,7 @@
 .order-cancel-form { display:grid; gap:11px; padding-top:16px; margin-top:17px; border-top:1px solid #efdfd9; }
 .order-cancel-form em { color:#a14f40; font-style:normal; }
 .order-cancel-form textarea { min-height:82px; resize:vertical; }
-.order-total-panel { position:sticky; top:18px; }
+.order-total-panel { position:static; }
 .order-total-panel h2,.order-actions-panel h2 { margin-bottom:16px; }
 .order-total-line { display:flex; justify-content:space-between; gap:14px; padding:10px 0; border-bottom:1px solid #f0e8df; font-size:.88rem; }
 .order-total-line span { color:var(--order-muted); }
@@ -118,7 +118,7 @@
 .order-deposit-note { padding:11px 12px; margin-top:13px; border-radius:10px; background:#f8f2ea; color:#67584c; font-size:.82rem; }
 .order-actions-panel { display:grid; gap:12px; }
 .order-actions-panel .order-admin__eyebrow,.order-actions-panel h2 { margin-bottom:0; }
-.order-actions-panel > form:not(.order-cancel-form) { display:block; }
+.order-actions-panel > form.order-transition-form { display:grid; gap:14px; }
 .order-actions-panel > form:not(.order-cancel-form) .order-button { width:100%; }
 .order-actions-panel .order-transition-form { margin:0; }
 .order-action-hint,.order-closed { padding:12px; border-radius:10px; background:#fff2d9; color:#805c1e; font-size:.84rem; line-height:1.5; }
@@ -165,3 +165,6 @@
     .order-panel { padding:17px; }
     .order-detail-heading { flex-direction:column; align-items:flex-start; }
 }
+
+.order-actions-panel .order-transition-form label { gap:7px; }
+.order-actions-panel .order-transition-form .order-button { margin-top:4px; }

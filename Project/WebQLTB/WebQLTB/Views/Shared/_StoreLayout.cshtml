@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
@@ -28,6 +28,7 @@
     <link rel="stylesheet"
           href="~/css/store.css"
           asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/dropdown.css" asp-append-version="true" />
 </head>
 
 <body id="top" class="store">
@@ -45,5 +46,6 @@
             asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
+    <script src="~/js/components/dropdown.js" asp-append-version="true"></script>
 </body>
 </html>

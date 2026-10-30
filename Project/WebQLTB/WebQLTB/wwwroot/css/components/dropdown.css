@@ -1,0 +1,21 @@
+/* Dùng chung cho select đơn. Thêm data-native-select để dùng menu của hệ điều hành. */
+.wf-select { position:relative; display:block; min-width:0; width:100%; font-family:inherit; }
+.wf-select__native { position:absolute!important; width:1px!important; height:1px!important; margin:0!important; padding:0!important; opacity:0; overflow:hidden; pointer-events:none; }
+.wf-select .wf-select__trigger { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; min-height:46px; padding:12px 15px; border:1px solid #dfc9b4; border-radius:13px; background:#fffaf5; color:#3b2b23; text-align:left; font:inherit; line-height:1.4; cursor:pointer; box-sizing:border-box; }
+.wf-select__text { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.wf-select__trigger::after { content:''; width:8px; height:8px; flex:0 0 8px; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(45deg) translateY(-2px); transition:transform .15s; }
+.wf-select__trigger[aria-expanded=true]::after { transform:rotate(225deg) translate(-2px,-1px); }
+.wf-select .wf-select__trigger:hover { border-color:#bf8d36; }
+.wf-select .wf-select__trigger:focus-visible,.wf-select .wf-select__trigger[aria-expanded=true] { outline:2px solid #dab776; outline-offset:2px; border-color:#bd8731; }
+.wf-select .wf-select__trigger[aria-invalid=true] { border-color:#aa4d40; }
+.wf-select .wf-select__trigger:disabled { opacity:.55; cursor:not-allowed; background:#efe9e2; }
+.wf-select-menu { position:fixed; z-index:30000; box-sizing:border-box; overflow:auto; overscroll-behavior:contain; padding:7px; border:1px solid #e3d1bd; border-radius:14px; background:#fffdfa; color:#3b2b23; box-shadow:0 14px 40px #402c202b; font:inherit; scrollbar-width:thin; scrollbar-color:#d3b890 #fffdfa; }
+.wf-select-menu[hidden] { display:none; }
+.wf-select-option { position:relative; padding:11px 34px 11px 12px; border-radius:9px; cursor:pointer; line-height:1.4; overflow-wrap:anywhere; }
+.wf-select-option.is-active { background:#f4e6d0; }
+.wf-select-option[aria-selected=true] { color:#855d20; font-weight:700; }
+.wf-select-option[aria-selected=true]::after { position:absolute; right:12px; content:'✓'; }
+.wf-select-option[aria-disabled=true] { opacity:.45; cursor:not-allowed; }
+.wf-select-group { padding:8px 12px 4px; color:#8b7865; font-size:.78em; font-weight:700; letter-spacing:.04em; }
+.wf-select-empty { padding:12px; color:#8b7865; }
+@media(prefers-reduced-motion:reduce) { .wf-select__trigger::after { transition:none; } }

@@ -1,61 +1,38 @@
 @model WebQLTB.Models.TaiKhoanViewModel
-@{
-    ViewData["Title"] = "Thông tin tài khoản";
-}
-
+@{ ViewData["Title"] = "Thông tin tài khoản"; }
 @section Styles {
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/profile.css" asp-append-version="true" />
 }
-
-<section class="account-profile container" aria-labelledby="account-title">
-    <header class="account-profile__heading">
-        <p class="account-profile__eyebrow">HỒ SƠ WHISKFUL</p>
-        <h1 id="account-title">Thông tin tài khoản</h1>
-        <p>Thông tin đang được sử dụng trong tài khoản của bạn.</p>
-    </header>
-
-    <div class="account-profile__card">
-        <div class="account-profile__identity">
-            <span class="account-profile__avatar" aria-hidden="true">
-                @(string.IsNullOrWhiteSpace(Model.TenHienThi) ? "W" : Model.TenHienThi.Trim()[0].ToString().ToUpperInvariant())
-            </span>
-            <div>
-                <h2>@Model.TenHienThi</h2>
-                <span>@Model.VaiTro</span>
-            </div>
-        </div>
-
-        <dl class="account-profile__details">
-            <div>
-                <dt>Tên đăng nhập</dt>
-                <dd>@Model.TenDangNhap</dd>
-            </div>
-            <div>
-                <dt>Điện thoại</dt>
-                <dd>@(string.IsNullOrWhiteSpace(Model.DienThoai) ? "Chưa cập nhật" : Model.DienThoai)</dd>
-            </div>
-            <div>
-                <dt>Email</dt>
-                <dd>@(string.IsNullOrWhiteSpace(Model.Email) ? "Chưa cập nhật" : Model.Email)</dd>
-            </div>
-            @if (Model.VaiTro == "Khách hàng")
-            {
-                <div class="account-profile__address">
-                    <dt>Địa chỉ thường dùng</dt>
-                    <dd>@(string.IsNullOrWhiteSpace(Model.DiaChi) ? "Chưa cập nhật" : Model.DiaChi)</dd>
+<section class="profile-page container" aria-labelledby="profile-title">
+    <nav class="profile-breadcrumb"><a asp-controller="Home" asp-action="Index">Trang chủ</a><span>/</span><span>Thông tin tài khoản</span></nav>
+    <header><p class="profile-eyebrow">HỒ SƠ WHISKFUL</p><h1 id="profile-title">Thông tin tài khoản</h1><p>Cập nhật thông tin liên hệ để chúng mình phục vụ bạn tốt hơn.</p></header>
+    @if (TempData["ThongBaoHoSo"] is string message) { <p class="profile-message" role="status">@message</p> }
+    <div class="profile-grid">
+        <aside class="profile-card profile-identity">
+            <span class="profile-avatar" aria-hidden="true">@(string.IsNullOrWhiteSpace(Model.TenHienThi) ? "W" : Model.TenHienThi.Trim()[0].ToString().ToUpperInvariant())</span>
+            <h2>@Model.TenHienThi</h2><span class="profile-role">@Model.VaiTro</span>
+            <dl><dt>Tên đăng nhập</dt><dd>@Model.TenDangNhap</dd></dl>
+            @if (Model.VaiTro == "Khách hàng") {
+                <a asp-controller="CuaHang" asp-action="DonDatHang">Đơn hàng của tôi →</a>
+                <p>Địa chỉ mặc định được dùng để điền trước khi đặt bánh. Việc đổi hồ sơ không thay đổi thông tin của những đơn đã đặt.</p>
+            }
+            <a asp-controller="Home" asp-action="Index">Về trang chủ →</a>
+        </aside>
+        <section class="profile-card" aria-labelledby="profile-edit-title">
+            <p class="profile-eyebrow">THÔNG TIN CÁ NHÂN</p><h2 id="profile-edit-title">Chỉnh sửa hồ sơ</h2>
+            <form asp-action="ThongTin" method="post" class="profile-form">
+                <div asp-validation-summary="All" class="profile-errors" role="alert"></div>
+                <div class="profile-fields">
+                    <label><span>Họ và tên đệm *</span><input asp-for="Ho" autocomplete="family-name" maxlength="30" required /><span asp-validation-for="Ho"></span></label>
+                    <label><span>Tên *</span><input asp-for="Ten" autocomplete="given-name" maxlength="20" required /><span asp-validation-for="Ten"></span></label>
+                    <label><span>Điện thoại</span><input asp-for="DienThoai" type="tel" autocomplete="tel" maxlength="11" /><span asp-validation-for="DienThoai"></span></label>
+                    <label><span>Email</span><input asp-for="Email" type="email" autocomplete="email" maxlength="40" /><span asp-validation-for="Email"></span></label>
+                    @if (Model.VaiTro == "Khách hàng") {
+                        <label class="profile-wide"><span>Địa chỉ mặc định</span><textarea asp-for="DiaChi" autocomplete="street-address" rows="3" maxlength="200" placeholder="Số nhà, đường, phường/xã, tỉnh/thành phố"></textarea><span asp-validation-for="DiaChi"></span></label>
+                    }
                 </div>
-            }
-        </dl>
-
-        <div class="account-profile__actions">
-            @if (Model.VaiTro == "Khách hàng")
-            {
-                <a class="button button--primary" asp-controller="CuaHang" asp-action="DonDatHang">Đơn hàng của tôi</a>
-            }
-            <a class="button button--dark" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
-        </div>
+                <div class="profile-actions"><button type="submit">Lưu thay đổi</button><a asp-action="ThongTin">Hủy chỉnh sửa</a></div>
+            </form>
+        </section>
     </div>
 </section>

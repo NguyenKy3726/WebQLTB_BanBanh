@@ -17,8 +17,8 @@
     var received = ViewBag.DaThu is decimal paid ? paid : 0m;
     var deposit = Model.TienCocYeuCau ?? 0m;
     var depositRemaining = Math.Max(0m, deposit - received);
-    var balanceRemaining = Math.Max(0m, Model.TongTienPhaiTra - received);
     var status = Model.TrangThaiDonHang;
+    var balanceRemaining = status == "DA_HUY" ? 0m : Math.Max(0m, Model.TongTienPhaiTra - received);
     var statusName = states.GetValueOrDefault(status, status);
     var statusClass = status.ToLowerInvariant().Replace('_', '-');
     var isClosed = status is "HOAN_TAT" or "DA_HUY";
@@ -30,7 +30,8 @@
     var depositEntryRemaining = Math.Max(0m, depositRemaining - pendingIncoming);
     var defaultPaymentAmount = status == "CHO_THANH_TOAN_COC" ? depositEntryRemaining : paymentEntryRemaining;
     var customerName = Model.MaKH.HasValue ? customers.GetValueOrDefault(Model.MaKH.Value, "Khách hàng") : "Khách lẻ";
-    var giaoDateDefault = ViewBag.NgayGiaoMacDinh as string ?? DateTime.Now.AddDays(1).ToString("yyyy-MM-ddTHH:mm");
+    var giaoDateDefault = Model.NgayGiaoDuKien?.ToString("yyyy-MM-ddTHH:mm") ?? ViewBag.NgayGiaoMacDinh as string ?? DateTime.Now.AddDays(1).ToString("yyyy-MM-ddTHH:mm");
+    var depositLabel = !Model.TienCocYeuCau.HasValue ? "Chưa thiết lập tiền cọc" : deposit == 0 ? "Không yêu cầu cọc" : depositRemaining == 0 ? "Đã đủ cọc" : $"Còn thiếu {depositRemaining.ToString("N0", culture)} ₫";
 }
 @section Styles { <link rel="stylesheet" href="~/css/pages/order-management.css" asp-append-version="true" /> }
 
@@ -69,6 +70,10 @@
                     <div><dt>Người đặt</dt><dd>@customerName</dd></div><div><dt>Người nhận</dt><dd>@Model.TenNguoiNhan</dd></div>
                     <div><dt>Điện thoại</dt><dd>@Model.DienThoaiNguoiNhan</dd></div><div><dt>Ngày giao dự kiến</dt><dd>@(Model.NgayGiaoDuKien?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa hẹn")</dd></div>
                     <div class="order-info-grid__wide"><dt>Địa chỉ</dt><dd>@Model.DiaChiGiaoHang</dd></div>
+                    <div><dt>Nhân viên xử lý</dt><dd>@(Model.MaNVXuLy.HasValue ? employees.GetValueOrDefault(Model.MaNVXuLy.Value, "Nhân viên") : "Chưa tiếp nhận")</dd></div>
+                    <div><dt>Ngày xác nhận đơn</dt><dd>@(Model.NgayXacNhan?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa xác nhận")</dd></div>
+                    <div><dt>Nhân viên xác nhận</dt><dd>@(Model.MaNVXacNhan.HasValue ? employees.GetValueOrDefault(Model.MaNVXacNhan.Value, "Nhân viên") : "Chưa có")</dd></div>
+                    <div><dt>Hoàn tất</dt><dd>@(Model.NgayHoanTat?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa hoàn tất")</dd></div>
                     <div class="order-info-grid__wide"><dt>Ghi chú</dt><dd>@(string.IsNullOrWhiteSpace(Model.GhiChu) ? "Không có ghi chú" : Model.GhiChu)</dd></div>
                 </dl>
             </section>
@@ -124,7 +129,7 @@
                 {
                     <form asp-action="GhiNhanThanhToan" method="post" class="order-payment-form order-payment-form--refund">
                         <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="LoaiGiaoDich" value="REFUND" />
-                        <h3>Tạo khoản hoàn tiền</h3><p>Backend yêu cầu đơn đã hủy và khoản hoàn phải tham chiếu khoản thu thành công của đơn này.</p>
+                        <h3>Tạo khoản hoàn tiền</h3><p>Chọn khoản thu thành công của đơn này để ghi nhận số tiền cần hoàn.</p>
                         <div class="order-payment-form__fields"><label class="order-payment-form__wide"><span>Khoản thu gốc</span><select name="MaThanhToanGoc" required><option value="">-- Chọn giao dịch thu --</option>@foreach (var payment in successfulPayments) { <option value="@payment.MaThanhToan">@payment.MaThanhToan · @payment.SoTien.ToString("N0", culture) ₫</option> }</select></label><label><span>Số tiền hoàn</span><input name="SoTien" type="number" min="1" step="1000" required /></label><label><span>Phương thức hoàn</span><select name="PhuongThuc"><option value="BANK_TRANSFER">Chuyển khoản</option><option value="CASH">Tiền mặt</option></select></label><label class="order-payment-form__wide"><span>Ghi chú</span><input name="GhiChu" maxlength="500" placeholder="Lý do hoặc mã chứng từ hoàn" /></label></div>
                         <button class="order-button order-button--dark" type="submit">Tạo khoản hoàn chờ xác nhận</button>
                     </form>
@@ -150,7 +155,7 @@
                 <div class="order-total-line order-total-line--grand"><span>Khách cần trả</span><strong>@Model.TongTienPhaiTra.ToString("N0", culture) ₫</strong></div>
                 <div class="order-total-line"><span>Đã thu ròng</span><strong>@received.ToString("N0", culture) ₫</strong></div>
                 <div class="order-total-line order-total-line--due"><span>Còn phải thu</span><strong>@balanceRemaining.ToString("N0", culture) ₫</strong></div>
-                <div class="order-deposit-note">Cọc yêu cầu: <strong>@deposit.ToString("N0", culture) ₫</strong> · @(depositRemaining == 0 ? "Đã đủ cọc" : $"Còn thiếu {depositRemaining.ToString("N0", culture)} ₫")</div>
+                <div class="order-deposit-note">Cọc yêu cầu: <strong>@deposit.ToString("N0", culture) ₫</strong> · @depositLabel</div>
             </section>
 
             <section class="order-panel order-actions-panel" aria-labelledby="actions-title">

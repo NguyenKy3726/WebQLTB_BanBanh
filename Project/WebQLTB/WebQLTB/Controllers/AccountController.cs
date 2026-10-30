@@ -145,7 +145,7 @@ namespace WebQLTB.Controllers
             if (role == "KhachHang")
             {
                 var maKH = HttpContext.Session.GetInt32("MaKH");
-                if (maKH is null || maKH < short.MinValue || maKH > short.MaxValue)
+                if (maKH is null || maKH < 1 || maKH > short.MaxValue)
                     return RedirectToAction(nameof(Login), new { returnUrl = "/Account/ThongTin" });
 
                 var kh = _context.KhachHang_CT((short)maKH.Value);
@@ -157,6 +157,7 @@ namespace WebQLTB.Controllers
 
                 return View(new TaiKhoanViewModel
                 {
+                    Ho = kh.HoKH, Ten = kh.TenKH,
                     TenHienThi = (kh.HoKH + " " + kh.TenKH).Trim(),
                     TenDangNhap = kh.TenDN,
                     VaiTro = "Khách hàng",
@@ -181,6 +182,7 @@ namespace WebQLTB.Controllers
 
                 return View(new TaiKhoanViewModel
                 {
+                    Ho = nv.HoNV, Ten = nv.TenNV,
                     TenHienThi = (nv.HoNV + " " + nv.TenNV).Trim(),
                     TenDangNhap = nv.TenDN,
                     VaiTro = "Nhân viên",
@@ -190,6 +192,65 @@ namespace WebQLTB.Controllers
             }
 
             return RedirectToAction(nameof(Login), new { returnUrl = "/Account/ThongTin" });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ThongTin(TaiKhoanViewModel model)
+        {
+            // Danh tính và vai trò luôn lấy từ phiên đăng nhập, không nhận mã tài khoản từ form.
+            var currentResult = ThongTin();
+            if (currentResult is not ViewResult { Model: TaiKhoanViewModel current })
+                return currentResult;
+
+            model.TenHienThi = current.TenHienThi;
+            model.TenDangNhap = current.TenDangNhap;
+            model.VaiTro = current.VaiTro;
+            model.Ho = model.Ho?.Trim() ?? "";
+            model.Ten = model.Ten?.Trim() ?? "";
+            model.DienThoai = string.IsNullOrWhiteSpace(model.DienThoai) ? null : model.DienThoai.Trim();
+            model.Email = string.IsNullOrWhiteSpace(model.Email) ? null : model.Email.Trim();
+            model.DiaChi = string.IsNullOrWhiteSpace(model.DiaChi) ? null : model.DiaChi.Trim();
+            if (string.IsNullOrWhiteSpace(model.Ho)) ModelState.AddModelError(nameof(model.Ho), "Vui lòng nhập họ.");
+            if (string.IsNullOrWhiteSpace(model.Ten)) ModelState.AddModelError(nameof(model.Ten), "Vui lòng nhập tên.");
+            if (current.VaiTro == "Nhân viên")
+            {
+                if (model.DienThoai == null) ModelState.AddModelError(nameof(model.DienThoai), "Nhân viên cần có số điện thoại.");
+                if (model.Email == null) ModelState.AddModelError(nameof(model.Email), "Nhân viên cần có email.");
+            }
+            if (!ModelState.IsValid) return View(model);
+            try
+            {
+                if (current.VaiTro == "Khách hàng")
+                {
+                    var id = HttpContext.Session.GetInt32("MaKH");
+                    if (id is null || id < 1 || id > short.MaxValue) return Unauthorized();
+                    var kh = _context.KhachHang_CT((short)id.Value);
+                    if (kh == null) return NotFound();
+                    kh.HoKH = model.Ho; kh.TenKH = model.Ten;
+                    kh.DienThoai = model.DienThoai; kh.Email = model.Email;
+                    kh.DiaChiThuongDung = model.DiaChi;
+                    _context.KhachHang_Sua(kh, null);
+                }
+                else
+                {
+                    var id = HttpContext.Session.GetInt32("MaNV");
+                    if (id is null || id < 1 || id > byte.MaxValue) return Unauthorized();
+                    var nv = _context.NhanVien_CT((byte)id.Value);
+                    if (nv == null) return NotFound();
+                    nv.HoNV = model.Ho; nv.TenNV = model.Ten;
+                    nv.DienThoai = model.DienThoai!; nv.Email = model.Email!;
+                    _context.NhanVien_Sua(nv, null);
+                }
+                HttpContext.Session.SetString("DisplayName", $"{model.Ho} {model.Ten}");
+                TempData["ThongBaoHoSo"] = "Đã lưu thông tin tài khoản.";
+                return RedirectToAction(nameof(ThongTin));
+            }
+            catch (Microsoft.Data.SqlClient.SqlException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+                return View(model);
+            }
         }
 
         public IActionResult Logout()

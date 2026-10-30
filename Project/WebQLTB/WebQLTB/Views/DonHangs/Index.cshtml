@@ -9,7 +9,7 @@
     var collected = ViewBag.DaThuTheoDon as Dictionary<string, decimal> ?? new();
     var selectedState = ViewBag.TrangThaiDangChon as string;
     var keyword = ViewBag.TuKhoa as string;
-    var page = (int)(ViewBag.TrangHienTai ?? 1);
+    var currentPage = (int)(ViewBag.TrangHienTai ?? 1);
     var pages = (int)(ViewBag.TongTrang ?? 1);
     var resultCount = (int)(ViewBag.TongDonSauLoc ?? 0);
     var activeCount = counts.Where(x => x.Key is not ("HOAN_TAT" or "DA_HUY")).Sum(x => x.Value);
@@ -71,9 +71,9 @@
         @if (pages > 1)
         {
             <nav class="order-pagination" aria-label="Phân trang">
-                @if (page > 1) { <a asp-action="Index" asp-route-page="@(page - 1)" asp-route-trangThai="@selectedState" asp-route-q="@keyword">← Trước</a> }
-                <span>Trang @(page) / @pages</span>
-                @if (page < pages) { <a asp-action="Index" asp-route-page="@(page + 1)" asp-route-trangThai="@selectedState" asp-route-q="@keyword">Sau →</a> }
+                @if (currentPage > 1) { <a asp-action="Index" asp-route-page="@(currentPage - 1)" asp-route-trangThai="@selectedState" asp-route-q="@keyword">← Trước</a> }
+                <span>Trang @currentPage / @pages</span>
+                @if (currentPage < pages) { <a asp-action="Index" asp-route-page="@(currentPage + 1)" asp-route-trangThai="@selectedState" asp-route-q="@keyword">Sau →</a> }
             </nav>
         }
     }
