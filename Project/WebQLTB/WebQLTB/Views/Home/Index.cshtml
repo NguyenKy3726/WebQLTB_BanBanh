@@ -109,20 +109,18 @@
                       aria-hidden="true">✦</span>
             </div>
 
-            <div class="quick-order__categories" aria-label="Danh mục bánh">
-                @foreach (var category in Model.DanhMuc.Take(5))
-                {
-                    <a class="quick-order__category" asp-controller="CuaHang" asp-action="Index" asp-route-category="@category.Ten">
-                        <span aria-hidden="true">✦</span>@category.Ten<span class="quick-order__category-count">@category.SoMau</span>
-                    </a>
-                }
-                @if (Model.DanhMuc.Count == 0)
-                {
-                    <p class="home-empty">Danh mục bánh đang được cập nhật.</p>
-                }
-            </div>
-
             <form id="quickOrderForm" asp-controller="CuaHang" asp-action="Index" asp-fragment="catalog-results" method="get">
+                <div class="form-field">
+                    <label class="form-field__label" for="category">Loại bánh</label>
+                    <select class="form-field__control" id="category" name="category">
+                        <option value="">Chọn loại bánh</option>
+                        @foreach (var category in Model.DanhMuc.Take(5))
+                        {
+                            <option value="@category.Ten">@category.Ten</option>
+                        }
+                    </select>
+                </div>
+
                 <div class="form-field">
                     <label class="form-field__label"
                            for="budget">
