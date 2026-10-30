@@ -34,14 +34,10 @@
                         }
                         else if (Context.Session.GetString("Role") == "NhanVien")
                         {
-                            @if (Context.Session.GetString("Permission:ADMIN") == "1" || Context.Session.GetString("Permission:SALES") == "1")
+                            @if (Context.Session.GetString("Permission:ADMIN") == "1"
+                                || Context.Session.GetString("Permission:SALES") == "1")
                             {
-                                <li class="nav-item"><a class="nav-link" asp-controller="DonHangs" asp-action="Index">Quản lý đơn</a></li>
-                            }
-                            @if (Context.Session.GetString("Permission:ADMIN") == "1")
-                            {
-                                <li class="nav-item"><a class="nav-link" asp-controller="NhanViens" asp-action="Index">Nhân viên</a></li>
-                                <li class="nav-item"><a class="nav-link" asp-controller="PhanQuyens" asp-action="Index">Phân quyền</a></li>
+                                <li class="nav-item"><a class="nav-link" asp-controller="QuanLy" asp-action="Index">Bảng điều hướng quản lý</a></li>
                             }
                             <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Logout">Đăng xuất</a></li>
                         }

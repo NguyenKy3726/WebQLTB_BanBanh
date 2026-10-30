@@ -1,0 +1,124 @@
+@model WebQLTB.Models.QuanLyViewModel
+@{
+    ViewData["Title"] = "Điều hướng quản lý";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/management.css" asp-append-version="true" />
+}
+
+<section class="management-page container" aria-labelledby="management-title">
+    <nav class="management-page__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Quản lý</span>
+    </nav>
+
+    <header class="management-page__heading">
+        <p class="management-page__eyebrow">WHISKFUL · KHU VỰC NHÂN VIÊN</p>
+        <h1 id="management-title">Điều hướng quản lý</h1>
+        <p>Xin chào, <strong>@Model.TenNhanVien</strong>. Các chức năng dưới đây được hiển thị theo quyền tài khoản của bạn.</p>
+    </header>
+
+    @if (Model.CoQuyenSales)
+    {
+        <section class="management-section" aria-labelledby="sales-title">
+            <header class="management-section__heading">
+                <div>
+                    <span class="management-section__eyebrow">VẬN HÀNH CỬA HÀNG</span>
+                    <h2 id="sales-title">Đơn hàng & khách hàng</h2>
+                </div>
+                <span class="management-section__badge">SALES</span>
+            </header>
+
+            <div class="management-grid">
+                <a class="management-card" asp-controller="DonHangs" asp-action="Index">
+                    <span class="management-card__icon" aria-hidden="true">▤</span>
+                    <span class="management-card__title">Đơn hàng</span>
+                    <span class="management-card__description">Xem đơn, cập nhật trạng thái và theo dõi tiến độ xử lý.</span>
+                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
+                </a>
+                <a class="management-card" asp-controller="ChiTietDonHangs" asp-action="Index">
+                    <span class="management-card__icon" aria-hidden="true">▧</span>
+                    <span class="management-card__title">Chi tiết đơn hàng</span>
+                    <span class="management-card__description">Tra cứu các dòng bánh, số lượng và ghi chú trong đơn.</span>
+                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
+                </a>
+                <a class="management-card" asp-controller="ThanhToans" asp-action="Index">
+                    <span class="management-card__icon" aria-hidden="true">₫</span>
+                    <span class="management-card__title">Thanh toán</span>
+                    <span class="management-card__description">Theo dõi giao dịch thu tiền, tiền cọc và hoàn tiền.</span>
+                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
+                </a>
+                <a class="management-card" asp-controller="KhachHangs" asp-action="Index">
+                    <span class="management-card__icon" aria-hidden="true">♙</span>
+                    <span class="management-card__title">Khách hàng</span>
+                    <span class="management-card__description">Tra cứu tài khoản và thông tin liên hệ của khách hàng.</span>
+                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
+                </a>
+            </div>
+        </section>
+    }
+
+    @if (Model.CoQuyenAdmin)
+    {
+        <section class="management-section" aria-labelledby="admin-title">
+            <header class="management-section__heading">
+                <div>
+                    <span class="management-section__eyebrow">CẤU HÌNH HỆ THỐNG</span>
+                    <h2 id="admin-title">Sản phẩm & tài khoản</h2>
+                </div>
+                <span class="management-section__badge management-section__badge--admin">ADMIN</span>
+            </header>
+
+            <div class="management-grid">
+                <a class="management-card" asp-controller="SanPhams" asp-action="Index">
+                    <span class="management-card__icon" aria-hidden="true">♧</span>
+                    <span class="management-card__title">Sản phẩm bánh</span>
+                    <span class="management-card__description">Tạo, cập nhật và quản lý trạng thái hiển thị mẫu bánh.</span>
+                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
+                </a>
+                <a class="management-card" asp-controller="LoaiBanhs" asp-action="Index">
+                    <span class="management-card__icon" aria-hidden="true">▦</span>
+                    <span class="management-card__title">Loại bánh</span>
+                    <span class="management-card__description">Quản lý danh mục phân loại các mẫu bánh.</span>
+                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
+                </a>
+                <a class="management-card" asp-controller="BienTheBanhs" asp-action="Index">
+                    <span class="management-card__icon" aria-hidden="true">◫</span>
+                    <span class="management-card__title">Phiên bản bánh</span>
+                    <span class="management-card__description">Quản lý kích thước, giá bán và trạng thái từng phiên bản.</span>
+                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
+                </a>
+                <a class="management-card" asp-controller="HinhAnhBanhs" asp-action="Index">
+                    <span class="management-card__icon" aria-hidden="true">▣</span>
+                    <span class="management-card__title">Hình ảnh bánh</span>
+                    <span class="management-card__description">Thêm, sắp xếp và chọn ảnh đại diện cho sản phẩm.</span>
+                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
+                </a>
+                <a class="management-card" asp-controller="NhanViens" asp-action="Index">
+                    <span class="management-card__icon" aria-hidden="true">♙</span>
+                    <span class="management-card__title">Nhân viên</span>
+                    <span class="management-card__description">Quản lý tài khoản và thông tin nhân viên.</span>
+                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
+                </a>
+                <a class="management-card" asp-controller="Quyens" asp-action="Index">
+                    <span class="management-card__icon" aria-hidden="true">⚿</span>
+                    <span class="management-card__title">Nhóm quyền</span>
+                    <span class="management-card__description">Xem và quản lý các nhóm quyền ADMIN, SALES.</span>
+                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
+                </a>
+                <a class="management-card" asp-controller="PhanQuyens" asp-action="Index">
+                    <span class="management-card__icon" aria-hidden="true">☷</span>
+                    <span class="management-card__title">Phân quyền nhân viên</span>
+                    <span class="management-card__description">Gán hoặc thu hồi nhóm quyền cho nhân viên.</span>
+                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
+                </a>
+            </div>
+        </section>
+    }
+
+    <div class="management-page__footer">
+        <a asp-controller="Home" asp-action="Index">← Quay lại trang chủ</a>
+    </div>
+</section>

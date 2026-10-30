@@ -45,8 +45,12 @@
 
                 @if (isEmployee)
                 {
-                    var managementController = Context.Session.GetString("Permission:ADMIN") == "1" ? "SanPhams" : "DonHangs";
-                    <li><a class="header__nav-link" asp-controller="@managementController" asp-action="Index">Quản lý</a></li>
+                    var hasAdmin = Context.Session.GetString("Permission:ADMIN") == "1";
+                    var hasSales = Context.Session.GetString("Permission:SALES") == "1";
+                    if (hasAdmin || hasSales)
+                    {
+                        <li><a class="header__nav-link @(controller == "QuanLy" ? "header__nav-link--active" : "")" asp-controller="QuanLy" asp-action="Index">Quản lý</a></li>
+                    }
                 }
             </ul>
         </nav>
