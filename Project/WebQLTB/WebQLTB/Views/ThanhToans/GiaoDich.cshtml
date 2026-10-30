@@ -1,0 +1,98 @@
+@model IEnumerable<WebQLTB.Models.ThanhToan>
+
+@{
+    ViewData["Title"] = "Giao dịch thanh toán";
+}
+
+<h1>Giao dịch thanh toán</h1>
+<p><a asp-action="Index">← Quay lại báo cáo doanh thu</a></p>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Mã đơn hàng
+            </th>
+            <th>
+                Mã thanh toán gốc
+            </th>
+            <th>
+                Loại giao dịch
+            </th>
+            <th>
+                Số tiền
+            </th>
+            <th>
+                Phương thức
+            </th>
+            <th>
+                Trạng thái thanh toán
+            </th>
+            <th>
+                Thời điểm tạo
+            </th>
+            <th>
+                Thời điểm xác nhận
+            </th>
+            <th>
+                Mã nhân viên xác nhận
+            </th>
+            <th>
+                Đường dẫn chứng từ
+            </th>
+            <th>
+                Ghi chú
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @item.MaDonHang
+            </td>
+            <td>
+                @(item.MaThanhToanGoc ?? "Không có")
+            </td>
+            <td>
+                @ViewBag.TenLoaiGiaoDich[item.LoaiGiaoDich]
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.SoTien)
+            </td>
+            <td>
+                @ViewBag.TenPhuongThuc[item.PhuongThuc]
+            </td>
+            <td>
+                @ViewBag.TenTrangThaiThanhToan[item.TrangThaiThanhToan]
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.ThoiGianTao)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.ThoiGianXacNhan)
+            </td>
+            <td>
+                @(item.MaNVXacNhan.HasValue
+                    ? ViewBag.TenNV[item.MaNVXacNhan.Value]
+                    : "Chưa xác nhận")
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.DuongDanChungTu)
+            </td>
+            <td>
+                @Html.DisplayFor(model => item.GhiChu)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-mathanhtoan="@item.MaThanhToan">Edit</a> |
+                <a asp-action="Details" asp-route-mathanhtoan="@item.MaThanhToan">Details</a> |
+                <a asp-action="Delete" asp-route-mathanhtoan="@item.MaThanhToan">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

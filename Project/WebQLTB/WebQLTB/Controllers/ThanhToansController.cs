@@ -17,29 +17,103 @@ public class ThanhToansController : Controller
         _context = context;
     }
 
-    // GET: THANHTOANS
-    public async Task<IActionResult> Index()    
+    // GET: THANHTOANS — báo cáo doanh thu
+    public IActionResult Index(int? thang, int? nam)
+    {
+        var giaoDich = _context.ThanhToan_DS();
+        var homNay = DateTime.Today;
+        var thangChon = thang is >= 1 and <= 12 ? thang.Value : homNay.Month;
+        var cacNam = giaoDich
+            .Select(x => (x.ThoiGianXacNhan ?? x.ThoiGianTao).Year)
+            .Append(homNay.Year)
+            .Distinct()
+            .OrderByDescending(x => x)
+            .ToList();
+        var namChon = nam.HasValue && cacNam.Contains(nam.Value) ? nam.Value : homNay.Year;
+        var batDau = new DateTime(namChon, thangChon, 1);
+        var ketThuc = batDau.AddMonths(1);
+        var trongThang = giaoDich
+            .Where(x =>
+            {
+                var ngayGiaoDich = x.ThoiGianXacNhan ?? x.ThoiGianTao;
+                return ngayGiaoDich >= batDau && ngayGiaoDich < ketThuc;
+            })
+            .ToList();
+        var thanhCong = trongThang.Where(x => x.TrangThaiThanhToan == "SUCCESS").ToList();
+        var thuTien = thanhCong.Where(x => x.LoaiGiaoDich == "PAYMENT").ToList();
+        var hoanTien = thanhCong.Where(x => x.LoaiGiaoDich == "REFUND").ToList();
+        var soNgay = DateTime.DaysInMonth(namChon, thangChon);
+        var theoNgay = Enumerable.Range(1, soNgay).Select(ngay =>
+        {
+            var ngayBaoCao = new DateTime(namChon, thangChon, ngay);
+            var thuTrongNgay = thuTien
+                .Where(x => x.ThoiGianXacNhan?.Date == ngayBaoCao.Date)
+                .Sum(x => x.SoTien);
+            var hoanTrongNgay = hoanTien
+                .Where(x => x.ThoiGianXacNhan?.Date == ngayBaoCao.Date)
+                .Sum(x => x.SoTien);
+            return new DoanhThuTheoNgayViewModel
+            {
+                Ngay = ngayBaoCao,
+                TienThu = thuTrongNgay,
+                TienHoan = hoanTrongNgay,
+                DoanhThuThuan = thuTrongNgay - hoanTrongNgay
+            };
+        }).ToList();
+        var mucThuCaoNhat = theoNgay.Max(x => x.TienThu);
+        foreach (var ngay in theoNgay)
+        {
+            ngay.ChieuCaoCot = mucThuCaoNhat <= 0 || ngay.TienThu <= 0
+                ? 0
+                : Math.Max(4, (int)Math.Round(ngay.TienThu / mucThuCaoNhat * 100));
+        }
+
+        var model = new BaoCaoDoanhThuViewModel
+        {
+            Thang = thangChon,
+            Nam = namChon,
+            CacNam = cacNam,
+            TongTienThu = thuTien.Sum(x => x.SoTien),
+            TongTienHoan = hoanTien.Sum(x => x.SoTien),
+            DoanhThuThuan = thuTien.Sum(x => x.SoTien) - hoanTien.Sum(x => x.SoTien),
+            SoGiaoDichThu = thuTien.Count,
+            SoGiaoDichHoan = hoanTien.Count,
+            SoDonHangCoThanhToan = thuTien.Select(x => x.MaDonHang).Distinct().Count(),
+            TheoNgay = theoNgay,
+            GiaoDich = trongThang.OrderByDescending(x => x.ThoiGianXacNhan ?? x.ThoiGianTao)
+                .Take(40)
+                .Select(x => new BaoCaoGiaoDichViewModel
+                {
+                    MaThanhToan = x.MaThanhToan,
+                    MaDonHang = x.MaDonHang,
+                    LoaiGiaoDich = x.LoaiGiaoDich,
+                    SoTien = x.SoTien,
+                    PhuongThuc = x.PhuongThuc,
+                    TrangThai = x.TrangThaiThanhToan,
+                    ThoiGian = x.ThoiGianXacNhan ?? x.ThoiGianTao
+                })
+                .ToList()
+        };
+
+        return View(model);
+    }
+
+    // Bảng nghiệp vụ vẫn sẵn dùng khi cần đối chiếu hoặc cập nhật giao dịch.
+    public IActionResult GiaoDich()
     {
         ViewBag.TenNV = _context.NhanVien_DS()
             .ToDictionary(nv => nv.MaNV, nv => nv.HoNV + " " + nv.TenNV);
-
         ViewBag.TenLoaiGiaoDich = new Dictionary<string, string>
         {
-            { "PAYMENT", "Thu tiền" },
-            { "REFUND", "Hoàn tiền" }
+            { "PAYMENT", "Thu tiền" }, { "REFUND", "Hoàn tiền" }
         };
-
         ViewBag.TenPhuongThuc = new Dictionary<string, string>
         {
-            { "CASH", "Tiền mặt" },
-            { "BANK_TRANSFER", "Chuyển khoản" }
+            { "CASH", "Tiền mặt" }, { "BANK_TRANSFER", "Chuyển khoản" }
         };
-
         ViewBag.TenTrangThaiThanhToan = new Dictionary<string, string>
         {
-            { "PENDING", "Chờ xác nhận" },
-            { "SUCCESS", "Thành công" },
-            { "REJECTED", "Đã từ chối" }
+            { "PENDING", "Chờ xác nhận" }, { "SUCCESS", "Thành công" }, { "REJECTED", "Đã từ chối" }
         };
         return View(_context.ThanhToan_DS());
     }

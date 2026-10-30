@@ -1,97 +1,151 @@
-@model IEnumerable<WebQLTB.Models.ThanhToan>
-
+@model WebQLTB.Models.BaoCaoDoanhThuViewModel
+@using System.Globalization
 @{
-    ViewData["Title"] = "Index";
+    Layout = "_StoreLayout";
+    ViewData["Title"] = "Báo cáo doanh thu";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var tenThang = culture.DateTimeFormat.GetMonthName(Model.Thang);
+    var tenLoai = new Dictionary<string, string> { ["PAYMENT"] = "Thu tiền", ["REFUND"] = "Hoàn tiền" };
+    var tenPhuongThuc = new Dictionary<string, string> { ["CASH"] = "Tiền mặt", ["BANK_TRANSFER"] = "Chuyển khoản" };
+    var tenTrangThai = new Dictionary<string, string> { ["SUCCESS"] = "Thành công", ["PENDING"] = "Chờ xác nhận", ["REJECTED"] = "Đã từ chối" };
 }
 
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Mã đơn hàng
-            </th>
-            <th>
-                Mã thanh toán gốc
-            </th>
-            <th>
-                Loại giao dịch
-            </th>
-            <th>
-                Số tiền
-            </th>
-            <th>
-                Phương thức
-            </th>
-            <th>
-                Trạng thái thanh toán
-            </th>
-            <th>
-                Thời điểm tạo
-            </th>
-            <th>
-                Thời điểm xác nhận
-            </th>
-            <th>
-                Mã nhân viên xác nhận
-            </th>
-            <th>
-                Đường dẫn chứng từ
-            </th>
-            <th>
-                Ghi chú
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @item.MaDonHang
-            </td>
-            <td>
-                @(item.MaThanhToanGoc ?? "Không có")
-            </td>
-            <td>
-                @ViewBag.TenLoaiGiaoDich[item.LoaiGiaoDich]
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.SoTien)
-            </td>
-            <td>
-                @ViewBag.TenPhuongThuc[item.PhuongThuc]
-            </td>
-            <td>
-                @ViewBag.TenTrangThaiThanhToan[item.TrangThaiThanhToan]
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.ThoiGianTao)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.ThoiGianXacNhan)
-            </td>
-            <td>
-                @(item.MaNVXacNhan.HasValue
-                    ? ViewBag.TenNV[item.MaNVXacNhan.Value]
-                    : "Chưa xác nhận")
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.DuongDanChungTu)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.GhiChu)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-mathanhtoan="@item.MaThanhToan">Edit</a> |
-                <a asp-action="Details" asp-route-mathanhtoan="@item.MaThanhToan">Details</a> |
-                <a asp-action="Delete" asp-route-mathanhtoan="@item.MaThanhToan">Delete</a>
-            </td>
-        </tr>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/revenue-report.css" asp-append-version="true" />
 }
-    </tbody>
-</table>
+
+<section class="revenue-report container" aria-labelledby="revenue-title">
+    <nav class="revenue-report__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span aria-hidden="true">/</span>
+        <a asp-controller="QuanLy" asp-action="Index">Quản lý</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Báo cáo doanh thu</span>
+    </nav>
+
+    <header class="revenue-report__heading">
+        <div>
+            <p class="revenue-report__eyebrow">WHISKFUL · BÁO CÁO CỬA HÀNG</p>
+            <h1 id="revenue-title">Doanh thu <span>@tenThang @Model.Nam</span></h1>
+            <p>Tổng hợp các khoản thu và hoàn tiền đã xác nhận trong kỳ.</p>
+        </div>
+        <a class="revenue-report__secondary-link" asp-action="GiaoDich">Danh sách giao dịch <span aria-hidden="true">→</span></a>
+    </header>
+
+    <form class="revenue-filter" method="get" asp-controller="ThanhToans" asp-action="Index" aria-label="Lọc báo cáo doanh thu">
+        <div class="revenue-filter__field">
+            <label for="report-month">Tháng</label>
+            <select id="report-month" name="thang">
+                @for (var month = 1; month <= 12; month++)
+                {
+                    <option value="@month" selected="@(month == Model.Thang)">Tháng @month</option>
+                }
+            </select>
+        </div>
+        <div class="revenue-filter__field">
+            <label for="report-year">Năm</label>
+            <select id="report-year" name="nam">
+                @foreach (var year in Model.CacNam)
+                {
+                    <option value="@year" selected="@(year == Model.Nam)">@year</option>
+                }
+            </select>
+        </div>
+        <button class="revenue-filter__submit" type="submit">Xem báo cáo <span aria-hidden="true">→</span></button>
+    </form>
+
+    <section class="revenue-kpis" aria-label="Tổng quan doanh thu tháng">
+        <article class="revenue-kpi revenue-kpi--primary">
+            <span class="revenue-kpi__label">DOANH THU THUẦN</span>
+            <strong>@Model.DoanhThuThuan.ToString("N0", culture) ₫</strong>
+            <span class="revenue-kpi__hint">Tiền thu trừ tiền hoàn thành công</span>
+        </article>
+        <article class="revenue-kpi">
+            <span class="revenue-kpi__label">ĐÃ THU</span>
+            <strong>@Model.TongTienThu.ToString("N0", culture) ₫</strong>
+            <span class="revenue-kpi__hint">@Model.SoGiaoDichThu giao dịch thu thành công</span>
+        </article>
+        <article class="revenue-kpi">
+            <span class="revenue-kpi__label">ĐÃ HOÀN</span>
+            <strong>@Model.TongTienHoan.ToString("N0", culture) ₫</strong>
+            <span class="revenue-kpi__hint">@Model.SoGiaoDichHoan giao dịch hoàn thành công</span>
+        </article>
+        <article class="revenue-kpi">
+            <span class="revenue-kpi__label">ĐƠN CÓ THANH TOÁN</span>
+            <strong>@Model.SoDonHangCoThanhToan</strong>
+            <span class="revenue-kpi__hint">Đơn có ít nhất một khoản thu thành công</span>
+        </article>
+    </section>
+
+    <section class="revenue-panel" aria-labelledby="revenue-chart-title">
+        <div class="revenue-panel__heading">
+            <div>
+                <p class="revenue-report__eyebrow">DIỄN BIẾN TRONG THÁNG</p>
+                <h2 id="revenue-chart-title">Tiền thu theo ngày</h2>
+            </div>
+            <span class="revenue-chart__legend"><i aria-hidden="true"></i> Giao dịch thu thành công</span>
+        </div>
+        @if (Model.TongTienThu > 0)
+        {
+            <div class="revenue-chart-scroll" role="region" aria-label="Biểu đồ tiền thu từng ngày, có thể cuộn ngang">
+                <ol class="revenue-chart">
+                    @foreach (var day in Model.TheoNgay)
+                    {
+                        var title = $"Ngày {day.Ngay.Day}: {day.TienThu.ToString("N0", culture)} đồng";
+                        <li class="revenue-chart__day" title="@title" aria-label="@title">
+                            <span class="revenue-chart__bar" style="height: @(day.ChieuCaoCot)%"></span>
+                            <span class="revenue-chart__label">@day.Ngay.Day</span>
+                        </li>
+                    }
+                </ol>
+            </div>
+        }
+        else
+        {
+            <div class="revenue-chart__empty">Chưa có giao dịch thu thành công trong tháng này.</div>
+        }
+        <p class="revenue-panel__note">Biểu đồ tính các khoản thu đã xác nhận. Tiền hoàn được trừ trong chỉ số doanh thu thuần.</p>
+    </section>
+
+    <section class="revenue-panel revenue-transactions" aria-labelledby="revenue-transactions-title">
+        <div class="revenue-panel__heading">
+            <div>
+                <p class="revenue-report__eyebrow">ĐỐI CHIẾU SỔ THU</p>
+                <h2 id="revenue-transactions-title">Giao dịch trong kỳ</h2>
+            </div>
+            <span class="revenue-transactions__count">@Model.GiaoDich.Count giao dịch gần nhất</span>
+        </div>
+        @if (Model.GiaoDich.Count == 0)
+        {
+            <div class="revenue-table__empty">Không có giao dịch trong khoảng thời gian đã chọn.</div>
+        }
+        else
+        {
+            <div class="revenue-table-wrap">
+                <table class="revenue-table">
+                    <thead>
+                        <tr><th>Thời gian</th><th>Mã đơn</th><th>Loại giao dịch</th><th>Phương thức</th><th>Trạng thái</th><th class="revenue-table__amount">Số tiền</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var transaction in Model.GiaoDich)
+                        {
+                            var isRefund = transaction.LoaiGiaoDich == "REFUND";
+                            <tr>
+                                <td data-label="Thời gian">@transaction.ThoiGian.ToString("dd/MM/yyyy HH:mm", culture)</td>
+                                <td data-label="Mã đơn"><a asp-action="Details" asp-route-mathanhtoan="@transaction.MaThanhToan">@transaction.MaDonHang</a></td>
+                                <td data-label="Loại giao dịch"><span class="revenue-type @(isRefund ? "revenue-type--refund" : "")">@(tenLoai.GetValueOrDefault(transaction.LoaiGiaoDich, transaction.LoaiGiaoDich))</span></td>
+                                <td data-label="Phương thức">@tenPhuongThuc.GetValueOrDefault(transaction.PhuongThuc, transaction.PhuongThuc)</td>
+                                <td data-label="Trạng thái"><span class="revenue-status revenue-status--@transaction.TrangThai.ToLowerInvariant()">@tenTrangThai.GetValueOrDefault(transaction.TrangThai, transaction.TrangThai)</span></td>
+                                <td data-label="Số tiền" class="revenue-table__amount @(isRefund ? "revenue-table__amount--refund" : "")">@(isRefund ? "−" : "+")@transaction.SoTien.ToString("N0", culture) ₫</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        @if (Model.GiaoDich.Count >= 40)
+        {
+            <p class="revenue-panel__note">Đang hiển thị 40 giao dịch mới nhất. Mở danh sách giao dịch để tra cứu đầy đủ.</p>
+        }
+    </section>
+</section>

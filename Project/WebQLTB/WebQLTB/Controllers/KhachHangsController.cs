@@ -17,9 +17,23 @@ public class KhachHangsController : Controller
     }
 
     // GET: KHACHHANGS
-    public async Task<IActionResult> Index()    
+    public IActionResult Index(string? q)
     {
-        return View(_context.KhachHang_DS());
+        var khachHangs = _context.KhachHang_DS();
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var tuKhoa = q.Trim();
+            khachHangs = khachHangs.Where(kh =>
+                    $"{kh.HoKH} {kh.TenKH}".Contains(tuKhoa, StringComparison.CurrentCultureIgnoreCase)
+                    || (kh.DienThoai?.Contains(tuKhoa, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (kh.Email?.Contains(tuKhoa, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (kh.TenDN?.Contains(tuKhoa, StringComparison.OrdinalIgnoreCase) ?? false)
+                    || (kh.DiaChiThuongDung?.Contains(tuKhoa, StringComparison.CurrentCultureIgnoreCase) ?? false))
+                .ToList();
+        }
+
+        ViewBag.SearchTerm = q?.Trim();
+        return View(khachHangs);
     }
 
     // GET: KHACHHANGS/Details/5
