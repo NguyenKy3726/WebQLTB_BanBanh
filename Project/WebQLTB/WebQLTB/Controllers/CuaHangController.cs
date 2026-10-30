@@ -78,7 +78,7 @@ public class CuaHangController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public IActionResult ThemVaoGio(short maBienThe, int soLuong = 1)
     {
-        if (soLuong < 1 || soLuong > 50) return BadRequest("Số lượng phải từ 1 đến 50.");
+        if (!ModelState.IsValid || soLuong < 1 || soLuong > 50) return BadRequest("Số lượng phải từ 1 đến 50.");
         var variant = _db.BienTheBanh_DS().FirstOrDefault(x => x.MaBienThe == maBienThe && x.TrangThaiBan);
         if (variant == null) return NotFound();
         var product = _db.SanPham_CT(variant.MaSP);
@@ -91,7 +91,42 @@ public class CuaHangController : Controller
         return RedirectToAction(nameof(GioHang));
     }
 
-    public IActionResult GioHang() => View(ReadCart());
+    public IActionResult GioHang()
+    {
+        return View(RefreshCart());
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult CapNhatGio(List<GioHangCapNhatItem>? items)
+    {
+        var cart = RefreshCart();
+        if (items == null || !ModelState.IsValid || items.Count != cart.Count
+            || items.Select(x => x.MaBienThe).Distinct().Count() != items.Count
+            || items.Any(x => !cart.Any(row => row.MaBienThe == x.MaBienThe)))
+        {
+            TempData["GioHangThongBao"] = "Số lượng không hợp lệ. Mỗi phiên bản nhận từ 1 đến 50 bánh. Vui lòng kiểm tra lại giỏ.";
+            return RedirectToAction(nameof(GioHang));
+        }
+
+        foreach (var item in items)
+        {
+            var row = cart.First(x => x.MaBienThe == item.MaBienThe);
+            row.SoLuong = item.SoLuong;
+        }
+        SaveCart(cart);
+        var notice = TempData["GioHangThongBao"] as string;
+        TempData["GioHangThongBao"] = "Đã cập nhật số lượng trong giỏ hàng."
+            + (string.IsNullOrWhiteSpace(notice) ? "" : " " + notice);
+        return RedirectToAction(nameof(GioHang));
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public IActionResult XoaToanBoGio()
+    {
+        SaveCart(new List<GioHangItem>());
+        TempData["GioHangThongBao"] = "Đã xóa toàn bộ giỏ hàng.";
+        return RedirectToAction(nameof(GioHang));
+    }
 
     [HttpPost, ValidateAntiForgeryToken]
     public IActionResult XoaKhoiGio(short maBienThe)
@@ -104,7 +139,13 @@ public class CuaHangController : Controller
     public IActionResult DatHang()
     {
         if (HttpContext.Session.GetString("Role") != "KhachHang") return RedirectToAction("Login", "Account", new { returnUrl="/CuaHang/DatHang" });
-        if (!ReadCart().Any()) return RedirectToAction(nameof(GioHang));
+        var cart = RefreshCart();
+        if (!cart.Any()) return RedirectToAction(nameof(GioHang));
+        if (cart.Any(x => !x.DangBan))
+        {
+            TempData["GioHangThongBao"] = "Có bánh không còn được bán. Vui lòng xóa các dòng đó trước khi đặt hàng.";
+            return RedirectToAction(nameof(GioHang));
+        }
         return View(new DatHangViewModel());
     }
 
@@ -113,8 +154,13 @@ public class CuaHangController : Controller
     {
         var maKH=HttpContext.Session.GetInt32("MaKH");
         if (HttpContext.Session.GetString("Role")!="KhachHang" || maKH is null) return RedirectToAction("Login", "Account");
-        var cart=ReadCart();
+        var cart=RefreshCart();
         if (!cart.Any()) ModelState.AddModelError("", "Giỏ hàng đang trống.");
+        if (cart.Any(x => !x.DangBan))
+        {
+            TempData["GioHangThongBao"] = "Có bánh không còn được bán. Vui lòng kiểm tra lại giỏ hàng.";
+            return RedirectToAction(nameof(GioHang));
+        }
         if (!ModelState.IsValid) return View(model);
         try
         {
@@ -134,6 +180,50 @@ public class CuaHangController : Controller
         return View(_db.DonHang_DS().Where(x=>x.MaKH==id).ToList());
     }
 
+    // Đối chiếu session với database để giỏ hiển thị giá và trạng thái hiện tại.
+    private List<GioHangItem> RefreshCart()
+    {
+        var cart = ReadCart();
+        if (cart.Count == 0) return cart;
+
+        var variants = _db.BienTheBanh_DS().ToDictionary(x => x.MaBienThe);
+        var products = _db.SanPham_DS().ToDictionary(x => x.MaSP);
+        var images = _db.HinhAnhBanh_DS()
+            .Where(x => !string.IsNullOrWhiteSpace(x.DuongDanAnh))
+            .OrderByDescending(x => x.LaAnhDaiDien)
+            .ThenBy(x => x.ThuTuHienThi)
+            .ThenBy(x => x.MaAnh)
+            .ToLookup(x => x.MaSP);
+        var priceChanged = false;
+
+        foreach (var row in cart)
+        {
+            row.DangBan = false;
+            if (!variants.TryGetValue(row.MaBienThe, out var variant)) continue;
+            row.MaSP = variant.MaSP;
+            row.TenBienThe = variant.TenBienThe;
+            row.DuongDanAnh = images[variant.MaSP].FirstOrDefault()?.DuongDanAnh;
+            if (!products.TryGetValue(variant.MaSP, out var product)) continue;
+            row.TenSP = product.TenSP;
+            row.DangBan = variant.TrangThaiBan && product.TrangThaiHienThi == "PUBLISHED";
+            if (row.DangBan)
+            {
+                if (row.DonGia != variant.GiaBan) priceChanged = true;
+                row.DonGia = variant.GiaBan;
+            }
+        }
+
+        SaveCart(cart);
+        if (priceChanged)
+        {
+            var previous = TempData["GioHangThongBao"] as string;
+            TempData["GioHangThongBao"] = (string.IsNullOrWhiteSpace(previous) ? "" : previous + " ")
+                + "Giá của một số bánh đã thay đổi; giỏ đã cập nhật theo giá bán hiện tại.";
+        }
+        return cart;
+    }
+
     private List<GioHangItem> ReadCart() => JsonSerializer.Deserialize<List<GioHangItem>>(HttpContext.Session.GetString(CartKey) ?? "[]") ?? new();
     private void SaveCart(List<GioHangItem> cart) => HttpContext.Session.SetString(CartKey,JsonSerializer.Serialize(cart));
 }
+

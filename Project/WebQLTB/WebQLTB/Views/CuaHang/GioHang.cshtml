@@ -1,8 +1,148 @@
-@model List<GioHangItem>
-@{ ViewData["Title"]="Giỏ hàng"; }
-<h1>Giỏ hàng</h1>
-@if(Model.Count==0){<p>Giỏ hàng đang trống.</p><a asp-action="Index">Chọn bánh</a>}else{
-<table class="table"><thead><tr><th>Bánh</th><th>Giá</th><th>SL</th><th>Tạm tính</th><th></th></tr></thead><tbody>
-@foreach(var x in Model){<tr><td>@x.TenSP — @x.TenBienThe</td><td>@x.DonGia.ToString("N0") ₫</td><td>@x.SoLuong</td><td>@((x.DonGia*x.SoLuong).ToString("N0")) ₫</td><td><form asp-action="XoaKhoiGio" method="post"><input type="hidden" name="maBienThe" value="@x.MaBienThe"/><button class="btn btn-outline-danger">Xóa</button>@Html.AntiForgeryToken()</form></td></tr>}
-</tbody></table><p>Tạm tính: <strong>@Model.Sum(x=>x.DonGia*x.SoLuong).ToString("N0") ₫</strong></p><a class="btn btn-primary" asp-action="DatHang">Tiếp tục đặt hàng</a>
+@model List<WebQLTB.Models.GioHangItem>
+@using System.Globalization
+@{
+    ViewData["Title"] = "Giỏ hàng";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var total = Model.Where(x => x.DangBan).Sum(x => x.DonGia * x.SoLuong);
+    var quantity = Model.Sum(x => x.SoLuong);
+    var canCheckout = Model.Count > 0 && Model.All(x => x.DangBan);
+    var notice = TempData["GioHangThongBao"] as string;
+    var customer = Context.Session.GetString("Role") == "KhachHang";
 }
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/cart.css" asp-append-version="true" />
+}
+<section class="cart-page container" id="cart-page">
+    <nav class="cart-breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span aria-hidden="true">/</span>
+        <a asp-action="Index">Mua bánh</a>
+        <span aria-hidden="true">/</span><span aria-current="page">Giỏ hàng</span>
+    </nav>
+    <header class="cart-heading">
+        <div><p class="cart-eyebrow">WHISKFUL · SWEET LITTLE MOMENTS</p><h1>Giỏ bánh của bạn</h1></div>
+        @if (Model.Count > 0)
+        {
+            <p><span id="cart-item-count">@quantity</span> bánh · @Model.Count phiên bản</p>
+        }
+    </header>
+    @if (!string.IsNullOrWhiteSpace(notice))
+    {
+        <p class="cart-notice" role="status">@notice</p>
+    }
+    @if (Model.Count == 0)
+    {
+        <div class="cart-empty">
+            <span class="cart-empty__icon" aria-hidden="true">♡</span>
+            <h2>Một chút ngọt ngào đang chờ bạn</h2>
+            <p>Giỏ hàng đang trống. Hãy khám phá và chọn chiếc bánh cho khoảnh khắc của bạn.</p>
+            <a class="button button--primary" asp-action="Index">Khám phá các mẫu bánh →</a>
+        </div>
+    }
+    else
+    {
+        <div class="cart-layout">
+            <div>
+                <form id="cart-update-form" asp-action="CapNhatGio" method="post" asp-antiforgery="false">
+                    @Html.AntiForgeryToken()
+                </form>
+                <div class="cart-lines" aria-label="Danh sách bánh trong giỏ">
+                    @for (var i = 0; i < Model.Count; i++)
+                    {
+                        var item = Model[i];
+                        <article class="cart-line" data-unit-price="@item.DonGia.ToString(CultureInfo.InvariantCulture)"
+                                 data-available="@(item.DangBan ? "true" : "false")">
+                            <div class="cart-line__image">
+                                @if (!string.IsNullOrWhiteSpace(item.DuongDanAnh))
+                                {
+                                    <img src="@Url.Content(item.DuongDanAnh)" alt="@item.TenSP" loading="lazy" />
+                                }
+                                <span class="cart-image-fallback" hidden="@(!string.IsNullOrWhiteSpace(item.DuongDanAnh))">Chưa có ảnh</span>
+                            </div>
+                            <div class="cart-line__info">
+                                <h2>
+                                    @if (item.DangBan && !string.IsNullOrWhiteSpace(item.MaSP))
+                                    {
+                                        <a asp-action="Details" asp-route-id="@item.MaSP">@item.TenSP</a>
+                                    }
+                                    else
+                                    {
+                                        @item.TenSP
+                                    }
+                                </h2>
+                                <p class="cart-line__variant">@item.TenBienThe</p>
+                                @if (item.DangBan)
+                                {
+                                    <p class="cart-line__unit">@item.DonGia.ToString("N0", culture)đ / bánh</p>
+                                }
+                                else
+                                {
+                                    <p class="cart-line__unavailable">Không còn được bán. Vui lòng xóa để tiếp tục đặt hàng.</p>
+                                }
+                                <form asp-action="XoaKhoiGio" method="post" asp-antiforgery="false">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="maBienThe" value="@item.MaBienThe" />
+                                    <button class="cart-remove" type="submit" aria-label="Xóa @item.TenSP — @item.TenBienThe khỏi giỏ">Xóa khỏi giỏ</button>
+                                </form>
+                            </div>
+                            <div class="cart-line__quantity">
+                                <label for="cart-quantity-@i">Số lượng</label>
+                                <input form="cart-update-form" type="hidden" name="items[@i].MaBienThe" value="@item.MaBienThe" />
+                                <div class="cart-quantity">
+                                    <button type="button" data-quantity-change="-1" aria-label="Giảm số lượng @item.TenSP" disabled="@(item.SoLuong <= 1)">−</button>
+                                    <input id="cart-quantity-@i" class="cart-quantity-input"
+                                           form="cart-update-form" name="items[@i].SoLuong"
+                                           type="number" min="1" max="50" step="1" required
+                                           value="@item.SoLuong" data-original="@item.SoLuong"
+                                           aria-label="Số lượng @item.TenSP — @item.TenBienThe" />
+                                    <button type="button" data-quantity-change="1" aria-label="Tăng số lượng @item.TenSP" disabled="@(item.SoLuong >= 50)">+</button>
+                                </div>
+                            </div>
+                            <div class="cart-line__total">
+                                <span>Thành tiền</span>
+                                <strong class="cart-line-total">@(item.DangBan ? (item.DonGia * item.SoLuong).ToString("N0", culture) + "đ" : "—")</strong>
+                            </div>
+                        </article>
+                    }
+                </div>
+                <div class="cart-actions">
+                    <a class="cart-continue" asp-action="Index">← Tiếp tục chọn bánh</a>
+                    <button form="cart-update-form" id="cart-update-button" class="button button--dark" type="submit">Cập nhật giỏ hàng</button>
+                </div>
+                <p id="cart-pending" class="cart-pending" role="status" hidden>Số lượng đã thay đổi. Bấm “Cập nhật giỏ hàng” để lưu trước khi đặt hàng.</p>
+                <p class="cart-help">Mỗi phiên bản nhận từ 1 đến 50 bánh. Nhập số lượng rồi bấm “Cập nhật giỏ hàng” để lưu.</p>
+                <form id="cart-clear-form" asp-action="XoaToanBoGio" method="post" asp-antiforgery="false">
+                    @Html.AntiForgeryToken()
+                    <button class="cart-clear" type="submit">Xóa toàn bộ giỏ hàng</button>
+                </form>
+            </div>
+            <aside class="cart-summary" aria-labelledby="cart-summary-title">
+                <p class="cart-eyebrow">CHO KHOẢNH KHẮC CỦA BẠN</p>
+                <h2 id="cart-summary-title">Thông tin giỏ hàng</h2>
+                <dl>
+                    <div><dt>Tiền bánh tạm tính</dt><dd id="cart-subtotal" aria-live="polite">@total.ToString("N0", culture)đ</dd></div>
+                    <div><dt>Phí giao hàng</dt><dd>Xác nhận sau</dd></div>
+                </dl>
+                <p class="cart-summary__note">Tạm tính chưa gồm phí giao hàng. Giá và khả năng đáp ứng được kiểm tra lại khi xử lý đơn.</p>
+                @if (canCheckout)
+                {
+                    <a class="button button--primary cart-checkout" id="cart-checkout" asp-action="DatHang">Tiếp tục đặt hàng →</a>
+                    <p id="cart-save-first" class="cart-save-first" hidden>Hãy lưu số lượng trước khi tiếp tục.</p>
+                    @if (!customer)
+                    {
+                        <p class="cart-summary__note">Bạn cần đăng nhập tài khoản khách hàng ở bước tiếp theo.</p>
+                    }
+                }
+                else
+                {
+                    <p class="cart-save-first">Xóa các bánh không còn được bán để tiếp tục đặt hàng.</p>
+                }
+                <p class="cart-summary__note">Giỏ hàng chưa giữ bánh hoặc tạo đơn. Bánh chưa có sẵn có thể được đặt trước để nhân viên xác nhận.</p>
+            </aside>
+        </div>
+    }
+</section>
+@section Scripts {
+    <script src="~/js/cart.js" asp-append-version="true"></script>
+}
+
