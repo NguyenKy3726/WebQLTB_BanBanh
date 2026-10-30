@@ -138,7 +138,19 @@ public class CuaHangController : Controller
     [HttpGet]
     public IActionResult DatHang()
     {
-        if (HttpContext.Session.GetString("Role") != "KhachHang") return RedirectToAction("Login", "Account", new { returnUrl="/CuaHang/DatHang" });
+        var maKH = HttpContext.Session.GetInt32("MaKH");
+        if (HttpContext.Session.GetString("Role") != "KhachHang" || maKH is null)
+        {
+            return RedirectToAction("Login", "Account", new { returnUrl = "/CuaHang/DatHang" });
+        }
+
+        var customer = _db.KhachHang_CT((short)maKH.Value);
+        if (customer == null)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Account", new { returnUrl = "/CuaHang/DatHang" });
+        }
+
         var cart = RefreshCart();
         if (!cart.Any()) return RedirectToAction(nameof(GioHang));
         if (cart.Any(x => !x.DangBan))
@@ -146,31 +158,87 @@ public class CuaHangController : Controller
             TempData["GioHangThongBao"] = "Có bánh không còn được bán. Vui lòng xóa các dòng đó trước khi đặt hàng.";
             return RedirectToAction(nameof(GioHang));
         }
-        return View(new DatHangViewModel());
+
+        PrepareCheckoutView(cart);
+        return View(new DatHangViewModel
+        {
+            TenNguoiNhan = $"{customer.HoKH} {customer.TenKH}".Trim(),
+            DienThoaiNguoiNhan = customer.DienThoai ?? string.Empty,
+            DiaChiGiaoHang = customer.DiaChiThuongDung ?? string.Empty
+        });
     }
 
     [HttpPost, ValidateAntiForgeryToken]
     public IActionResult DatHang(DatHangViewModel model)
     {
-        var maKH=HttpContext.Session.GetInt32("MaKH");
-        if (HttpContext.Session.GetString("Role")!="KhachHang" || maKH is null) return RedirectToAction("Login", "Account");
-        var cart=RefreshCart();
-        if (!cart.Any()) ModelState.AddModelError("", "Giỏ hàng đang trống.");
+        var maKH = HttpContext.Session.GetInt32("MaKH");
+        if (HttpContext.Session.GetString("Role") != "KhachHang" || maKH is null)
+        {
+            return RedirectToAction("Login", "Account", new { returnUrl = "/CuaHang/DatHang" });
+        }
+
+        var customer = _db.KhachHang_CT((short)maKH.Value);
+        if (customer == null)
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login", "Account", new { returnUrl = "/CuaHang/DatHang" });
+        }
+
+        var cart = RefreshCart();
+        if (!cart.Any()) ModelState.AddModelError(string.Empty, "Giỏ hàng đang trống.");
         if (cart.Any(x => !x.DangBan))
         {
             TempData["GioHangThongBao"] = "Có bánh không còn được bán. Vui lòng kiểm tra lại giỏ hàng.";
             return RedirectToAction(nameof(GioHang));
         }
-        if (!ModelState.IsValid) return View(model);
+
+        if (!ModelState.IsValid)
+        {
+            PrepareCheckoutView(cart);
+            return View(model);
+        }
+
+        model.TenNguoiNhan = model.TenNguoiNhan.Trim();
+        model.DienThoaiNguoiNhan = model.DienThoaiNguoiNhan.Trim();
+        model.DiaChiGiaoHang = model.DiaChiGiaoHang.Trim();
+        model.GhiChu = string.IsNullOrWhiteSpace(model.GhiChu) ? null : model.GhiChu.Trim();
+
+        var addressChanged = !string.Equals(
+            model.DiaChiGiaoHang,
+            customer.DiaChiThuongDung?.Trim(),
+            StringComparison.Ordinal);
+
         try
         {
-            var rows=cart.Select(x=>new { maBienThe=x.MaBienThe, soLuong=x.SoLuong });
-            var id=_db.DatHangWeb((short)maKH.Value,model.TenNguoiNhan,model.DienThoaiNguoiNhan,model.DiaChiGiaoHang,JsonSerializer.Serialize(rows),model.GhiChu);
-            SaveCart(new());
-            TempData["ThongBao"]=$"Đã gửi đơn {id}. Nhân viên sẽ kiểm tra và phản hồi.";
+            var rows = cart.Select(x => new { maBienThe = x.MaBienThe, soLuong = x.SoLuong });
+            var id = _db.DatHangWeb(
+                (short)maKH.Value,
+                model.TenNguoiNhan,
+                model.DienThoaiNguoiNhan,
+                model.DiaChiGiaoHang,
+                JsonSerializer.Serialize(rows),
+                model.GhiChu);
+
+            // Thủ tục SQL tạo đơn và cập nhật địa chỉ mặc định trong cùng transaction.
+            SaveCart(new List<GioHangItem>());
+            TempData["ThongBao"] = $"Đã gửi đơn {id}. Nhân viên sẽ kiểm tra và phản hồi."
+                + (addressChanged ? " Địa chỉ giao hàng mới đã được lưu làm địa chỉ thường dùng." : string.Empty);
             return RedirectToAction(nameof(DonDatHang));
         }
-        catch (Microsoft.Data.SqlClient.SqlException ex) { ModelState.AddModelError("",ex.Message); return View(model); }
+        catch (Microsoft.Data.SqlClient.SqlException ex)
+        {
+            ModelState.AddModelError(string.Empty, ex.Message);
+            PrepareCheckoutView(cart);
+            return View(model);
+        }
+    }
+
+    private void PrepareCheckoutView(List<GioHangItem> cart)
+    {
+        ViewBag.CheckoutItems = cart;
+        ViewBag.CheckoutTotal = cart
+            .Where(item => item.DangBan)
+            .Sum(item => item.DonGia * item.SoLuong);
     }
 
     public IActionResult DonDatHang()

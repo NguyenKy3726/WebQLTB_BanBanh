@@ -1,11 +1,158 @@
 @model DatHangViewModel
-@{ ViewData["Title"]="Xác nhận đặt hàng"; }
-<h1>Thông tin giao hàng</h1><div asp-validation-summary="All" class="text-danger"></div>
-<form asp-action="DatHang" method="post">
-<label asp-for="TenNguoiNhan">Người nhận</label><input asp-for="TenNguoiNhan" class="form-control" required maxlength="80"/>
-<label asp-for="DienThoaiNguoiNhan">Điện thoại</label><input asp-for="DienThoaiNguoiNhan" class="form-control" required maxlength="11"/>
-<label asp-for="DiaChiGiaoHang">Địa chỉ giao hàng</label><input asp-for="DiaChiGiaoHang" class="form-control" required maxlength="300"/>
-<label asp-for="GhiChu">Ghi chú</label><textarea asp-for="GhiChu" class="form-control"></textarea>
-<p>Giá sẽ được xác nhận lại theo giá bán hiện tại. Đơn chỉ được giữ bánh sau khi nhân viên xác nhận.</p>
-<button class="btn btn-primary">Gửi đơn</button>@Html.AntiForgeryToken()
-</form>
+@using System.Globalization
+@using WebQLTB.Models
+@{
+    ViewData["Title"] = "Thông tin đặt hàng";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var items = ViewBag.CheckoutItems as List<GioHangItem> ?? new List<GioHangItem>();
+    var total = ViewBag.CheckoutTotal is decimal amount ? amount : 0m;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/checkout.css" asp-append-version="true" />
+}
+
+<section class="checkout container" aria-labelledby="checkout-title">
+    <nav class="checkout__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span aria-hidden="true">/</span>
+        <a asp-controller="CuaHang" asp-action="GioHang">Giỏ hàng</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Thông tin đặt hàng</span>
+    </nav>
+
+    <header class="checkout__heading">
+        <p class="checkout__eyebrow">WHISKFUL · BAKING SWEET WISHES</p>
+        <h1 id="checkout-title">Thông tin nhận bánh</h1>
+        <p>Kiểm tra thông tin người nhận và địa chỉ trước khi gửi đơn cho cửa hàng.</p>
+    </header>
+
+    <div class="checkout__layout">
+        <section class="checkout__form-card" aria-labelledby="checkout-form-title">
+            <div class="checkout__card-heading">
+                <span class="checkout__step">01</span>
+                <div>
+                    <h2 id="checkout-form-title">Người nhận bánh</h2>
+                    <p>Thông tin tài khoản đã được điền sẵn. Bạn có thể sửa cho đơn hàng này.</p>
+                </div>
+            </div>
+
+            <div asp-validation-summary="All" class="checkout__validation" role="alert"></div>
+
+            <form id="checkout-form" asp-controller="CuaHang" asp-action="DatHang" method="post">
+                @Html.AntiForgeryToken()
+                <div class="checkout__fields">
+                    <div class="checkout__field">
+                        <label asp-for="TenNguoiNhan">Tên người nhận <span aria-hidden="true">*</span></label>
+                        <input asp-for="TenNguoiNhan" autocomplete="name" placeholder="Ví dụ: Nguyễn Thanh Hà" />
+                        <span asp-validation-for="TenNguoiNhan" class="checkout__field-error"></span>
+                    </div>
+
+                    <div class="checkout__field">
+                        <label asp-for="DienThoaiNguoiNhan">Số điện thoại <span aria-hidden="true">*</span></label>
+                        <input asp-for="DienThoaiNguoiNhan" type="tel" inputmode="numeric"
+                               autocomplete="tel" placeholder="10 hoặc 11 chữ số" />
+                        <span asp-validation-for="DienThoaiNguoiNhan" class="checkout__field-error"></span>
+                    </div>
+
+                    <div class="checkout__field checkout__field--wide">
+                        <label asp-for="DiaChiGiaoHang">Địa chỉ giao bánh <span aria-hidden="true">*</span></label>
+                        <input asp-for="DiaChiGiaoHang" autocomplete="street-address"
+                               placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/thành phố" />
+                        <span asp-validation-for="DiaChiGiaoHang" class="checkout__field-error"></span>
+                        <small class="checkout__field-hint">
+                            Sau khi gửi đơn thành công, địa chỉ này sẽ được lưu làm địa chỉ thường dùng cho lần đặt sau.
+                        </small>
+                    </div>
+
+                    <div class="checkout__field checkout__field--wide">
+                        <label asp-for="GhiChu">Ghi chú cho cửa hàng <span class="checkout__optional">Không bắt buộc</span></label>
+                        <textarea asp-for="GhiChu" id="checkout-note" rows="4"
+                                  placeholder="Lời nhắn trên bánh, yêu cầu giao nhận hoặc lưu ý dị ứng..."></textarea>
+                        <div class="checkout__note-meta">
+                            <span asp-validation-for="GhiChu" class="checkout__field-error"></span>
+                            <span><span id="checkout-note-count">0</span>/1000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkout__timing">
+                    <span class="checkout__timing-icon" aria-hidden="true">◷</span>
+                    <p><strong>Thời gian nhận bánh</strong><br />
+                        Nhân viên sẽ xác nhận thời gian dự kiến sau khi tiếp nhận đơn.</p>
+                </div>
+
+                <div class="checkout__privacy-note">
+                    <span aria-hidden="true">♡</span>
+                    <p>Thông tin người nhận được lưu theo từng đơn. Chỉ địa chỉ giao bánh được cập nhật vào hồ sơ khách hàng sau khi gửi đơn thành công.</p>
+                </div>
+
+                <div class="checkout__form-actions">
+                    <a class="checkout__back-link" asp-controller="CuaHang" asp-action="GioHang">← Quay lại giỏ hàng</a>
+                    <button class="button button--dark checkout__submit" id="checkout-submit" type="submit">
+                        Gửi đơn đặt bánh <span aria-hidden="true">→</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <aside class="checkout__summary" aria-labelledby="checkout-summary-title">
+            <div class="checkout__summary-heading">
+                <div>
+                    <p class="checkout__eyebrow">ĐƠN HÀNG CỦA BẠN</p>
+                    <h2 id="checkout-summary-title">Tóm tắt đơn</h2>
+                </div>
+                <span class="checkout__item-count">@items.Sum(item => item.SoLuong) món</span>
+            </div>
+
+            <ul class="checkout__items">
+                @foreach (var item in items)
+                {
+                    <li class="checkout__item">
+                        <div class="checkout__item-image">
+                            @if (!string.IsNullOrWhiteSpace(item.DuongDanAnh))
+                            {
+                                <img src="@Url.Content(item.DuongDanAnh)" alt="" loading="lazy" />
+                            }
+                            else
+                            {
+                                <span aria-hidden="true">W</span>
+                            }
+                            <span class="checkout__item-quantity">@item.SoLuong</span>
+                        </div>
+                        <div class="checkout__item-info">
+                            <strong>@item.TenSP</strong>
+                            <span>@item.TenBienThe</span>
+                            <small>@item.DonGia.ToString("N0", culture)đ / bánh</small>
+                        </div>
+                        <strong class="checkout__item-total">@((item.DonGia * item.SoLuong).ToString("N0", culture))đ</strong>
+                    </li>
+                }
+            </ul>
+
+            <dl class="checkout__totals">
+                <div>
+                    <dt>Tạm tính</dt>
+                    <dd>@total.ToString("N0", culture)đ</dd>
+                </div>
+                <div>
+                    <dt>Phí giao hàng</dt>
+                    <dd class="checkout__delivery-note">Cửa hàng xác nhận</dd>
+                </div>
+                <div class="checkout__grand-total">
+                    <dt>Tổng tiền hàng</dt>
+                    <dd>@total.ToString("N0", culture)đ</dd>
+                </div>
+            </dl>
+
+            <p class="checkout__summary-note">
+                Tổng tiền cuối cùng và phí giao hàng sẽ được nhân viên xác nhận. Đơn chưa giữ bánh cho đến khi cửa hàng xác nhận.
+            </p>
+        </aside>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/checkout.js" asp-append-version="true"></script>
+}
