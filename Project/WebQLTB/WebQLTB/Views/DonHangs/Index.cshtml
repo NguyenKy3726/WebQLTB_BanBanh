@@ -1,140 +1,80 @@
 @model IEnumerable<WebQLTB.Models.DonHang>
-
+@using System.Globalization
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Quản lý đơn hàng";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var states = ViewBag.TenTrangThaiDonHang as Dictionary<string, string> ?? new();
+    var customers = ViewBag.TenKH as Dictionary<short, string> ?? new();
+    var counts = ViewBag.SoDonTheoTrangThai as Dictionary<string, int> ?? new();
+    var collected = ViewBag.DaThuTheoDon as Dictionary<string, decimal> ?? new();
+    var selectedState = ViewBag.TrangThaiDangChon as string;
+    var keyword = ViewBag.TuKhoa as string;
+    var page = (int)(ViewBag.TrangHienTai ?? 1);
+    var pages = (int)(ViewBag.TongTrang ?? 1);
+    var resultCount = (int)(ViewBag.TongDonSauLoc ?? 0);
+    var activeCount = counts.Where(x => x.Key is not ("HOAN_TAT" or "DA_HUY")).Sum(x => x.Value);
+    var waitingCount = counts.GetValueOrDefault("CHO_NHAN_VIEN_XU_LY", 0)
+        + counts.GetValueOrDefault("CHO_THANH_TOAN_COC", 0);
 }
+@section Styles { <link rel="stylesheet" href="~/css/pages/order-management.css" asp-append-version="true" /> }
 
-<h1>Danh sách đơn hàng</h1>
+<section class="order-admin container" aria-labelledby="orders-title">
+    <nav class="order-admin__breadcrumb"><a asp-controller="QuanLy" asp-action="Index">Quản lý</a><span>/</span><span aria-current="page">Đơn hàng</span></nav>
+    <header class="order-admin__heading">
+        <div><p class="order-admin__eyebrow">WHISKFUL · VẬN HÀNH</p><h1 id="orders-title">Quản lý đơn hàng</h1><p>Theo dõi tiến độ, khoản đã thu và các đơn đang chờ xử lý.</p></div>
+        <div class="order-admin__heading-count"><strong>@activeCount</strong><span>đơn đang mở</span></div>
+    </header>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Khách hàng
-            </th>
-            <th>
-                Nhân viên xử lý
-            </th>
-            <th>
-                Nhân viên xác nhận
-            </th>
-            <th>
-                Nhân viên hoàn tất
-            </th>
-            <th>
-                Thời điểm đặt
-            </th>
-            <th>
-                Thời điểm xác nhận
-            </th>
-            <th>
-                Thời điểm hoàn tất
-            </th>
-            <th>
-                Ngày giao hàng dự kiến
-            </th>
-            <th>
-                Trạng thái đơn hàng
-            </th>
-            <th>
-                Người nhận
-            </th>
-            <th>
-                Điện thoại người nhận
-            </th>
-            <th>
-                Địa chỉ giao hàng
-            </th>
-            <th>
-                Phí giao hàng
-            </th>
-            <th>
-                Giảm giá
-            </th>
-            <th>
-                Tiền cọc
-            </th>
-            <th>
-                Tổng tiền
-            </th>
-            <th>
-                Tổng tiền thanh toán
-            </th>
-            <th>
-                Ghi chú
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @(item.MaKH.HasValue
-                    ? ViewBag.TenKH[item.MaKH.Value]
-                    : "Khách lẻ")
-            </td>
-            <td>
-                @item.MaNVXuLy - @(item.MaNVXuLy.HasValue
-                    ? ViewBag.TenNV[item.MaNVXuLy.Value]
-                    : "Chưa phân công")
-            </td>
-            <td>
-                @item.MaNVXacNhan - @(item.MaNVXacNhan.HasValue
-                    ? ViewBag.TenNV[item.MaNVXacNhan.Value]
-                    : "Chưa xác nhận")
-            </td>
-            <td>
-                @item.MaNVHoanTat - @(item.MaNVHoanTat.HasValue
-                    ? ViewBag.TenNV[item.MaNVHoanTat.Value]
-                    : "Chưa hoàn tất")
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.NgayDat)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.NgayXacNhan)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.NgayHoanTat)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.NgayGiaoDuKien)
-            </td>
-            <td>
-                @ViewBag.TenTrangThaiDonHang[item.TrangThaiDonHang]
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.TenNguoiNhan)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.DienThoaiNguoiNhan)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.DiaChiGiaoHang)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.PhiGiaoHang)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.TienGiamGia)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.TienCocYeuCau)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.TongTienHang)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.TongTienPhaiTra)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.GhiChu)
-            </td>
-            <td>
-                <a asp-action="Details" asp-route-madonhang="@item.MaDonHang">Xem và xử lý</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <div class="order-admin__stats" aria-label="Tóm tắt đơn hàng">
+        <a asp-action="Index" asp-route-q="@keyword" class="order-stat"><span>Tất cả</span><strong>@counts.Values.Sum()</strong></a>
+        <a asp-action="Index" asp-route-trangThai="CHO_NHAN_VIEN_XU_LY" asp-route-q="@keyword" class="order-stat"><span>Chờ tiếp nhận</span><strong>@counts.GetValueOrDefault("CHO_NHAN_VIEN_XU_LY", 0)</strong></a>
+        <a asp-action="Index" asp-route-trangThai="CHO_THANH_TOAN_COC" asp-route-q="@keyword" class="order-stat"><span>Chờ cọc</span><strong>@counts.GetValueOrDefault("CHO_THANH_TOAN_COC", 0)</strong></a>
+        <a asp-action="Index" asp-route-trangThai="DANG_CHUAN_BI" asp-route-q="@keyword" class="order-stat"><span>Đang chuẩn bị</span><strong>@counts.GetValueOrDefault("DANG_CHUAN_BI", 0)</strong></a>
+        <a asp-action="Index" asp-route-trangThai="DANG_GIAO" asp-route-q="@keyword" class="order-stat"><span>Đang giao</span><strong>@counts.GetValueOrDefault("DANG_GIAO", 0)</strong></a>
+    </div>
+
+    @if (ViewBag.ThongBaoXuLyDon is string ok) { <div class="order-notice order-notice--success" role="status">@ok</div> }
+    @if (ViewBag.LoiXuLyDon is string error) { <div class="order-notice order-notice--error" role="alert">@error</div> }
+
+    <form asp-action="Index" method="get" class="order-filter">
+        <label class="order-filter__search"><span class="visually-hidden">Tìm đơn hàng</span><input type="search" name="q" value="@keyword" placeholder="Tìm mã đơn, tên người nhận, số điện thoại..." /></label>
+        <label class="order-filter__state"><span class="visually-hidden">Lọc trạng thái</span><select name="trangThai"><option value="">Tất cả trạng thái</option>@foreach (var state in states) { <option value="@state.Key" selected="@(state.Key == selectedState)">@state.Value (@counts.GetValueOrDefault(state.Key, 0))</option> }</select></label>
+        <button class="order-button order-button--dark" type="submit">Tìm đơn</button>
+        @if (!string.IsNullOrWhiteSpace(keyword) || !string.IsNullOrWhiteSpace(selectedState)) { <a asp-action="Index" class="order-button">Xóa lọc</a> }
+    </form>
+
+    <div class="order-list__topline"><strong>@resultCount đơn hàng</strong><span>Sắp xếp theo thời gian đặt mới nhất</span></div>
+    @if (!Model.Any())
+    {
+        <div class="order-empty"><h2>Không tìm thấy đơn hàng</h2><p>Thử đổi từ khóa hoặc trạng thái lọc.</p></div>
+    }
+    else
+    {
+        <div class="order-list">
+        @foreach (var order in Model)
+        {
+            var statusName = states.GetValueOrDefault(order.TrangThaiDonHang, order.TrangThaiDonHang);
+            var statusClass = order.TrangThaiDonHang.ToLowerInvariant().Replace('_', '-');
+            var customerName = order.MaKH.HasValue ? customers.GetValueOrDefault(order.MaKH.Value, "Khách hàng") : "Khách lẻ";
+            var received = collected.GetValueOrDefault(order.MaDonHang, 0m);
+            <article class="order-row">
+                <div class="order-row__main">
+                    <div class="order-row__identity"><a asp-action="Details" asp-route-madonhang="@order.MaDonHang">@order.MaDonHang</a><span>@order.NgayDat.ToString("dd/MM/yyyy · HH:mm")</span></div>
+                    <div class="order-row__customer"><strong>@order.TenNguoiNhan</strong><span>@customerName · @order.DienThoaiNguoiNhan</span></div>
+                    <div class="order-row__status"><span class="order-status order-status--@statusClass">@statusName</span><small>@(order.NgayGiaoDuKien.HasValue ? "Giao " + order.NgayGiaoDuKien.Value.ToString("dd/MM/yyyy HH:mm") : "Chưa hẹn ngày giao")</small></div>
+                </div>
+                <div class="order-row__money"><span>Đã thu</span><strong>@received.ToString("N0", culture) ₫</strong><small>còn @Math.Max(0, order.TongTienPhaiTra - received).ToString("N0", culture) ₫</small></div>
+                <div class="order-row__total"><span>Tổng đơn</span><strong>@order.TongTienPhaiTra.ToString("N0", culture) ₫</strong><a asp-action="Details" asp-route-madonhang="@order.MaDonHang">Mở xử lý →</a></div>
+            </article>
+        }
+        </div>
+        @if (pages > 1)
+        {
+            <nav class="order-pagination" aria-label="Phân trang">
+                @if (page > 1) { <a asp-action="Index" asp-route-page="@(page - 1)" asp-route-trangThai="@selectedState" asp-route-q="@keyword">← Trước</a> }
+                <span>Trang @(page) / @pages</span>
+                @if (page < pages) { <a asp-action="Index" asp-route-page="@(page + 1)" asp-route-trangThai="@selectedState" asp-route-q="@keyword">Sau →</a> }
+            </nav>
+        }
+    }
+</section>

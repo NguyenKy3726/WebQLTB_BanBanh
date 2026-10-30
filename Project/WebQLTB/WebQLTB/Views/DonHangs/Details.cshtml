@@ -1,307 +1,225 @@
 @model WebQLTB.Models.DonHang
-
+@using System.Globalization
 @{
-    ViewData["Title"] = "Details";
-    var lichSu = ViewBag.LichSu as IEnumerable<WebQLTB.Models.LichSuTrangThaiDonHang>
-        ?? Enumerable.Empty<WebQLTB.Models.LichSuTrangThaiDonHang>();
-    var trangThai = Model.TrangThaiDonHang;
-    var daKetThuc = trangThai == "HOAN_TAT" || trangThai == "DA_HUY";
-    var ngayGiaoMacDinh = DateTime.Now.AddDays(1).ToString("yyyy-MM-ddTHH:mm");
+    ViewData["Title"] = $"Đơn hàng {Model.MaDonHang}";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var states = ViewBag.TenTrangThaiDonHang as Dictionary<string, string> ?? new();
+    var customers = ViewBag.TenKH as Dictionary<short, string> ?? new();
+    var employees = ViewBag.TenNV as Dictionary<byte, string> ?? new();
+    var variants = ViewBag.TenBienThe as Dictionary<short, string> ?? new();
+    var paymentTypes = ViewBag.TenLoaiGiaoDich as Dictionary<string, string> ?? new();
+    var paymentMethods = ViewBag.TenPhuongThuc as Dictionary<string, string> ?? new();
+    var paymentStatuses = ViewBag.TenTrangThaiThanhToan as Dictionary<string, string> ?? new();
+    var lines = ViewBag.ChiTietDonHang as List<WebQLTB.Models.ChiTietDonHang> ?? new();
+    var payments = ViewBag.ThanhToans as List<WebQLTB.Models.ThanhToan> ?? new();
+    var successfulPayments = ViewBag.ThanhToanThanhCong as List<WebQLTB.Models.ThanhToan> ?? new();
+    var history = ViewBag.LichSu as List<WebQLTB.Models.LichSuTrangThaiDonHang> ?? new();
+    var received = ViewBag.DaThu is decimal paid ? paid : 0m;
+    var deposit = Model.TienCocYeuCau ?? 0m;
+    var depositRemaining = Math.Max(0m, deposit - received);
+    var balanceRemaining = Math.Max(0m, Model.TongTienPhaiTra - received);
+    var status = Model.TrangThaiDonHang;
+    var statusName = states.GetValueOrDefault(status, status);
+    var statusClass = status.ToLowerInvariant().Replace('_', '-');
+    var isClosed = status is "HOAN_TAT" or "DA_HUY";
+    var canCollect = status is "CHO_THANH_TOAN_COC" or "DA_XAC_NHAN" or "DANG_CHUAN_BI" or "SAN_SANG_GIAO" or "DANG_GIAO";
+    var pendingIncoming = payments
+        .Where(payment => payment.LoaiGiaoDich == "PAYMENT" && payment.TrangThaiThanhToan == "PENDING")
+        .Sum(payment => payment.SoTien);
+    var paymentEntryRemaining = Math.Max(0m, balanceRemaining - pendingIncoming);
+    var depositEntryRemaining = Math.Max(0m, depositRemaining - pendingIncoming);
+    var defaultPaymentAmount = status == "CHO_THANH_TOAN_COC" ? depositEntryRemaining : paymentEntryRemaining;
+    var customerName = Model.MaKH.HasValue ? customers.GetValueOrDefault(Model.MaKH.Value, "Khách hàng") : "Khách lẻ";
+    var giaoDateDefault = ViewBag.NgayGiaoMacDinh as string ?? DateTime.Now.AddDays(1).ToString("yyyy-MM-ddTHH:mm");
 }
+@section Styles { <link rel="stylesheet" href="~/css/pages/order-management.css" asp-append-version="true" /> }
 
-<h1>Details</h1>
+<section class="order-admin container" aria-labelledby="order-detail-title">
+    <nav class="order-admin__breadcrumb"><a asp-controller="QuanLy" asp-action="Index">Quản lý</a><span>/</span><a asp-action="Index">Đơn hàng</a><span>/</span><span aria-current="page">@Model.MaDonHang</span></nav>
+    <header class="order-admin__heading order-detail-heading">
+        <div><p class="order-admin__eyebrow">CHI TIẾT ĐƠN HÀNG</p><h1 id="order-detail-title">@Model.MaDonHang</h1><p>Đặt lúc @Model.NgayDat.ToString("dd/MM/yyyy HH:mm") · @customerName</p></div>
+        <span class="order-status order-status--@statusClass">@statusName</span>
+    </header>
 
-<div>
-    <h4>DonHang</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            Khách hàng
-        </dt>
-        <dd class = "col-sm-10">
-            @(Model.MaKH.HasValue
-                ? ViewBag.TenKH[Model.MaKH.Value]
-                : "Khách lẻ")
-        </dd>
-   
-        <dt class = "col-sm-2">
-            Nhân viên xử lý
-        </dt>
-        <dd class = "col-sm-10">
-            @(Model.MaNVXuLy.HasValue
-                ? ViewBag.TenNV[Model.MaNVXuLy.Value]
-                : "Chưa phân công")
-        </dd>
- 
-        <dt class = "col-sm-2">
-            Nhân viên xác nhận
-        </dt>
-        <dd class = "col-sm-10">
-            @(Model.MaNVXacNhan.HasValue
-                ? ViewBag.TenNV[Model.MaNVXacNhan.Value]
-                : "Chưa xác nhận")
-        </dd>
-  
-        <dt class = "col-sm-2">
-            Nhân viên hoàn tất
-        </dt>
-        <dd class = "col-sm-10">
-            @(Model.MaNVHoanTat.HasValue
-                ? ViewBag.TenNV[Model.MaNVHoanTat.Value]
-                : "Chưa hoàn tất")
-        </dd>
-  
-        <dt class = "col-sm-2">
-            Thời điểm đặt
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayDat)
-        </dd>
-    
-        <dt class = "col-sm-2">
-            Thời điểm xác nhận
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayXacNhan)
-        </dd>
-  
-        <dt class = "col-sm-2">
-            Thời điểm hoàn tất
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayHoanTat)
-        </dd>
-   
-        <dt class = "col-sm-2">
-            Thời điểm giao hàng dự kiến
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayGiaoDuKien)
-        </dd>
+    @if (ViewBag.ThongBaoXuLyDon is string ok) { <div class="order-notice order-notice--success" role="status">@ok</div> }
+    @if (ViewBag.LoiXuLyDon is string error) { <div class="order-notice order-notice--error" role="alert">@error</div> }
 
-        <dt class = "col-sm-2">
-            Trạng thái đơn hàng
-        </dt>
-        <dd class = "col-sm-10">
-            @ViewBag.TenTrangThaiDonHang[Model.TrangThaiDonHang]
-        </dd>
+    <div class="order-detail-grid">
+        <div class="order-detail-main">
+            <section class="order-panel" aria-labelledby="items-title">
+                <header class="order-panel__heading"><div><p class="order-admin__eyebrow">SẢN PHẨM</p><h2 id="items-title">Bánh trong đơn</h2></div><span>@lines.Count dòng</span></header>
+                @if (lines.Count == 0)
+                {
+                    <p class="order-panel__empty">Đơn chưa có dòng bánh.</p>
+                }
+                else
+                {
+                    <div class="table-responsive"><table class="table order-items-table"><thead><tr><th>Mẫu bánh / phiên bản</th><th>SL</th><th>Giá đặt</th><th>Thành tiền</th><th>Tiến độ</th></tr></thead><tbody>
+                    @foreach (var line in lines)
+                    {
+                        <tr><td><strong>@variants.GetValueOrDefault(line.MaBienThe, $"Phiên bản {line.MaBienThe}")</strong>@if (!string.IsNullOrWhiteSpace(line.GhiChu)) { <small>@line.GhiChu</small> }</td><td>@line.SoLuong</td><td>@line.DonGiaTaiThoiDiemDat.ToString("N0", culture) ₫</td><td>@((line.SoLuong * line.DonGiaTaiThoiDiemDat).ToString("N0", culture)) ₫</td><td><span class="order-items-table__progress">Có sẵn @line.SoLuongCoSanDaGiu · Đang làm @line.SoLuongDaLam / @line.SoLuongCanLam</span></td></tr>
+                    }
+                    </tbody></table></div>
+                }
+            </section>
 
-        <dt class = "col-sm-2">
-            Người nhận
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TenNguoiNhan)
-        </dd>
-  
-        <dt class = "col-sm-2">
-            Điện thoại người nhận
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DienThoaiNguoiNhan)
-        </dd>
-    
-        <dt class = "col-sm-2">
-            Địa chỉ giao hàng
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DiaChiGiaoHang)
-        </dd>
-    
-        <dt class = "col-sm-2">
-            Phí giao hàng
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PhiGiaoHang)
-        </dd>
-   
-        <dt class = "col-sm-2">
-            Giảm giá
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TienGiamGia)
-        </dd>
-  
-        <dt class = "col-sm-2">
-            Tiền cọc
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TienCocYeuCau)
-        </dd>
-  
-        <dt class = "col-sm-2">
-            Tổng tiền
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TongTienHang)
-        </dd>
-   
-        <dt class = "col-sm-2">
-            Tổng tiền thanh toán
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TongTienPhaiTra)
-        </dd>
-    
-        <dt class = "col-sm-2">
-            Ghi chú
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.GhiChu)
-        </dd>
-    </dl>
-</div>
-<div>
-    @if (TempData["ThongBaoXuLyDon"] is string thongBao)
-    {
-        <div class="alert alert-success">@thongBao</div>
-    }
-    @if (TempData["LoiXuLyDon"] is string loi)
-    {
-        <div class="alert alert-danger">@loi</div>
-    }
+            <section class="order-panel" aria-labelledby="recipient-title">
+                <header class="order-panel__heading"><div><p class="order-admin__eyebrow">GIAO NHẬN</p><h2 id="recipient-title">Thông tin nhận bánh</h2></div></header>
+                <dl class="order-info-grid">
+                    <div><dt>Người đặt</dt><dd>@customerName</dd></div><div><dt>Người nhận</dt><dd>@Model.TenNguoiNhan</dd></div>
+                    <div><dt>Điện thoại</dt><dd>@Model.DienThoaiNguoiNhan</dd></div><div><dt>Ngày giao dự kiến</dt><dd>@(Model.NgayGiaoDuKien?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa hẹn")</dd></div>
+                    <div class="order-info-grid__wide"><dt>Địa chỉ</dt><dd>@Model.DiaChiGiaoHang</dd></div>
+                    <div class="order-info-grid__wide"><dt>Ghi chú</dt><dd>@(string.IsNullOrWhiteSpace(Model.GhiChu) ? "Không có ghi chú" : Model.GhiChu)</dd></div>
+                </dl>
+            </section>
 
-    <h3>Lịch sử xử lý</h3>
-    @if (lichSu.Any())
-    {
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Thời điểm</th>
-                    <th>Trạng thái trước</th>
-                    <th>Trạng thái sau</th>
-                    <th>Người thực hiện</th>
-                    <th>Lý do / ghi chú</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (var item in lichSu)
-            {
-                <tr>
-                    <td>@item.ThoiDiem.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                    <td>@(item.TrangThaiCu == null ? "—" : ViewBag.TenTrangThaiDonHang[item.TrangThaiCu])</td>
-                    <td>@ViewBag.TenTrangThaiDonHang[item.TrangThaiMoi]</td>
-                    <td>
-                        @(item.MaNVThucHien.HasValue
-                            ? ViewBag.TenNV[item.MaNVThucHien.Value]
-                            : item.NguoiThucHien)
-                    </td>
-                    <td>@item.LyDo</td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    }
-    else
-    {
-        <p>Chưa có lịch sử xử lý.</p>
-    }
+            <section class="order-panel" aria-labelledby="payments-title">
+                <header class="order-panel__heading"><div><p class="order-admin__eyebrow">THU / HOÀN TIỀN</p><h2 id="payments-title">Lịch sử giao dịch</h2></div><span>@payments.Count giao dịch</span></header>
+                <div class="order-payment-summary"><div><span>Tiền cọc yêu cầu</span><strong>@deposit.ToString("N0", culture) ₫</strong></div><div><span>Đã thu ròng</span><strong>@received.ToString("N0", culture) ₫</strong></div><div><span>Còn phải thu</span><strong>@balanceRemaining.ToString("N0", culture) ₫</strong></div></div>
+                @if (payments.Count == 0)
+                {
+                    <p class="order-panel__empty">Chưa ghi nhận khoản thu hoặc hoàn tiền.</p>
+                }
+                else
+                {
+                    <div class="order-payment-list">
+                    @foreach (var payment in payments)
+                    {
+                        var paymentState = paymentStatuses.GetValueOrDefault(payment.TrangThaiThanhToan, payment.TrangThaiThanhToan);
+                        var paymentStateClass = payment.TrangThaiThanhToan.ToLowerInvariant();
+                        var isRefund = payment.LoaiGiaoDich == "REFUND";
+                        <article class="payment-row">
+                            <div class="payment-row__top"><div><strong>@paymentTypes.GetValueOrDefault(payment.LoaiGiaoDich, payment.LoaiGiaoDich) · @payment.SoTien.ToString("N0", culture) ₫</strong><span>@payment.MaThanhToan · @payment.ThoiGianTao.ToString("dd/MM/yyyy HH:mm")</span></div><span class="payment-status payment-status--@paymentStateClass">@paymentState</span></div>
+                            <div class="payment-row__meta"><span>@paymentMethods.GetValueOrDefault(payment.PhuongThuc, payment.PhuongThuc)</span>@if (payment.LoaiGiaoDich == "REFUND") { <span>Hoàn từ @payment.MaThanhToanGoc</span> }@if (!string.IsNullOrWhiteSpace(payment.DuongDanChungTu)) { <a href="@payment.DuongDanChungTu" target="_blank" rel="noopener">Mở chứng từ</a> }@if (!string.IsNullOrWhiteSpace(payment.GhiChu)) { <span>@payment.GhiChu</span> }</div>
+                            @if (payment.TrangThaiThanhToan == "PENDING")
+                            {
+                                <div class="payment-row__actions">
+                                    @if ((isRefund && status == "DA_HUY") || (!isRefund && !isClosed))
+                                    {
+                                        <form asp-action="XuLyThanhToan" method="post"><input type="hidden" name="maThanhToan" value="@payment.MaThanhToan" /><input type="hidden" name="trangThaiMoi" value="SUCCESS" /><button class="order-button order-button--confirm" type="submit">Xác nhận đã @(isRefund ? "hoàn" : "thu") tiền</button></form>
+                                    }
+                                    else { <span class="payment-row__warning">Chưa thể xác nhận ở trạng thái đơn này.</span> }
+                                    <form asp-action="XuLyThanhToan" method="post"><input type="hidden" name="maThanhToan" value="@payment.MaThanhToan" /><input type="hidden" name="trangThaiMoi" value="REJECTED" /><button class="order-button order-button--reject" type="submit">Từ chối giao dịch</button></form>
+                                </div>
+                            }
+                            else if (payment.MaNVXacNhan.HasValue)
+                            {
+                                <small class="payment-row__confirmed">Xử lý bởi @employees.GetValueOrDefault(payment.MaNVXacNhan.Value, "Nhân viên") · @(payment.ThoiGianXacNhan?.ToString("dd/MM/yyyy HH:mm") ?? "")</small>
+                            }
+                        </article>
+                    }
+                    </div>
+                }
 
-    <h3>Thao tác đơn hàng</h3>
-    @if (daKetThuc)
-    {
-        <div class="alert alert-secondary">
-            Đơn đã @((trangThai == "HOAN_TAT") ? "hoàn tất" : "hủy"); không thể chuyển trạng thái hoặc chỉnh sửa tiếp.
+                @if (canCollect && defaultPaymentAmount > 0)
+                {
+                    <form asp-action="GhiNhanThanhToan" method="post" class="order-payment-form">
+                        <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="LoaiGiaoDich" value="PAYMENT" />
+                        <h3>Ghi nhận khoản thu</h3><p>Tạo giao dịch chờ xác nhận. Chỉ bấm xác nhận phía trên sau khi đã kiểm tra tiền hoặc chứng từ.</p>
+                        <div class="order-payment-form__fields"><label><span>Số tiền thu (còn phải thu @paymentEntryRemaining.ToString("N0", culture) ₫)</span><input name="SoTien" type="number" min="1" max="@paymentEntryRemaining" step="1000" value="@defaultPaymentAmount.ToString("0.##", CultureInfo.InvariantCulture)" required /></label><label><span>Phương thức</span><select name="PhuongThuc"><option value="CASH">Tiền mặt</option><option value="BANK_TRANSFER">Chuyển khoản</option></select></label><label class="order-payment-form__wide"><span>Đường dẫn chứng từ (nếu có)</span><input name="DuongDanChungTu" maxlength="500" placeholder="Link hóa đơn hoặc ảnh chuyển khoản" /></label><label class="order-payment-form__wide"><span>Ghi chú</span><input name="GhiChu" maxlength="500" placeholder="Ví dụ: Khách cọc 30%" /></label></div>
+                        <button class="order-button order-button--dark" type="submit">Tạo khoản thu chờ xác nhận</button>
+                    </form>
+                }
+                @if (status == "DA_HUY" && successfulPayments.Count > 0)
+                {
+                    <form asp-action="GhiNhanThanhToan" method="post" class="order-payment-form order-payment-form--refund">
+                        <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="LoaiGiaoDich" value="REFUND" />
+                        <h3>Tạo khoản hoàn tiền</h3><p>Backend yêu cầu đơn đã hủy và khoản hoàn phải tham chiếu khoản thu thành công của đơn này.</p>
+                        <div class="order-payment-form__fields"><label class="order-payment-form__wide"><span>Khoản thu gốc</span><select name="MaThanhToanGoc" required><option value="">-- Chọn giao dịch thu --</option>@foreach (var payment in successfulPayments) { <option value="@payment.MaThanhToan">@payment.MaThanhToan · @payment.SoTien.ToString("N0", culture) ₫</option> }</select></label><label><span>Số tiền hoàn</span><input name="SoTien" type="number" min="1" step="1000" required /></label><label><span>Phương thức hoàn</span><select name="PhuongThuc"><option value="BANK_TRANSFER">Chuyển khoản</option><option value="CASH">Tiền mặt</option></select></label><label class="order-payment-form__wide"><span>Ghi chú</span><input name="GhiChu" maxlength="500" placeholder="Lý do hoặc mã chứng từ hoàn" /></label></div>
+                        <button class="order-button order-button--dark" type="submit">Tạo khoản hoàn chờ xác nhận</button>
+                    </form>
+                }
+            </section>
+
+            <section class="order-panel" aria-labelledby="history-title">
+                <header class="order-panel__heading"><div><p class="order-admin__eyebrow">NHẬT KÝ</p><h2 id="history-title">Lịch sử trạng thái</h2></div></header>
+                @if (history.Count == 0) { <p class="order-panel__empty">Chưa có lịch sử xử lý.</p> }
+                else
+                {
+                    <ol class="order-timeline">@foreach (var item in history) { <li><span class="order-timeline__dot"></span><div><strong>@states.GetValueOrDefault(item.TrangThaiMoi, item.TrangThaiMoi)</strong><time>@item.ThoiDiem.ToString("dd/MM/yyyy HH:mm:ss")</time><small>@(item.MaNVThucHien.HasValue ? employees.GetValueOrDefault(item.MaNVThucHien.Value, item.NguoiThucHien) : item.NguoiThucHien)</small>@if (!string.IsNullOrWhiteSpace(item.LyDo)) { <p>@item.LyDo</p> }</div></li> }</ol>
+                }
+            </section>
         </div>
-    }
-    else
-    {
-        @if (trangThai == "CHO_NHAN_VIEN_XU_LY")
-        {
-            <form asp-action="ChuyenTrangThai" method="post" class="card card-body mb-3">
-                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
-                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
-                <input type="hidden" name="HanhDong" value="TIEP_NHAN" />
-                <h5>Tiếp nhận và gửi khách thông tin xác nhận</h5>
-                <div class="mb-2">
-                    <label class="form-label">Ngày giao dự kiến</label>
-                    <input type="datetime-local" name="NgayGiaoDuKien"
-                           value="@ngayGiaoMacDinh" class="form-control" required />
-                </div>
-                <div class="mb-2">
-                    <label class="form-label">Phí giao hàng</label>
-                    <input type="number" name="PhiGiaoHang" value="@Model.PhiGiaoHang" min="0" step="0.01" class="form-control" required />
-                </div>
-                <div class="mb-2">
-                    <label class="form-label">Tiền giảm giá</label>
-                    <input type="number" name="TienGiamGia" value="@Model.TienGiamGia" min="0" step="0.01" class="form-control" required />
-                </div>
-                <div class="mb-2">
-                    <label class="form-label">Tiền cọc yêu cầu (nhập 0 nếu không cần cọc)</label>
-                    <input type="number" name="TienCocYeuCau" value="0" min="0" step="0.01" class="form-control" required />
-                </div>
-                <button type="submit" class="btn btn-primary">Tiếp nhận đơn</button>
-            </form>
-        }
-        @if (trangThai == "CHO_KHACH_XAC_NHAN")
-        {
-            <form asp-action="ChuyenTrangThai" method="post" class="mb-3">
-                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
-                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
-                <input type="hidden" name="HanhDong" value="KHACH_DONG_Y" />
-                <button type="submit" class="btn btn-primary">Ghi nhận khách đã đồng ý</button>
-            </form>
-        }
-        @if (trangThai == "CHO_THANH_TOAN_COC")
-        {
-            <form asp-action="ChuyenTrangThai" method="post" class="mb-3">
-                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
-                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
-                <input type="hidden" name="HanhDong" value="XAC_NHAN" />
-                <button type="submit" class="btn btn-primary">Xác nhận đơn sau khi đủ cọc</button>
-            </form>
-        }
-        @if (trangThai == "DA_XAC_NHAN")
-        {
-            <form asp-action="ChuyenTrangThai" method="post" class="mb-3">
-                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
-                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
-                <input type="hidden" name="HanhDong" value="BAT_DAU_CHUAN_BI" />
-                <button type="submit" class="btn btn-primary">Bắt đầu chuẩn bị</button>
-            </form>
-        }
-        @if (trangThai == "DANG_CHUAN_BI")
-        {
-            <form asp-action="ChuyenTrangThai" method="post" class="mb-3">
-                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
-                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
-                <input type="hidden" name="HanhDong" value="SAN_SANG_GIAO" />
-                <button type="submit" class="btn btn-primary">Đánh dấu sẵn sàng giao</button>
-            </form>
-        }
-        @if (trangThai == "SAN_SANG_GIAO")
-        {
-            <form asp-action="ChuyenTrangThai" method="post" class="d-inline-block mb-3">
-                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
-                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
-                <input type="hidden" name="HanhDong" value="DANG_GIAO" />
-                <button type="submit" class="btn btn-primary">Bắt đầu giao</button>
-            </form>
-            <form asp-action="ChuyenTrangThai" method="post" class="d-inline-block mb-3">
-                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
-                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
-                <input type="hidden" name="HanhDong" value="HOAN_TAT" />
-                <button type="submit" class="btn btn-success">Hoàn tất (khách nhận tại cửa hàng)</button>
-            </form>
-        }
-        @if (trangThai == "DANG_GIAO")
-        {
-            <form asp-action="ChuyenTrangThai" method="post" class="mb-3">
-                <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
-                <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
-                <input type="hidden" name="HanhDong" value="HOAN_TAT" />
-                <button type="submit" class="btn btn-success">Ghi nhận giao thành công</button>
-            </form>
-        }
 
-        <form asp-action="ChuyenTrangThai" method="post" class="card card-body border-danger">
-            <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" />
-            <input type="hidden" name="TrangThaiHienTai" value="@trangThai" />
-            <input type="hidden" name="HanhDong" value="HUY" />
-            <label class="form-label">Lý do hủy đơn</label>
-            <textarea name="LyDoHuy" maxlength="500" class="form-control mb-2" required></textarea>
-            <button type="submit" class="btn btn-outline-danger">Hủy đơn</button>
-        </form>
-    }
+        <aside class="order-detail-side">
+            <section class="order-panel order-total-panel" aria-labelledby="total-title">
+                <p class="order-admin__eyebrow">TỔNG KẾT</p><h2 id="total-title">Thanh toán</h2>
+                <div class="order-total-line"><span>Tiền hàng</span><strong>@Model.TongTienHang.ToString("N0", culture) ₫</strong></div>
+                <div class="order-total-line"><span>Phí giao hàng</span><strong>@Model.PhiGiaoHang.ToString("N0", culture) ₫</strong></div>
+                <div class="order-total-line"><span>Giảm giá</span><strong>−@Model.TienGiamGia.ToString("N0", culture) ₫</strong></div>
+                <div class="order-total-line order-total-line--grand"><span>Khách cần trả</span><strong>@Model.TongTienPhaiTra.ToString("N0", culture) ₫</strong></div>
+                <div class="order-total-line"><span>Đã thu ròng</span><strong>@received.ToString("N0", culture) ₫</strong></div>
+                <div class="order-total-line order-total-line--due"><span>Còn phải thu</span><strong>@balanceRemaining.ToString("N0", culture) ₫</strong></div>
+                <div class="order-deposit-note">Cọc yêu cầu: <strong>@deposit.ToString("N0", culture) ₫</strong> · @(depositRemaining == 0 ? "Đã đủ cọc" : $"Còn thiếu {depositRemaining.ToString("N0", culture)} ₫")</div>
+            </section>
 
-    <p class="mt-3"><a asp-action="Index">Quay lại danh sách đơn hàng</a></p>
-</div>
+            <section class="order-panel order-actions-panel" aria-labelledby="actions-title">
+                <p class="order-admin__eyebrow">QUY TRÌNH</p><h2 id="actions-title">Thao tác tiếp theo</h2>
+                @if (isClosed)
+                {
+                    <div class="order-closed">Đơn đã @(status == "HOAN_TAT" ? "hoàn tất" : "hủy"); trạng thái không thể mở lại.</div>
+                }
+                else if (status == "CHO_NHAN_VIEN_XU_LY")
+                {
+                    <form asp-action="ChuyenTrangThai" method="post" class="order-transition-form">
+                        <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="TrangThaiHienTai" value="@status" /><input type="hidden" name="HanhDong" value="TIEP_NHAN" />
+                        <h3>Tiếp nhận đơn</h3><p>Thiết lập lịch giao và mức cọc trước khi gửi khách xác nhận.</p>
+                        <label><span>Ngày giao dự kiến</span><input type="datetime-local" name="NgayGiaoDuKien" value="@giaoDateDefault" required /></label>
+                        <label><span>Phí giao hàng</span><input type="number" name="PhiGiaoHang" min="0" step="1000" value="@Model.PhiGiaoHang" required /></label>
+                        <label><span>Giảm giá</span><input type="number" name="TienGiamGia" min="0" step="1000" value="@Model.TienGiamGia" required /></label>
+                        <label><span>Tiền cọc yêu cầu (0 nếu không cần)</span><input type="number" name="TienCocYeuCau" min="0" step="1000" value="@deposit" required /></label>
+                        <button class="order-button order-button--dark" type="submit">Tiếp nhận và gửi xác nhận</button>
+                    </form>
+                }
+                else if (status == "CHO_KHACH_XAC_NHAN")
+                {
+                    <p class="order-action-hint">Chờ khách phản hồi về giá, lịch giao và tiền cọc.</p>
+                    <form asp-action="ChuyenTrangThai" method="post"><input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="TrangThaiHienTai" value="@status" /><input type="hidden" name="HanhDong" value="KHACH_DONG_Y" /><button class="order-button order-button--dark" type="submit">Ghi nhận khách đồng ý</button></form>
+                }
+                else if (status == "CHO_THANH_TOAN_COC")
+                {
+                    @if (received >= deposit)
+                    {
+                        <form asp-action="ChuyenTrangThai" method="post"><input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="TrangThaiHienTai" value="@status" /><input type="hidden" name="HanhDong" value="XAC_NHAN" /><button class="order-button order-button--dark" type="submit">Xác nhận sau khi đủ cọc</button></form>
+                    }
+                    else { <p class="order-action-hint">Đang chờ thu thêm @depositRemaining.ToString("N0", culture) ₫ tiền cọc. Ghi nhận và xác nhận giao dịch trước khi xác nhận đơn.</p> }
+                }
+                else if (status == "DA_XAC_NHAN")
+                {
+                    <form asp-action="ChuyenTrangThai" method="post"><input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="TrangThaiHienTai" value="@status" /><input type="hidden" name="HanhDong" value="BAT_DAU_CHUAN_BI" /><button class="order-button order-button--dark" type="submit">Bắt đầu chuẩn bị</button></form>
+                }
+                else if (status == "DANG_CHUAN_BI")
+                {
+                    <form asp-action="ChuyenTrangThai" method="post"><input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="TrangThaiHienTai" value="@status" /><input type="hidden" name="HanhDong" value="SAN_SANG_GIAO" /><button class="order-button order-button--dark" type="submit">Đánh dấu sẵn sàng giao</button></form>
+                }
+                else if (status == "SAN_SANG_GIAO")
+                {
+                    <form asp-action="ChuyenTrangThai" method="post" class="order-transition-form"><input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="TrangThaiHienTai" value="@status" /><input type="hidden" name="HanhDong" value="DANG_GIAO" /><button class="order-button order-button--dark" type="submit">Bắt đầu giao</button></form>
+                    @if (received >= Model.TongTienPhaiTra)
+                    {
+                        <form asp-action="ChuyenTrangThai" method="post" class="order-transition-form"><input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="TrangThaiHienTai" value="@status" /><input type="hidden" name="HanhDong" value="HOAN_TAT" /><button class="order-button order-button--confirm" type="submit">Hoàn tất · khách nhận tại tiệm</button></form>
+                    }
+                    else { <p class="order-action-hint">Còn thiếu @balanceRemaining.ToString("N0", culture) ₫; thu đủ trước khi hoàn tất đơn.</p> }
+                }
+                else if (status == "DANG_GIAO")
+                {
+                    @if (received >= Model.TongTienPhaiTra)
+                    {
+                        <form asp-action="ChuyenTrangThai" method="post"><input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="TrangThaiHienTai" value="@status" /><input type="hidden" name="HanhDong" value="HOAN_TAT" /><button class="order-button order-button--confirm" type="submit">Ghi nhận giao thành công</button></form>
+                    }
+                    else { <p class="order-action-hint">Còn thiếu @balanceRemaining.ToString("N0", culture); thu đủ trước khi hoàn tất đơn.</p> }
+                }
+
+                @if (!isClosed)
+                {
+                    <form asp-action="ChuyenTrangThai" method="post" class="order-cancel-form" onsubmit="return confirm('Bạn có chắc muốn hủy đơn này? Lý do sẽ được lưu vào lịch sử.');">
+                        <input type="hidden" name="MaDonHang" value="@Model.MaDonHang" /><input type="hidden" name="TrangThaiHienTai" value="@status" /><input type="hidden" name="HanhDong" value="HUY" />
+                        <label><span>Lý do hủy đơn <em>(bắt buộc)</em></span><textarea name="LyDoHuy" rows="3" maxlength="500" required placeholder="Ghi lý do cụ thể để lưu lịch sử xử lý"></textarea></label>
+                        <button class="order-button order-button--reject" type="submit">Hủy đơn</button>
+                    </form>
+                }
+            </section>
+        </aside>
+    </div>
+    <p class="order-detail-back"><a asp-action="Index">← Quay lại danh sách đơn</a></p>
+</section>
