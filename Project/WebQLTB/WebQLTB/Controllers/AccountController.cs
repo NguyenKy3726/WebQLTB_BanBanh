@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using WebQLTB.Data;
+using WebQLTB.Models;
 
 namespace WebQLTB.Controllers
 {
@@ -101,12 +102,17 @@ namespace WebQLTB.Controllers
 
 
         [HttpGet]
-        public IActionResult Register() => View();
+        public IActionResult Register(string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Register(string HoKH, string TenKH, string TenDN, string MatKhau, string? DienThoai, string? Email, string? DiaChiThuongDung)
+        public IActionResult Register(string HoKH, string TenKH, string TenDN, string MatKhau, string? DienThoai, string? Email, string? DiaChiThuongDung, string? returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
             if (string.IsNullOrWhiteSpace(HoKH) || string.IsNullOrWhiteSpace(TenKH) || string.IsNullOrWhiteSpace(TenDN) || string.IsNullOrWhiteSpace(MatKhau))
             {
                 ModelState.AddModelError(string.Empty, "Vui lòng nhập họ tên, tên đăng nhập và mật khẩu.");
@@ -119,14 +125,71 @@ namespace WebQLTB.Controllers
             }
             try
             {
-                _context.KhachHang_Them(new WebQLTB.Models.KhachHang { HoKH=HoKH.Trim(), TenKH=TenKH.Trim(), TenDN=TenDN.Trim(), DienThoai=DienThoai, Email=Email, DiaChiThuongDung=DiaChiThuongDung }, MatKhau);
-                return RedirectToAction(nameof(Login));
+                _context.KhachHang_Them(new KhachHang { HoKH=HoKH.Trim(), TenKH=TenKH.Trim(), TenDN=TenDN.Trim(), DienThoai=DienThoai?.Trim(), Email=Email?.Trim(), DiaChiThuongDung=DiaChiThuongDung?.Trim() }, MatKhau);
+                TempData["ThongBao"] = "Tạo tài khoản thành công. Hãy đăng nhập để tiếp tục.";
+                var safeReturnUrl = Url.IsLocalUrl(returnUrl) ? returnUrl : null;
+                return RedirectToAction(nameof(Login), new { returnUrl = safeReturnUrl });
             }
             catch (Microsoft.Data.SqlClient.SqlException ex)
             {
                 ModelState.AddModelError(string.Empty, ex.Message);
                 return View();
             }
+        }
+
+        [HttpGet]
+        public IActionResult ThongTin()
+        {
+            var role = HttpContext.Session.GetString("Role");
+
+            if (role == "KhachHang")
+            {
+                var maKH = HttpContext.Session.GetInt32("MaKH");
+                if (maKH is null || maKH < short.MinValue || maKH > short.MaxValue)
+                    return RedirectToAction(nameof(Login), new { returnUrl = "/Account/ThongTin" });
+
+                var kh = _context.KhachHang_CT((short)maKH.Value);
+                if (kh == null)
+                {
+                    HttpContext.Session.Clear();
+                    return RedirectToAction(nameof(Login), new { returnUrl = "/Account/ThongTin" });
+                }
+
+                return View(new TaiKhoanViewModel
+                {
+                    TenHienThi = (kh.HoKH + " " + kh.TenKH).Trim(),
+                    TenDangNhap = kh.TenDN,
+                    VaiTro = "Khách hàng",
+                    DienThoai = kh.DienThoai,
+                    Email = kh.Email,
+                    DiaChi = kh.DiaChiThuongDung
+                });
+            }
+
+            if (role == "NhanVien")
+            {
+                var maNV = HttpContext.Session.GetInt32("MaNV");
+                if (maNV is null || maNV < 1 || maNV > byte.MaxValue)
+                    return RedirectToAction(nameof(Login), new { returnUrl = "/Account/ThongTin" });
+
+                var nv = _context.NhanVien_CT((byte)maNV.Value);
+                if (nv == null)
+                {
+                    HttpContext.Session.Clear();
+                    return RedirectToAction(nameof(Login), new { returnUrl = "/Account/ThongTin" });
+                }
+
+                return View(new TaiKhoanViewModel
+                {
+                    TenHienThi = (nv.HoNV + " " + nv.TenNV).Trim(),
+                    TenDangNhap = nv.TenDN,
+                    VaiTro = "Nhân viên",
+                    DienThoai = nv.DienThoai,
+                    Email = nv.Email
+                });
+            }
+
+            return RedirectToAction(nameof(Login), new { returnUrl = "/Account/ThongTin" });
         }
 
         public IActionResult Logout()

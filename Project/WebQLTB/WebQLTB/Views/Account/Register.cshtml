@@ -1,12 +1,65 @@
-@{ ViewData["Title"]="Tạo tài khoản"; }
-<h1>Tạo tài khoản khách hàng</h1><div asp-validation-summary="All" class="text-danger"></div>
-<form asp-action="Register" method="post">
-<label>Họ</label><input name="HoKH" class="form-control" required maxlength="30"/>
-<label>Tên</label><input name="TenKH" class="form-control" required maxlength="20"/>
-<label>Tên đăng nhập</label><input name="TenDN" class="form-control" required maxlength="50"/>
-<label>Mật khẩu</label><input name="MatKhau" type="password" class="form-control" required maxlength="50"/>
-<label>Điện thoại</label><input name="DienThoai" class="form-control" maxlength="11"/>
-<label>Email</label><input name="Email" type="email" class="form-control" maxlength="40"/>
-<label>Địa chỉ thường dùng</label><input name="DiaChiThuongDung" class="form-control" maxlength="200"/>
-<button class="btn btn-primary mt-3">Tạo tài khoản</button>@Html.AntiForgeryToken()
-</form>
+@{
+    ViewData["Title"] = "Đăng ký";
+}
+
+<section class="account-auth-screen account-auth-screen--register" aria-label="Đăng ký tài khoản Whiskful">
+    <div class="account-auth-shell account-auth-shell--register">
+        <section class="account-auth-register" aria-labelledby="register-title">
+            <img class="account-auth-register__logo" src="~/assets/images/logo/whiskful-logo.png" alt="Whiskful" />
+            <p class="account-auth-kicker account-auth-kicker--brown">TẠO TÀI KHOẢN WHISKFUL</p>
+            <h1 id="register-title" class="account-auth-title" tabindex="-1">Đăng ký</h1>
+            <p class="account-auth-subtitle">Lưu thông tin nhận bánh để đặt hàng nhanh hơn.</p>
+
+            <div asp-validation-summary="All" class="account-auth-validation" role="alert"></div>
+
+            <form asp-action="Register" method="post" class="account-auth-form account-auth-form--register">
+                @Html.AntiForgeryToken()
+                <label class="account-auth-field">
+                    <span>Họ</span>
+                    <input name="HoKH" value="@(ViewData.ModelState["HoKH"]?.AttemptedValue)"
+                           autocomplete="family-name" required maxlength="30" placeholder="Nhập họ" />
+                </label>
+                <label class="account-auth-field">
+                    <span>Tên</span>
+                    <input name="TenKH" value="@(ViewData.ModelState["TenKH"]?.AttemptedValue)"
+                           autocomplete="given-name" required maxlength="20" placeholder="Nhập tên" />
+                </label>
+                <label class="account-auth-field">
+                    <span>Tên đăng nhập</span>
+                    <input name="TenDN" value="@(ViewData.ModelState["TenDN"]?.AttemptedValue)"
+                           autocomplete="username" required maxlength="50" placeholder="Chọn tên đăng nhập" />
+                </label>
+                <label class="account-auth-field">
+                    <span>Mật khẩu</span>
+                    <input name="MatKhau" type="password" autocomplete="new-password"
+                           required maxlength="50" placeholder="Tạo mật khẩu" />
+                </label>
+                <label class="account-auth-field">
+                    <span>Điện thoại</span>
+                    <input name="DienThoai" value="@(ViewData.ModelState["DienThoai"]?.AttemptedValue)"
+                           autocomplete="tel" maxlength="11" placeholder="Số điện thoại" />
+                </label>
+                <label class="account-auth-field">
+                    <span>Email</span>
+                    <input name="Email" value="@(ViewData.ModelState["Email"]?.AttemptedValue)"
+                           type="email" autocomplete="email" maxlength="40" placeholder="email@example.com" />
+                </label>
+                <label class="account-auth-field account-auth-field--wide">
+                    <span>Địa chỉ thường dùng</span>
+                    <input name="DiaChiThuongDung" value="@(ViewData.ModelState["DiaChiThuongDung"]?.AttemptedValue)"
+                           autocomplete="street-address" maxlength="200" placeholder="Địa chỉ nhận bánh" />
+                </label>
+                <button class="account-auth-submit account-auth-field--wide" type="submit">Tạo tài khoản</button>
+            </form>
+
+            <p class="account-auth-switch">
+                Đã có tài khoản?
+                <a class="account-auth-text-button" asp-action="Login">Đăng nhập</a>
+            </p>
+        </section>
+    </div>
+</section>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" />
+}

@@ -1,0 +1,61 @@
+@model WebQLTB.Models.TaiKhoanViewModel
+@{
+    ViewData["Title"] = "Thông tin tài khoản";
+}
+
+@section Styles {
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" />
+}
+
+<section class="account-profile container" aria-labelledby="account-title">
+    <header class="account-profile__heading">
+        <p class="account-profile__eyebrow">HỒ SƠ WHISKFUL</p>
+        <h1 id="account-title">Thông tin tài khoản</h1>
+        <p>Thông tin đang được sử dụng trong tài khoản của bạn.</p>
+    </header>
+
+    <div class="account-profile__card">
+        <div class="account-profile__identity">
+            <span class="account-profile__avatar" aria-hidden="true">
+                @(string.IsNullOrWhiteSpace(Model.TenHienThi) ? "W" : Model.TenHienThi.Trim()[0].ToString().ToUpperInvariant())
+            </span>
+            <div>
+                <h2>@Model.TenHienThi</h2>
+                <span>@Model.VaiTro</span>
+            </div>
+        </div>
+
+        <dl class="account-profile__details">
+            <div>
+                <dt>Tên đăng nhập</dt>
+                <dd>@Model.TenDangNhap</dd>
+            </div>
+            <div>
+                <dt>Điện thoại</dt>
+                <dd>@(string.IsNullOrWhiteSpace(Model.DienThoai) ? "Chưa cập nhật" : Model.DienThoai)</dd>
+            </div>
+            <div>
+                <dt>Email</dt>
+                <dd>@(string.IsNullOrWhiteSpace(Model.Email) ? "Chưa cập nhật" : Model.Email)</dd>
+            </div>
+            @if (Model.VaiTro == "Khách hàng")
+            {
+                <div class="account-profile__address">
+                    <dt>Địa chỉ thường dùng</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(Model.DiaChi) ? "Chưa cập nhật" : Model.DiaChi)</dd>
+                </div>
+            }
+        </dl>
+
+        <div class="account-profile__actions">
+            @if (Model.VaiTro == "Khách hàng")
+            {
+                <a class="button button--primary" asp-controller="CuaHang" asp-action="DonDatHang">Đơn hàng của tôi</a>
+            }
+            <a class="button button--dark" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
+        </div>
+    </div>
+</section>
