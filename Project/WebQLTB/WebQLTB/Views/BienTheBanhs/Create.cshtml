@@ -1,75 +1,17 @@
 @model WebQLTB.Models.BienTheBanh
-
-@{
-    ViewData["Title"] = "Create";
-}
-
-<h1>Create</h1>
-
-<h4>BienTheBanh</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group">
-                <label asp-for="MaSP">Bánh</label>
-
-                <select asp-for="MaSP"
-                        asp-items="ViewBag.MaSP"
-                        class="form-control">
-                    <option value="">-- Chọn sản phẩm --</option>
-                </select>
-
-                <span asp-validation-for="MaSP" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label>Tên biến thể</label>
-                <input asp-for="TenBienThe" class="form-control" />
-                <span asp-validation-for="TenBienThe" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label>Giá bán</label>
-                <input asp-for="GiaBan" class="form-control" />
-                <span asp-validation-for="GiaBan" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label>Số lượng thực tế</label>
-                <input asp-for="SoLuongThucTe" class="form-control" />
-                <span asp-validation-for="SoLuongThucTe" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label>Số lượng đã giữ</label>
-                <input asp-for="SoLuongDaGiu" class="form-control" />
-                <span asp-validation-for="SoLuongDaGiu" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label>Sô ngày chuẩn bị dự kiến</label>
-                <input asp-for="SoNgayChuanBiDuKien" class="form-control" />
-                <span asp-validation-for="SoNgayChuanBiDuKien" class="text-danger"></span>
-            </div>
-
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input asp-for="TrangThaiBan" class="form-check-input" />
-                    Đang bán
-                </label>
-
-                <span asp-validation-for="TrangThaiBan" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+@{ ViewData["Title"] = "Thêm phiên bản bánh"; }
+<section class="product-admin container">
+    <nav class="product-admin__breadcrumb"><a asp-controller="SanPhams" asp-action="Index">Sản phẩm bánh</a><span>/</span><a asp-action="Index" asp-route-masp="@Model?.MaSP">Phiên bản</a><span>/</span><span>Thêm</span></nav>
+    <header class="product-admin__heading"><div><p class="product-admin__eyebrow">GIÁ &amp; KÍCH CỠ</p><h1>Thêm phiên bản</h1><p>Mỗi phiên bản có mức giá, tồn kho và thời gian chuẩn bị riêng.</p></div></header>
+    <form asp-action="Create" class="product-admin-form">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <label class="product-admin-form__field"><span>Mẫu bánh</span><select asp-for="MaSP" asp-items="ViewBag.MaSP"><option value="">-- Chọn mẫu bánh --</option></select><span asp-validation-for="MaSP" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Tên phiên bản</span><input asp-for="TenBienThe" maxlength="50" placeholder="Ví dụ: 16 cm · 6–8 người" /><span asp-validation-for="TenBienThe" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Giá bán (VNĐ)</span><input asp-for="GiaBan" type="number" min="0" step="1000" /><span asp-validation-for="GiaBan" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Số lượng tồn thực tế</span><input asp-for="SoLuongThucTe" type="number" min="0" /><span asp-validation-for="SoLuongThucTe" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Số ngày chuẩn bị dự kiến</span><input asp-for="SoNgayChuanBiDuKien" type="number" min="0" /><span asp-validation-for="SoNgayChuanBiDuKien" class="text-danger"></span></label>
+        <label class="product-admin-form__check"><input asp-for="TrangThaiBan" /> Đang mở bán</label>
+        <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Thêm phiên bản</button><a asp-action="Index" asp-route-masp="@Model?.MaSP" class="product-admin__button">Hủy</a></div>
+    </form>
+</section>
+@section Styles { <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" /> }

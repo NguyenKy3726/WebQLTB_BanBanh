@@ -18,11 +18,14 @@ public class BienTheBanhsController : Controller
     }
 
     // GET: BIENTHEBANHS
-    public async Task<IActionResult> Index()    
+    public IActionResult Index(string? masp)
     {
-        ViewBag.TenSP = _context.SanPham_DS()
-            .ToDictionary(sp => sp.MaSP, sp => sp.TenSP);
-        return View(_context.BienTheBanh_DS());
+        var products = _context.SanPham_DS();
+        ViewBag.TenSP = products.ToDictionary(sp => sp.MaSP, sp => sp.TenSP);
+        ViewBag.MaSPDangChon = masp;
+        ViewBag.ThongBao = TempData["ThongBaoBienThe"];
+        var variants = _context.BienTheBanh_DS();
+        return View(string.IsNullOrWhiteSpace(masp) ? variants : variants.Where(bt => bt.MaSP == masp).ToList());
     }
 
     // GET: BIENTHEBANHS/Details/5
@@ -44,17 +47,9 @@ public class BienTheBanhsController : Controller
     }
 
     // GET: BIENTHEBANHS/Create
-    public IActionResult Create()
+    public IActionResult Create(string? masp)
     {
-        ViewBag.MaSP = new SelectList(
-            _context.SanPham_DS().Select(sp => new
-            {
-                sp.MaSP,
-                HienThi = $"{sp.MaSP} - {sp.TenSP}"
-            }),
-            "MaSP",
-            "HienThi"
-        );
+        PrepareProducts(masp);
         return View();
     }
 
@@ -63,13 +58,20 @@ public class BienTheBanhsController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("MaBienThe,MaSP,TenBienThe,GiaBan,SoLuongThucTe,SoLuongDaGiu,SoNgayChuanBiDuKien,TrangThaiBan")] BienTheBanh bienthebanh)
+    public IActionResult Create([Bind("MaSP,TenBienThe,GiaBan,SoLuongThucTe,SoNgayChuanBiDuKien,TrangThaiBan")] BienTheBanh bienthebanh)
     {
+        bienthebanh.SoLuongDaGiu = 0;
         if (ModelState.IsValid)
         {
-            _context.BienTheBanh_Them(bienthebanh);
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _context.BienTheBanh_Them(bienthebanh);
+                TempData["ThongBaoBienThe"] = "Đã thêm phiên bản bánh.";
+                return RedirectToAction(nameof(Index), new { masp = bienthebanh.MaSP });
+            }
+            catch (SqlException ex) { ModelState.AddModelError(string.Empty, ex.Message); }
         }
+        PrepareProducts(bienthebanh.MaSP);
         return View(bienthebanh);
     }
 
@@ -86,16 +88,7 @@ public class BienTheBanhsController : Controller
         {
             return NotFound();
         }
-        ViewBag.MaSP = new SelectList(
-            _context.SanPham_DS().Select(sp => new
-            {
-                sp.MaSP,
-                HienThi = $"{sp.MaSP} - {sp.TenSP}"
-            }),
-            "MaSP",
-            "HienThi",
-            bienthebanh.MaSP
-        );
+        PrepareProducts(bienthebanh.MaSP);
         return View(bienthebanh);
     }
 
@@ -104,13 +97,17 @@ public class BienTheBanhsController : Controller
     // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(short? mabienthe, [Bind("MaBienThe,MaSP,TenBienThe,GiaBan,SoLuongThucTe,SoLuongDaGiu,SoNgayChuanBiDuKien,TrangThaiBan")] BienTheBanh bienthebanh)
+    public async Task<IActionResult> Edit(short? mabienthe, [Bind("MaBienThe,MaSP,TenBienThe,GiaBan,SoLuongThucTe,SoNgayChuanBiDuKien,TrangThaiBan")] BienTheBanh bienthebanh)
     {
         if (mabienthe != bienthebanh.MaBienThe)
         {
             return NotFound();
         }
 
+        var current = _context.BienTheBanh_CT(mabienthe.Value);
+        if (current == null) return NotFound();
+        bienthebanh.MaSP = current.MaSP;
+        bienthebanh.SoLuongDaGiu = current.SoLuongDaGiu;
         if (ModelState.IsValid)
         {
             try
@@ -128,8 +125,18 @@ public class BienTheBanhsController : Controller
                     throw;
                 }
             }
-            return RedirectToAction(nameof(Index));
+            catch (SqlException ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+            if (!ModelState.IsValid)
+            {
+                PrepareProducts(bienthebanh.MaSP);
+                return View(bienthebanh);
+            }
+            return RedirectToAction(nameof(Index), new { masp = bienthebanh.MaSP });
         }
+        PrepareProducts(bienthebanh.MaSP);
         return View(bienthebanh);
     }
 
@@ -164,7 +171,7 @@ public class BienTheBanhsController : Controller
         try
         {
             _context.BienTheBanh_Xoa(mabienthe.Value);
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { masp = bienThe.MaSP });
         }
         catch (SqlException ex)
         {
@@ -176,5 +183,14 @@ public class BienTheBanhsController : Controller
     private bool BienTheBanhExists(short? mabienthe)
     {
         return _context.BienTheBanhs.Any(e => e.MaBienThe == mabienthe);
+    }
+
+    private void PrepareProducts(string? selected)
+    {
+        ViewBag.MaSP = new SelectList(_context.SanPham_DS().Select(sp => new
+        {
+            sp.MaSP,
+            HienThi = $"{sp.MaSP} - {sp.TenSP}"
+        }), "MaSP", "HienThi", selected);
     }
 }

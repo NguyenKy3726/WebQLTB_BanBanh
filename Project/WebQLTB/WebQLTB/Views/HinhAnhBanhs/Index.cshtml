@@ -1,53 +1,21 @@
 @model IEnumerable<WebQLTB.Models.HinhAnhBanh>
-
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Quản lý hình ảnh bánh";
+    var selectedProduct = ViewBag.MaSPDangChon as string;
+    var productNames = ViewBag.TenSP as Dictionary<string, string> ?? new();
 }
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Bánh
-            </th>
-            <th>
-                Link
-            </th>
-            <th>
-                Ảnh đại diện
-            </th>
-            <th>
-                Thứ tự 
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @(ViewBag.TenSP[item.MaSP])
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.DuongDanAnh)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.LaAnhDaiDien)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.ThuTuHienThi)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-maanh="@item.MaAnh">Edit</a> |
-                <a asp-action="Details" asp-route-maanh="@item.MaAnh">Details</a> |
-                <a asp-action="Delete" asp-route-maanh="@item.MaAnh">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+@section Styles { <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" /> }
+<section class="product-admin container">
+    <nav class="product-admin__breadcrumb"><a asp-controller="QuanLy" asp-action="Index">Quản lý</a><span>/</span><a asp-controller="SanPhams" asp-action="Index">Sản phẩm bánh</a><span>/</span><span>Hình ảnh</span></nav>
+    <header class="product-admin__heading"><div><p class="product-admin__eyebrow">THƯ VIỆN WHISKFUL</p><h1>Hình ảnh bánh</h1><p>Ảnh đại diện xuất hiện trên thẻ sản phẩm; thứ tự ảnh dùng để sắp xếp bộ ảnh.</p></div><a class="product-admin__button product-admin__button--primary" asp-action="Create" asp-route-masp="@selectedProduct">+ Thêm ảnh</a></header>
+    @if (ViewBag.ThongBao is string message) { <div class="product-admin__notice" role="status">@message</div> }
+    <form method="get" class="product-admin-filter"><label for="masp-filter">Lọc theo mẫu bánh</label><select id="masp-filter" name="masp"><option value="">Tất cả sản phẩm</option>@foreach (var product in productNames) { <option value="@product.Key" selected="@(product.Key == selectedProduct)">@product.Key — @product.Value</option> }</select><button class="product-admin__button">Lọc ảnh</button>@if (!string.IsNullOrEmpty(selectedProduct)) { <a asp-action="Index" class="product-admin__button">Xóa lọc</a> }</form>
+    @if (!Model.Any()) { <div class="product-admin__empty"><h2>Chưa có ảnh</h2><p>Thêm ảnh từ máy để hiển thị mẫu bánh trong cửa hàng.</p><a class="product-admin__button product-admin__button--primary" asp-action="Create" asp-route-masp="@selectedProduct">Thêm ảnh đầu tiên</a></div> }
+    else {
+        <div class="product-image-grid">
+        @foreach (var image in Model.OrderBy(x => x.MaSP).ThenBy(x => x.ThuTuHienThi)) {
+            <article class="product-image-card"><img src="@Url.Content(image.DuongDanAnh)" alt="Ảnh @productNames.GetValueOrDefault(image.MaSP, image.MaSP)" loading="lazy" /><div class="product-image-card__body"><strong>@productNames.GetValueOrDefault(image.MaSP, image.MaSP)</strong><span>Thứ tự @image.ThuTuHienThi @if (image.LaAnhDaiDien) { <b>· Ảnh đại diện</b> }</span><div class="product-admin-card__actions"><a asp-action="Edit" asp-route-maanh="@image.MaAnh">Sửa ảnh</a><a asp-action="Delete" asp-route-maanh="@image.MaAnh">Xóa</a></div></div></article>
+        }
+        </div>
+    }
+</section>

@@ -1,82 +1,17 @@
 @model WebQLTB.Models.SanPham
-
-@{
-    ViewData["Title"] = "Create";
-}
-
-<h1>Create</h1>
-
-<h4>SanPham</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group">
-                <label asp-for="MaLoaiBanh">Loại bánh</label>
-
-                <select asp-for="MaLoaiBanh"
-                        asp-items="ViewBag.MaLoaiBanh"
-                        class="form-control">
-                    <option value="">-- Chọn loại bánh --</option>
-                </select>
-
-                <span asp-validation-for="MaLoaiBanh" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label>Tên sản phẩm</label>
-                <input asp-for="TenSP" class="form-control" />
-                <span asp-validation-for="TenSP" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label>Mô tả</label>
-                <input asp-for="MoTaNgan" class="form-control" />
-                <span asp-validation-for="MoTaNgan" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label>Thành phần</label>
-                <input asp-for="MoTaChiTiet" class="form-control" />
-                <span asp-validation-for="MoTaChiTiet" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="TrangThaiHienThi">Trạng thái hiển thị</label>
-
-                <select asp-for="TrangThaiHienThi"
-                        asp-items="ViewBag.TrangThaiHienThi"
-                        class="form-control">
-                    <option value="">-- Chọn trạng thái hiển thị --</option>
-                </select>
-
-                <span asp-validation-for="TrangThaiHienThi" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label>Nhân viên tạo</label>
-                <input asp-for="MaNVTao" class="form-control" />
-                <span asp-validation-for="MaNVTao" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label>Ngày tạo</label>
-                <input asp-for="NgayTao" class="form-control" />
-                <span asp-validation-for="NgayTao" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label>Nhân viên cập nhật</label>
-                <input asp-for="MaNVCapNhat" class="form-control" />
-                <span asp-validation-for="MaNVCapNhat" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label>Ngày cập nhật</label>
-                <input asp-for="NgayCapNhat" class="form-control" />
-                <span asp-validation-for="NgayCapNhat" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+@{ ViewData["Title"] = "Thêm mẫu bánh"; }
+<section class="product-admin container">
+    <nav class="product-admin__breadcrumb"><a asp-controller="QuanLy" asp-action="Index">Quản lý</a><span>/</span><a asp-action="Index">Sản phẩm bánh</a><span>/</span><span>Thêm mẫu</span></nav>
+    <header class="product-admin__heading"><div><p class="product-admin__eyebrow">DANH MỤC WHISKFUL</p><h1>Tạo mẫu bánh</h1><p>Tạo thông tin chung trước, sau đó thêm phiên bản giá và ảnh.</p></div></header>
+    <form asp-action="Create" class="product-admin-form">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <label class="product-admin-form__field"><span>Loại bánh</span><select asp-for="MaLoaiBanh" asp-items="ViewBag.MaLoaiBanh"><option value="">-- Chọn loại bánh --</option></select><span asp-validation-for="MaLoaiBanh" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Tên sản phẩm</span><input asp-for="TenSP" maxlength="100" /><span asp-validation-for="TenSP" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Mô tả ngắn</span><textarea asp-for="MoTaNgan" rows="3" maxlength="300"></textarea><span asp-validation-for="MoTaNgan" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Mô tả chi tiết / thành phần</span><textarea asp-for="MoTaChiTiet" rows="5"></textarea><span asp-validation-for="MoTaChiTiet" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Trạng thái</span><select asp-for="TrangThaiHienThi" asp-items="ViewBag.TrangThaiHienThi"></select><span asp-validation-for="TrangThaiHienThi" class="text-danger"></span></label>
+        <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Tạo mẫu bánh</button><a class="product-admin__button" asp-action="Index">Hủy</a></div>
+    </form>
+</section>
+@section Styles { <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" /> }
+@section Scripts { @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); } }

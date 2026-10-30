@@ -1,85 +1,84 @@
 @model IEnumerable<WebQLTB.Models.SanPham>
-
+@using System.Globalization
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Quản lý sản phẩm bánh";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var images = ViewBag.AnhDaiDien as Dictionary<string, string> ?? new();
+    var variants = ViewBag.SoBienThe as Dictionary<string, int> ?? new();
+    var lowestPrices = ViewBag.GiaThapNhat as Dictionary<string, decimal> ?? new();
 }
 
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Loại bánh
-            </th>
-            <th>
-                Tên sản phẩm
-            </th>
-            <th>
-                Mô tả
-            </th>
-            <th>
-                Thành phần
-            </th>
-            <th>
-                Trạng thái
-            </th>
-            <th>
-                Nhân viên tạo
-            </th>
-            <th>
-                Ngày tạo
-            </th>
-            <th>
-                Nhân viên cập nhật
-            </th>
-            <th>
-                Ngày cập nhật
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @(ViewBag.TenLoaiBanh[item.MaLoaiBanh])
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.TenSP)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.MoTaNgan)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.MoTaChiTiet)
-            </td>
-            <td>
-                @(ViewBag.TenTrangThaiHienThi[item.TrangThaiHienThi])
-            </td>
-            <td>
-                @(ViewBag.TenNV[item.MaNVTao])
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.NgayTao)
-            </td>
-            <td>
-                @(item.MaNVCapNhat.HasValue
-                    ? ViewBag.TenNV[item.MaNVCapNhat.Value]
-                    : "_")
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.NgayCapNhat)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-masp="@item.MaSP">Edit</a> |
-                <a asp-action="Details" asp-route-masp="@item.MaSP">Details</a> |
-                <a asp-action="Delete" asp-route-masp="@item.MaSP">Delete</a>
-            </td>
-        </tr>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" />
 }
-    </tbody>
-</table>
+
+<section class="product-admin container" aria-labelledby="products-title">
+    <nav class="product-admin__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="QuanLy" asp-action="Index">Quản lý</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Sản phẩm bánh</span>
+    </nav>
+
+    <header class="product-admin__heading">
+        <div>
+            <p class="product-admin__eyebrow">DANH MỤC WHISKFUL</p>
+            <h1 id="products-title">Sản phẩm bánh</h1>
+            <p>Tạo mẫu bánh, cập nhật trạng thái và đi thẳng tới phần quản lý phiên bản hoặc hình ảnh.</p>
+        </div>
+        <a class="product-admin__button product-admin__button--primary" asp-action="Create">+ Thêm mẫu bánh</a>
+    </header>
+
+    @if (ViewBag.ThongBao is string message)
+    {
+        <div class="product-admin__notice" role="status">@message</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="product-admin__empty">
+            <h2>Chưa có mẫu bánh</h2>
+            <p>Tạo mẫu đầu tiên, sau đó thêm ít nhất một phiên bản và ảnh đại diện.</p>
+            <a class="product-admin__button product-admin__button--primary" asp-action="Create">Tạo mẫu bánh</a>
+        </div>
+    }
+    else
+    {
+        <div class="product-admin__grid">
+        @foreach (var item in Model)
+        {
+            var hasImage = images.TryGetValue(item.MaSP, out var imagePath);
+            var statusLabel = ViewBag.TenTrangThaiHienThi[item.TrangThaiHienThi] as string ?? item.TrangThaiHienThi;
+            var variantCount = variants.TryGetValue(item.MaSP, out var count) ? count : 0;
+            <article class="product-admin-card">
+                <a class="product-admin-card__image" asp-action="Edit" asp-route-masp="@item.MaSP" aria-label="Sửa @item.TenSP">
+                    @if (hasImage && !string.IsNullOrWhiteSpace(imagePath))
+                    {
+                        <img src="@Url.Content(imagePath)" alt="Ảnh @item.TenSP" loading="lazy" />
+                    }
+                    else
+                    {
+                        <span>Chưa có ảnh đại diện</span>
+                    }
+                    <span class="product-admin-card__status product-admin-card__status--@item.TrangThaiHienThi.ToLowerInvariant()">@statusLabel</span>
+                </a>
+                <div class="product-admin-card__body">
+                    <span class="product-admin-card__category">@(ViewBag.TenLoaiBanh.TryGetValue(item.MaLoaiBanh, out var category) ? category : "Chưa phân loại")</span>
+                    <h2>@item.TenSP</h2>
+                    <p>@(string.IsNullOrWhiteSpace(item.MoTaNgan) ? "Chưa có mô tả ngắn." : item.MoTaNgan)</p>
+                    <div class="product-admin-card__meta">
+                        <span>@variantCount phiên bản</span>
+                        <strong>@(lowestPrices.TryGetValue(item.MaSP, out var price) ? "Từ " + price.ToString("N0", culture) + " ₫" : "Chưa có giá")</strong>
+                    </div>
+                    <div class="product-admin-card__actions">
+                        <a asp-controller="BienTheBanhs" asp-action="Index" asp-route-masp="@item.MaSP">Phiên bản</a>
+                        <a asp-controller="HinhAnhBanhs" asp-action="Index" asp-route-masp="@item.MaSP">Hình ảnh</a>
+                        <a asp-action="Edit" asp-route-masp="@item.MaSP">Sửa bánh</a>
+                        <a asp-action="Details" asp-route-masp="@item.MaSP">Chi tiết</a>
+                        <a asp-action="Delete" asp-route-masp="@item.MaSP">Xóa</a>
+                    </div>
+                </div>
+            </article>
+        }
+        </div>
+    }
+</section>

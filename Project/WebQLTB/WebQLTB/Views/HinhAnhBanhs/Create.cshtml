@@ -1,57 +1,20 @@
-@model WebQLTB.Models.HinhAnhBanh
-
+@model WebQLTB.ViewModels.HinhAnhBanhFormViewModel
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Thêm ảnh bánh";
 }
-
-<h1>Create</h1>
-
-<h4>HinhAnhBanh</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-            <div class="form-group">
-                <label asp-for="MaSP">Bánh</label>
-
-                <select asp-for="MaSP"
-                        asp-items="ViewBag.MaSP"
-                        class="form-control">
-                    <option value="">-- Chọn sản phẩm --</option>
-                </select>
-
-                <span asp-validation-for="MaSP" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label>Link</label>
-                <input asp-for="DuongDanAnh" class="form-control" />
-                <span asp-validation-for="DuongDanAnh" class="text-danger"></span>
-            </div>
-
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input asp-for="LaAnhDaiDien" class="form-check-input" />
-                    Ảnh đại diện
-                </label>
-
-                <span asp-validation-for="LaAnhDaiDien" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <label>Thứ tự</label>
-                <input asp-for="ThuTuHienThi" class="form-control" />
-                <span asp-validation-for="ThuTuHienThi" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+<section class="product-admin container">
+    <nav class="product-admin__breadcrumb"><a asp-controller="SanPhams" asp-action="Index">Sản phẩm bánh</a><span>/</span><span>Thêm ảnh</span></nav>
+    <header class="product-admin__heading"><div><p class="product-admin__eyebrow">THƯ VIỆN ẢNH</p><h1>Thêm ảnh bánh</h1><p>Tải ảnh từ máy hoặc nhập đường dẫn ảnh đang có.</p></div></header>
+    <form asp-action="Create" method="post" enctype="multipart/form-data" class="product-admin-form">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <label class="product-admin-form__field"><span>Mẫu bánh</span><select asp-for="MaSP" asp-items="ViewBag.MaSP"><option value="">-- Chọn mẫu bánh --</option></select><span asp-validation-for="MaSP" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Chọn ảnh từ máy (JPG, PNG, WEBP; tối đa 5 MB)</span><input asp-for="TepAnh" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-image-picker /><span asp-validation-for="TepAnh" class="text-danger"></span></label>
+        <img class="product-admin-form__preview" data-image-preview alt="Xem trước ảnh được chọn" hidden />
+        <label class="product-admin-form__field"><span>Hoặc đường dẫn ảnh (tùy chọn)</span><input asp-for="DuongDanAnh" placeholder="~/assets/images/products/tiramisu.webp" /><span asp-validation-for="DuongDanAnh" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Thứ tự hiển thị</span><input asp-for="ThuTuHienThi" type="number" min="1" /><span asp-validation-for="ThuTuHienThi" class="text-danger"></span></label>
+        <label class="product-admin-form__check"><input asp-for="LaAnhDaiDien" /> Đặt làm ảnh đại diện</label>
+        <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Lưu ảnh</button><a class="product-admin__button" asp-action="Index" asp-route-masp="@Model.MaSP">Hủy</a></div>
+    </form>
+</section>
+@section Styles { <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" /> }
+@section Scripts { <script src="~/js/pages/product-images.js" asp-append-version="true"></script> }

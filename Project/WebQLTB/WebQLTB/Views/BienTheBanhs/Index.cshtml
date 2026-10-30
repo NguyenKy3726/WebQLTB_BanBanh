@@ -1,71 +1,16 @@
 @model IEnumerable<WebQLTB.Models.BienTheBanh>
-
-@{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Bánh
-            </th>
-            <th>
-                Tên biến thể
-            </th>
-            <th>
-                Giá bán
-            </th>
-            <th>
-                Số lượng thực tế
-            </th>
-            <th>
-                Số lượng đã giữ
-            </th>
-            <th>
-                Số ngày chuẩn bị dự kiến
-            </th>
-            <th>
-                Trạng thái bán
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @(ViewBag.TenSP[item.MaSP])
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.TenBienThe)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.GiaBan)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.SoLuongThucTe)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.SoLuongDaGiu)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.SoNgayChuanBiDuKien)
-            </td>
-            <td>
-                @(item.TrangThaiBan ? "Đang bán" : "Ngừng bán")
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-mabienthe="@item.MaBienThe">Edit</a> |
-                <a asp-action="Details" asp-route-mabienthe="@item.MaBienThe">Details</a> |
-                <a asp-action="Delete" asp-route-mabienthe="@item.MaBienThe">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+@using System.Globalization
+@{ ViewData["Title"] = "Quản lý phiên bản bánh"; var selected = ViewBag.MaSPDangChon as string; var products = ViewBag.TenSP as Dictionary<string,string> ?? new(); var culture = CultureInfo.GetCultureInfo("vi-VN"); }
+@section Styles { <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" /> }
+<section class="product-admin container">
+    <nav class="product-admin__breadcrumb"><a asp-controller="QuanLy" asp-action="Index">Quản lý</a><span>/</span><a asp-controller="SanPhams" asp-action="Index">Sản phẩm bánh</a><span>/</span><span>Phiên bản</span></nav>
+    <header class="product-admin__heading"><div><p class="product-admin__eyebrow">GIÁ &amp; KÍCH CỠ</p><h1>Phiên bản bánh</h1><p>Quản lý giá, tồn kho và thời gian chuẩn bị cho từng mẫu bánh.</p></div><a class="product-admin__button product-admin__button--primary" asp-action="Create" asp-route-masp="@selected">+ Thêm phiên bản</a></header>
+    @if (ViewBag.ThongBao is string message) { <div class="product-admin__notice" role="status">@message</div> }
+    <form method="get" class="product-admin-filter"><label for="masp-filter">Mẫu bánh</label><select id="masp-filter" name="masp"><option value="">Tất cả sản phẩm</option>@foreach (var product in products) { <option value="@product.Key" selected="@(product.Key == selected)">@product.Key — @product.Value</option> }</select><button class="product-admin__button">Lọc phiên bản</button>@if (!string.IsNullOrEmpty(selected)) { <a asp-action="Index" class="product-admin__button">Xóa lọc</a> }</form>
+    @if (!Model.Any()) { <div class="product-admin__empty"><h2>Chưa có phiên bản</h2><p>Thêm phiên bản với giá và số lượng để mẫu bánh có thể được đặt.</p><a class="product-admin__button product-admin__button--primary" asp-action="Create" asp-route-masp="@selected">Thêm phiên bản</a></div> }
+    else {
+        <div class="table-responsive product-admin-table-wrap"><table class="table product-admin-table"><thead><tr><th>Mẫu bánh</th><th>Phiên bản</th><th>Giá bán</th><th>Tồn</th><th>Đã giữ</th><th>Chuẩn bị</th><th>Trạng thái</th><th></th></tr></thead><tbody>
+        @foreach (var item in Model) { <tr><td>@products.GetValueOrDefault(item.MaSP, item.MaSP)</td><td><strong>@item.TenBienThe</strong></td><td class="product-admin-table__price">@item.GiaBan.ToString("N0", culture) ₫</td><td>@item.SoLuongThucTe</td><td>@item.SoLuongDaGiu</td><td>@item.SoNgayChuanBiDuKien ngày</td><td><span class="product-admin-table__state @(item.TrangThaiBan ? "is-on" : "is-off")">@(item.TrangThaiBan ? "Đang bán" : "Ngừng bán")</span></td><td><a asp-action="Edit" asp-route-mabienthe="@item.MaBienThe">Sửa</a> · <a asp-action="Details" asp-route-mabienthe="@item.MaBienThe">Chi tiết</a> · <a asp-action="Delete" asp-route-mabienthe="@item.MaBienThe">Xóa</a></td></tr> }
+        </tbody></table></div>
+    }
+</section>
