@@ -4,7 +4,6 @@
     <link rel="stylesheet" href="~/css/pages/profile.css" asp-append-version="true" />
 }
 <section class="profile-page container" aria-labelledby="profile-title">
-    <nav class="profile-breadcrumb"><a asp-controller="Home" asp-action="Index">Trang chủ</a><span>/</span><span>Thông tin tài khoản</span></nav>
     <header><p class="profile-eyebrow">HỒ SƠ WHISKFUL</p><h1 id="profile-title">Thông tin tài khoản</h1><p>Cập nhật thông tin liên hệ để chúng mình phục vụ bạn tốt hơn.</p></header>
     @if (TempData["ThongBaoHoSo"] is string message) { <p class="profile-message" role="status">@message</p> }
     <div class="profile-grid">

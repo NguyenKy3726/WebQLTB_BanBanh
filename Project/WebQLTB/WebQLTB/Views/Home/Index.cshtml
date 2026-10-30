@@ -1,8 +1,11 @@
-﻿@{
+@model WebQLTB.Models.HomeViewModel
+@{
     ViewData["Title"] = "Trang chủ";
 }
 
 @section Styles {
+    <link rel="stylesheet" href="~/css/pages/products.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/home-sections.css" asp-append-version="true" />
     <link rel="stylesheet"
           href="~/css/pages/home.css"
           asp-append-version="true" />
@@ -39,7 +42,7 @@
                 </a>
 
                 <a class="button button--outline"
-                   href="#categories">
+                   href="#story">
                     Câu chuyện Whiskful
                 </a>
             </div>
@@ -105,7 +108,7 @@
                       aria-hidden="true">✦</span>
             </div>
 
-            <form id="quickOrderForm">
+            <form id="quickOrderForm" asp-controller="CuaHang" asp-action="Index" asp-fragment="catalog-results" method="get">
                 <div class="form-field">
                     <label class="form-field__label"
                            for="occasion">
@@ -171,21 +174,19 @@
                 </div>
 
                 <button class="button button--primary quick-order__button"
-                        type="button">
+                        type="submit">
                     Xem bánh phù hợp
                     <span aria-hidden="true">→</span>
                 </button>
+                <p class="quick-order__hint">Dịp và hương vị được gợi ý theo tên, mô tả bánh. Bạn có thể đổi điều kiện tại cửa hàng.</p>
             </form>
 
             <div class="custom-cake-link">
                 <span>
-                    Bạn muốn một mẫu bánh riêng?
+                    Bạn muốn xem thêm gợi ý?
                 </span>
 
-                <strong>
-                    Gửi yêu cầu
-                    <span aria-hidden="true">→</span>
-                </strong>
+                <a asp-controller="CuaHang" asp-action="Index">Khám phá mẫu bánh →</a>
             </div>
         </aside>
     </div>
@@ -198,20 +199,54 @@
     </a>
 </section>
 
-<section class="categories" id="categories">
+<section class="home-section home-categories" id="categories" aria-labelledby="home-category-title">
     <div class="container">
-        <p class="section-heading__eyebrow">
-            KHÁM PHÁ WHISKFUL
-        </p>
+        <div class="home-section__heading"><div><p class="section-heading__eyebrow">KHÁM PHÁ WHISKFUL</p><h2 class="section-heading__title" id="home-category-title">Tìm một chiếc bánh bạn yêu</h2></div><a asp-controller="CuaHang" asp-action="Index">Xem tất cả bánh →</a></div>
+        @if (Model.DanhMuc.Count > 0)
+        {
+            <div class="home-category-grid">
+                @foreach (var category in Model.DanhMuc)
+                {
+                    <a class="home-category" asp-controller="CuaHang" asp-action="Index" asp-route-category="@category.Ten"><span class="home-category__icon" aria-hidden="true">✦</span><h3>@category.Ten</h3><p>@category.SoMau mẫu bánh đang bán</p><span class="home-category__link">Khám phá →</span></a>
+                }
+            </div>
+        }
+        else { <p class="home-empty">Bộ sưu tập đang được cập nhật. Mời bạn ghé cửa hàng để xem thêm.</p> }
+    </div>
+</section>
 
-        <h2 class="section-heading__title">
-            Bánh ngọt cho mọi dịp đặc biệt
-        </h2>
+<section class="home-section home-featured" aria-labelledby="home-featured-title">
+    <div class="container">
+        <div class="home-section__heading"><div><p class="section-heading__eyebrow">TỪ GIAN BẾP WHISKFUL</p><h2 class="section-heading__title" id="home-featured-title">Gợi ý cho khoảnh khắc ngọt ngào</h2><p>Khám phá những mẫu bánh mới được thêm vào bộ sưu tập.</p></div><a asp-controller="CuaHang" asp-action="Index">Xem bộ sưu tập →</a></div>
+        @if (Model.GoiY.Count > 0)
+        {
+            <div class="product-grid home-product-grid">
+                @foreach (var cake in Model.GoiY) { <partial name="~/Views/Shared/_ProductCard.cshtml" model="cake" /> }
+            </div>
+        }
+        else { <p class="home-empty">Chúng mình đang chuẩn bị những mẫu bánh mới. Hẹn bạn quay lại sớm!</p> }
+    </div>
+</section>
 
-        <p class="categories__description">
-            Whiskful chăm chút từng chiếc bánh, từ nguyên liệu
-            đến cách trang trí, để cùng bạn lưu giữ
-            những khoảnh khắc đáng nhớ.
-        </p>
+<section class="home-section home-budget" aria-labelledby="home-budget-title">
+    <div class="container home-budget__layout">
+        <div><p class="section-heading__eyebrow">MỘT CHÚT NGỌT NGÀO</p><h2 class="section-heading__title" id="home-budget-title">Chọn bánh trong tầm giá</h2><p>Một món quà nhỏ hay một chiếc bánh cho cả buổi tiệc — bắt đầu từ ngân sách của bạn.</p></div>
+        <div class="home-budget__links">
+            <a asp-controller="CuaHang" asp-action="Index" asp-route-budget="under-300">Dưới 300.000đ <span>→</span></a>
+            <a asp-controller="CuaHang" asp-action="Index" asp-route-budget="300-500">300.000đ – 500.000đ <span>→</span></a>
+            <a asp-controller="CuaHang" asp-action="Index" asp-route-budget="500-1000">500.000đ – 1.000.000đ <span>→</span></a>
+            <a asp-controller="CuaHang" asp-action="Index" asp-route-budget="over-1000">Trên 1.000.000đ <span>→</span></a>
+        </div>
+    </div>
+</section>
+
+<section class="home-section home-story" id="story" aria-labelledby="home-story-title">
+    <div class="container home-story__layout">
+        <div><p class="section-heading__eyebrow">CÂU CHUYỆN WHISKFUL</p><h2 class="section-heading__title" id="home-story-title">Gửi một lời chúc,<br />qua một chiếc bánh.</h2><p>Whiskful bắt đầu từ mong muốn làm cho những dịp gặp gỡ trở nên ngọt ngào hơn. Chọn một mẫu bánh, tìm phiên bản phù hợp và để chúng mình cùng bạn chuẩn bị cho khoảnh khắc ấy.</p><a class="button button--outline" asp-controller="CuaHang" asp-action="Index">Chọn chiếc bánh của bạn →</a></div>
+        <ol class="home-order-steps">
+            <li><span>01</span><div><h3>Tìm mẫu bánh yêu thích</h3><p>Lọc theo loại bánh, hương vị và tầm giá phù hợp.</p></div></li>
+            <li><span>02</span><div><h3>Chọn phiên bản và đặt bánh</h3><p>Xem chi tiết, chọn kích thước và điền thông tin nhận bánh.</p></div></li>
+            <li><span>03</span><div><h3>Theo dõi đơn hàng</h3><p>Cửa hàng xác nhận lịch giao, tiền cọc và tiến độ chuẩn bị trong đơn của bạn.</p></div></li>
+        </ol>
     </div>
 </section>

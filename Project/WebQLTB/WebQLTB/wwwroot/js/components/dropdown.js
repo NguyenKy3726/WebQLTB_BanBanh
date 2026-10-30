@@ -44,6 +44,7 @@
         document.body.append(menu);
         const widget = { select, wrapper, button, menu, index: -1, rows: [] };
         widgets.set(select, widget);
+        widget.sync = sync;
         const options = () => Array.from(select.options);
         const enabled = i => options()[i] && !options()[i].disabled && !options()[i].hidden && !options()[i].parentElement.hidden && !(options()[i].parentElement.tagName === 'OPTGROUP' && options()[i].parentElement.disabled);
         function sync() {
@@ -145,5 +146,5 @@
     window.addEventListener('resize', close);
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => init()); else init();
     new MutationObserver(records => records.forEach(record => record.addedNodes.forEach(node => { if (node.nodeType === 1) init(node); })) ).observe(document.documentElement, { childList: true, subtree: true });
-    window.WhiskfulDropdown = { refresh: (select) => { if (select) select.dispatchEvent(new Event('change', { bubbles: true })); else init(); } };
+    window.WhiskfulDropdown = { refresh: (select) => { if (select) { const widget = widgets.get(select); if (widget) widget.sync(); else enhance(select); } else init(); } };
 })();

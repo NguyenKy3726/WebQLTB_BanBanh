@@ -1,4 +1,4 @@
-﻿.store {
+.store {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -52,3 +52,28 @@
         padding-block: 16px;
     }
 }
+
+/* Điều hướng và tên người dùng trên header. */
+.header__nav-link { white-space:nowrap; }
+@media (min-width:1201px) and (max-width:1550px) {
+    .header__container { gap:18px; }
+    .header__logo { max-width:200px; }
+    .header__nav-list { gap:18px; }
+    .header__actions { gap:12px; }
+    .header__nav-link,.header__text-link { font-size:12px; letter-spacing:.04em; }
+    .header__actions > .header__user-link { max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+}
+
+/* Dùng cùng hiệu ứng gạch chân với Trang chủ cho các liên kết tài khoản. */
+.header__nav-link { transition:color var(--transition-fast,.18s),transform var(--transition-fast,.18s); }
+.header__nav-link:focus-visible::after,.header__nav-link:active::after { width:100%; }
+.header__nav-link:focus-visible { outline:2px solid var(--color-accent-dark,#b88c48); outline-offset:4px; border-radius:3px; }
+.header__nav-link:active { transform:translateY(1px); }
+.header__user-link { display:block; max-width:230px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-decoration:none; }
+.header__mobile-account { display:none; }
+@media(max-width:1200px) {
+    .header__actions > .header__user-link { display:none; }
+    .header__mobile-account { display:block; }
+    .header__mobile-account a { display:inline-block; max-width:100%; overflow-wrap:anywhere; white-space:normal; }
+}
+@media(prefers-reduced-motion:reduce) { .header__nav-link,.header__nav-link::after { transition:none; } .header__nav-link:active { transform:none; } }
