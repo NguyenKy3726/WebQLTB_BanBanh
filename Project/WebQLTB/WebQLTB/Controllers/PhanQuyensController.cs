@@ -197,7 +197,7 @@ public class PhanQuyensController : Controller
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = ex.Message;
+            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể gỡ quyền lúc này. Vui lòng thử lại.");
             return View("Delete", phanQuyen);
         }
     }

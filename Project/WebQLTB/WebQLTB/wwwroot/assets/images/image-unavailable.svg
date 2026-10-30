@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-labelledby="title description">
+  <title id="title">Hình ảnh bánh đang được cập nhật</title>
+  <desc id="description">Minh họa chiếc bánh trên nền kem Whiskful</desc>
+  <rect width="480" height="360" rx="28" fill="#f5ece1"/>
+  <ellipse cx="240" cy="274" rx="132" ry="22" fill="#dfcbb5"/>
+  <path d="M119 205h242v55c0 24-19 43-43 43H162c-24 0-43-19-43-43z" fill="#fffaf3" stroke="#9d7047" stroke-width="5"/>
+  <path d="M119 205c0-25 54-45 121-45s121 20 121 45-54 44-121 44-121-19-121-44z" fill="#d8ae7a" stroke="#9d7047" stroke-width="5"/>
+  <path d="M167 185c13-18 29-18 43 0 14-22 31-22 45 0 14-20 30-20 43 0" fill="none" stroke="#fffaf3" stroke-linecap="round" stroke-width="10"/>
+  <path d="M240 144c-13-20-38-9-28 10 8 14 28 20 28 20s20-6 28-20c10-19-15-30-28-10z" fill="#bf8d53"/>
+  <text x="240" y="332" fill="#76583d" font-family="Arial, sans-serif" font-size="19" text-anchor="middle">Ảnh bánh đang được cập nhật</text>
+</svg>

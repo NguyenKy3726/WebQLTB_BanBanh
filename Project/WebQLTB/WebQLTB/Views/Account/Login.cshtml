@@ -41,7 +41,7 @@
                     <button type="button" class="account-auth-eye" data-toggle-password aria-label="Hiện mật khẩu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
                 </label>
 
-                    <a class="account-auth-forgot" href="#">Quên mật khẩu?</a>
+                    <p class="account-auth-forgot">Quên mật khẩu? Vui lòng liên hệ cửa hàng để được hỗ trợ.</p>
 
                     <button class="account-auth-submit" type="submit">Đăng nhập</button>
                 </form>
@@ -58,6 +58,7 @@
 
             <form asp-action="Register" method="post" class="account-auth-form account-auth-form--register">
                 @Html.AntiForgeryToken()
+                <input type="hidden" name="returnUrl" value="@returnUrl" />
                 <label class="account-auth-field">
                     <span>Họ</span>
                     <svg class="account-auth-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>

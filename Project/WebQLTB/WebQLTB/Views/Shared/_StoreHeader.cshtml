@@ -44,7 +44,10 @@
                 <li class="header__mobile-item">
                     @if (isLoggedIn)
                     {
-                        <a class="header__nav-link" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="header__logout-form header__logout-form--mobile">
+                            @Html.AntiForgeryToken()
+                            <button class="header__nav-link header__logout-button" type="submit">Đăng xuất</button>
+                        </form>
                     }
                     else
                     {
@@ -68,7 +71,10 @@
             @if (isLoggedIn)
             {
                 <a class="header__text-link header__nav-link header__user-link @(isAccount ? "header__nav-link--active" : "")" asp-controller="Account" asp-action="ThongTin" aria-current="@(isAccount ? "page" : null)" title="@accountName">@accountName</a>
-                <a class="header__text-link header__nav-link" asp-controller="Account" asp-action="Logout">Đăng xuất</a>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="header__logout-form">
+                    @Html.AntiForgeryToken()
+                    <button class="header__text-link header__nav-link header__logout-button" type="submit">Đăng xuất</button>
+                </form>
             }
             else
             {

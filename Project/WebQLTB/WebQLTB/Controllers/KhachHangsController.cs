@@ -79,7 +79,7 @@ public class KhachHangsController : Controller
         }
         catch (Microsoft.Data.SqlClient.SqlException ex)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
+            ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex, "Không thể lưu thông tin khách hàng lúc này. Vui lòng kiểm tra dữ liệu và thử lại."));
             return View(khachhang);
         }
     }
@@ -134,7 +134,7 @@ public class KhachHangsController : Controller
         }
         catch (Microsoft.Data.SqlClient.SqlException ex)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
+            ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex, "Không thể cập nhật khách hàng lúc này. Vui lòng thử lại."));
             return View(khachhang);
         }
     }
@@ -173,7 +173,7 @@ public class KhachHangsController : Controller
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = ex.Message;
+            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể xóa khách hàng vì tài khoản có thể đang được sử dụng.");
             return View("Delete", khachHang);
         }
     }

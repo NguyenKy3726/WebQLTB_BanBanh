@@ -75,7 +75,7 @@ public class SanPhamsController : Controller
             }
             catch (SqlException ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex, "Không thể lưu sản phẩm lúc này. Vui lòng kiểm tra dữ liệu và thử lại."));
             }
         }
 
@@ -134,7 +134,7 @@ public class SanPhamsController : Controller
             }
             catch (SqlException ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex, "Không thể cập nhật sản phẩm lúc này. Vui lòng thử lại."));
             }
         }
 
@@ -176,7 +176,7 @@ public class SanPhamsController : Controller
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = ex.Message;
+            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể xóa sản phẩm vì sản phẩm có thể đang được sử dụng.");
             return View("Delete", sanPham);
         }
     }

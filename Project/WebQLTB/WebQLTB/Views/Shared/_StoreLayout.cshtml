@@ -29,6 +29,7 @@
           href="~/css/store.css"
           asp-append-version="true" />
     <link rel="stylesheet" href="~/css/components/dropdown.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/image-fallback.css" asp-append-version="true" />
 </head>
 
 <body id="top" class="store">
@@ -47,5 +48,6 @@
 
     @await RenderSectionAsync("Scripts", required: false)
     <script src="~/js/components/dropdown.js" asp-append-version="true"></script>
+    <script src="~/js/image-fallback.js" asp-append-version="true"></script>
 </body>
 </html>

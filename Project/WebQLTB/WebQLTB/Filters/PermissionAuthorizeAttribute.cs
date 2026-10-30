@@ -33,7 +33,8 @@ public sealed class PermissionAuthorizeFilter : IAsyncActionFilter
             return;
         }
         var maNV = http.Session.GetInt32("MaNV");
-        if (maNV is null || !_db.NhanVien_CoQuyen((byte)maNV.Value, _permission))
+        if (maNV is null || maNV < 1 || maNV > byte.MaxValue
+            || !_db.NhanVien_CoQuyen((byte)maNV.Value, _permission))
         {
             context.Result = new RedirectToActionResult("AccessDenied", "Account", null);
             return;

@@ -205,7 +205,7 @@ public class ChiTietDonHangsController : Controller
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = ex.Message;
+            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể xóa chi tiết đơn hàng lúc này. Vui lòng thử lại.");
             return View("Delete", chiTiet);
         }
     }

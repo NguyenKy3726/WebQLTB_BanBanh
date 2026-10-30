@@ -278,7 +278,7 @@ public class ThanhToansController : Controller
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = ex.Message;
+            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể xóa giao dịch vì giao dịch có thể đang được tham chiếu.");
             return View("Delete", thanhToan);
         }
     }

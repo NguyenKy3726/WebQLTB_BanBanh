@@ -8,6 +8,7 @@ namespace WebQLTB.Controllers;
 public class CuaHangController : Controller
 {
     private readonly AppDbContext _db;
+    private readonly ILogger<CuaHangController> _logger;
     private const string CartKey = "GioHang";
 
     private static readonly IReadOnlyDictionary<string, string> TenTrangThaiDon =
@@ -24,7 +25,11 @@ public class CuaHangController : Controller
             ["DA_HUY"] = "Đã hủy"
         };
 
-    public CuaHangController(AppDbContext db) => _db = db;
+    public CuaHangController(AppDbContext db, ILogger<CuaHangController> logger)
+    {
+        _db = db;
+        _logger = logger;
+    }
 
     public IActionResult Index()
     {
@@ -241,7 +246,9 @@ public class CuaHangController : Controller
         }
         catch (Microsoft.Data.SqlClient.SqlException ex)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
+            _logger.LogError(ex, "Could not place customer's web order {CustomerId}.", maKH.Value);
+            ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex,
+                "Chưa thể gửi đơn hàng lúc này. Giỏ hàng vẫn được giữ lại; vui lòng thử lại sau."));
             PrepareCheckoutView(cart);
             return View(model);
         }

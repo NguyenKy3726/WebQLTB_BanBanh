@@ -69,7 +69,7 @@ public class BienTheBanhsController : Controller
                 TempData["ThongBaoBienThe"] = "Đã thêm phiên bản bánh.";
                 return RedirectToAction(nameof(Index), new { masp = bienthebanh.MaSP });
             }
-            catch (SqlException ex) { ModelState.AddModelError(string.Empty, ex.Message); }
+            catch (SqlException ex) { ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex, "Không thể lưu phiên bản bánh lúc này. Vui lòng kiểm tra dữ liệu và thử lại.")); }
         }
         PrepareProducts(bienthebanh.MaSP);
         return View(bienthebanh);
@@ -127,7 +127,7 @@ public class BienTheBanhsController : Controller
             }
             catch (SqlException ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex, "Không thể cập nhật phiên bản bánh lúc này. Vui lòng thử lại."));
             }
             if (!ModelState.IsValid)
             {
@@ -175,7 +175,7 @@ public class BienTheBanhsController : Controller
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = ex.Message;
+            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể xóa phiên bản vì có thể đang được dùng trong đơn hàng.");
             return View("Delete", bienThe);
         }
     }

@@ -144,7 +144,7 @@ public class QuyensController : Controller
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = ex.Message;
+            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể xóa nhóm quyền vì có thể đang được gán cho nhân viên.");
             return View("Delete", quyen);
         }
     }

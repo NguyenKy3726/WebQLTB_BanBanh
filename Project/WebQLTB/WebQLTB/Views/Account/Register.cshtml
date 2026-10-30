@@ -12,6 +12,7 @@
 
             <form asp-action="Register" method="post" class="account-auth-form account-auth-form--register">
                 @Html.AntiForgeryToken()
+                <input type="hidden" name="returnUrl" value="@(ViewData["ReturnUrl"] as string)" />
                 <label class="account-auth-field">
                     <span>Họ</span>
                     <svg class="account-auth-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>
@@ -69,7 +70,7 @@
 
             <p class="account-auth-switch">
                 Đã có tài khoản?
-                <a class="account-auth-text-button" asp-action="Login">Đăng nhập</a>
+                <a class="account-auth-text-button" asp-action="Login" asp-route-returnUrl="@(ViewData["ReturnUrl"] as string)">Đăng nhập</a>
             </p>
         </section>
     </div>

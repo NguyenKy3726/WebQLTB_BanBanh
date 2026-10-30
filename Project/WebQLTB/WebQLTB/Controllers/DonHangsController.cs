@@ -11,6 +11,7 @@ public class DonHangsController : Controller
 {
     private const int PageSize = 15;
     private readonly AppDbContext _context;
+    private readonly ILogger<DonHangsController> _logger;
 
     private static readonly Dictionary<string, string> TenTrangThai = new()
     {
@@ -25,7 +26,11 @@ public class DonHangsController : Controller
         ["DA_HUY"] = "Đã hủy"
     };
 
-    public DonHangsController(AppDbContext context) => _context = context;
+    public DonHangsController(AppDbContext context, ILogger<DonHangsController> logger)
+    {
+        _context = context;
+        _logger = logger;
+    }
 
     public IActionResult Index(string? trangThai, string? q, int page = 1)
     {
@@ -111,7 +116,9 @@ public class DonHangsController : Controller
         }
         catch (SqlException ex)
         {
-            TempData["LoiXuLyDon"] = ex.Message;
+            _logger.LogError(ex, "Could not change status for order {OrderId}.", model.MaDonHang);
+            TempData["LoiXuLyDon"] = SqlErrorMessage.ForUser(ex,
+                "Chưa thể cập nhật đơn hàng lúc này. Vui lòng tải lại trang và thử lại.");
         }
 
         return RedirectToAction(nameof(Details), new { madonhang = model.MaDonHang });
@@ -186,7 +193,9 @@ public class DonHangsController : Controller
         }
         catch (SqlException ex)
         {
-            TempData["LoiXuLyDon"] = ex.Message;
+            _logger.LogError(ex, "Could not record a payment for order {OrderId}.", model.MaDonHang);
+            TempData["LoiXuLyDon"] = SqlErrorMessage.ForUser(ex,
+                "Chưa thể ghi nhận giao dịch lúc này. Vui lòng thử lại sau.");
         }
 
         return RedirectToAction(nameof(Details), new { madonhang = model.MaDonHang });
@@ -221,7 +230,9 @@ public class DonHangsController : Controller
         }
         catch (SqlException ex)
         {
-            TempData["LoiXuLyDon"] = ex.Message;
+            _logger.LogError(ex, "Could not process payment {PaymentId}.", payment.MaThanhToan);
+            TempData["LoiXuLyDon"] = SqlErrorMessage.ForUser(ex,
+                "Chưa thể xử lý giao dịch lúc này. Vui lòng thử lại sau.");
         }
 
         return RedirectToAction(nameof(Details), new { madonhang = payment.MaDonHang });

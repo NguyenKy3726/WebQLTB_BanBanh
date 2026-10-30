@@ -86,7 +86,9 @@ public class HinhAnhBanhsController : Controller
         }
         catch (Exception ex) when (ex is SqlException or InvalidOperationException)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
+            ModelState.AddModelError(string.Empty, ex is SqlException sqlError
+                ? SqlErrorMessage.ForUser(sqlError, "Không thể lưu ảnh lúc này. Vui lòng thử lại.")
+                : "Không thể hoàn tất thao tác ảnh bánh. Vui lòng tải lại danh sách và thử lại.");
             PrepareProducts(form.MaSP);
             return View(form);
         }
@@ -141,7 +143,7 @@ public class HinhAnhBanhsController : Controller
         }
         catch (SqlException ex)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
+            ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex, "Không thể cập nhật ảnh lúc này. Vui lòng thử lại."));
             PrepareProducts(current.MaSP);
             return View(form);
         }
@@ -171,7 +173,7 @@ public class HinhAnhBanhsController : Controller
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = ex.Message;
+            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể xóa ảnh lúc này. Vui lòng thử lại.");
             ViewBag.TenSP = _context.SanPham_DS().ToDictionary(sp => sp.MaSP, sp => sp.TenSP);
             return View("Delete", image);
         }

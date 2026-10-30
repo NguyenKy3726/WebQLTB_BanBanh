@@ -55,6 +55,11 @@
 
 /* Điều hướng và tên người dùng trên header. */
 .header__nav-link { white-space:nowrap; }
+.header__logout-form { margin: 0; }
+.header__logout-form--mobile { display: contents; }
+.header__logout-button { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.header__logout-button:hover { color: var(--color-accent-dark); }
+.header__logout-button:focus-visible { outline: 2px solid var(--color-accent-dark); outline-offset: 4px; border-radius: 3px; }
 @media (min-width:1201px) and (max-width:1550px) {
     .header__container { gap:18px; }
     .header__logo { max-width:200px; }

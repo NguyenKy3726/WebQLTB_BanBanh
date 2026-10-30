@@ -7,10 +7,12 @@ namespace WebQLTB.Controllers
     public class AccountController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(AppDbContext context)
+        public AccountController(AppDbContext context, ILogger<AccountController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -132,7 +134,9 @@ namespace WebQLTB.Controllers
             }
             catch (Microsoft.Data.SqlClient.SqlException ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                _logger.LogError(ex, "Could not register customer account.");
+                ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex,
+                    "Chưa thể tạo tài khoản lúc này. Vui lòng thử lại sau."));
                 return View();
             }
         }
@@ -248,11 +252,15 @@ namespace WebQLTB.Controllers
             }
             catch (Microsoft.Data.SqlClient.SqlException ex)
             {
-                ModelState.AddModelError(string.Empty, ex.Message);
+                _logger.LogError(ex, "Could not save account profile changes.");
+                ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex,
+                    "Chưa thể lưu thông tin lúc này. Vui lòng thử lại sau."));
                 return View(model);
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();

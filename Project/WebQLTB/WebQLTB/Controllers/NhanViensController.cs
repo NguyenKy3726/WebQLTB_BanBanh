@@ -79,7 +79,7 @@ public class NhanViensController : Controller
         }
         catch (Microsoft.Data.SqlClient.SqlException ex)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
+            ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex, "Không thể lưu nhân viên lúc này. Vui lòng kiểm tra dữ liệu và thử lại."));
             return View(nhanvien);
         }
     }
@@ -133,7 +133,7 @@ public class NhanViensController : Controller
         }
         catch (Microsoft.Data.SqlClient.SqlException ex)
         {
-            ModelState.AddModelError(string.Empty, ex.Message);
+            ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex, "Không thể cập nhật nhân viên lúc này. Vui lòng thử lại."));
             return View(nhanvien);
         }
     }
@@ -172,7 +172,7 @@ public class NhanViensController : Controller
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = ex.Message;
+            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể xóa nhân viên vì tài khoản có thể đang được sử dụng.");
             return View("Delete", nhanVien);
         }
     }

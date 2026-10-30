@@ -144,7 +144,7 @@ public class LoaiBanhsController : Controller
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = ex.Message;
+            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể xóa loại bánh vì có thể đang được sản phẩm sử dụng.");
             return View("Delete", loaiBanh);
         }
     }
