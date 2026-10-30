@@ -1,0 +1,127 @@
+@model WebQLTB.Models.DonHang
+@using System.Globalization
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var diaChiMacDinhDaCapNhat = ViewBag.DiaChiMacDinhDaCapNhat is true;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/order-success.css" asp-append-version="true" />
+}
+
+<section class="order-success container" aria-labelledby="success-title">
+    <nav class="order-success__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span aria-hidden="true">/</span>
+        <a asp-controller="CuaHang" asp-action="DonDatHang">Đơn của tôi</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Kết quả đặt hàng</span>
+    </nav>
+
+    <section class="order-success__hero">
+        <div class="order-success__mark" aria-hidden="true">✓</div>
+        <p class="order-success__eyebrow">WHISKFUL · CẢM ƠN BẠN</p>
+        <h1 id="success-title">Đơn bánh đã được gửi</h1>
+        <p class="order-success__intro">
+            Cửa hàng đã nhận được yêu cầu đặt bánh. Đơn đang chờ nhân viên kiểm tra và xác nhận.
+        </p>
+
+        <div class="order-success__code-card">
+            <span>Mã đơn hàng của bạn</span>
+            <div class="order-success__code-row">
+                <strong id="order-code" class="order-success__code" data-order-code="@Model.MaDonHang">@Model.MaDonHang</strong>
+                <button class="order-success__copy" id="copy-order-code" type="button"
+                        aria-label="Sao chép mã đơn hàng">Sao chép</button>
+            </div>
+            <span class="order-success__copy-status" id="copy-order-status" aria-live="polite"></span>
+        </div>
+
+        @if (diaChiMacDinhDaCapNhat)
+        {
+            <p class="order-success__address-note">
+                Địa chỉ giao bánh mới đã được lưu làm địa chỉ thường dùng cho lần đặt sau.
+            </p>
+        }
+    </section>
+
+    <div class="order-success__layout">
+        <section class="order-success__card" aria-labelledby="order-summary-title">
+            <div class="order-success__card-heading">
+                <div>
+                    <p class="order-success__eyebrow">THÔNG TIN ĐƠN</p>
+                    <h2 id="order-summary-title">Tóm tắt đặt hàng</h2>
+                </div>
+                <span class="order-success__status">Chờ xử lý</span>
+            </div>
+
+            <dl class="order-success__details">
+                <div>
+                    <dt>Người nhận</dt>
+                    <dd>@Model.TenNguoiNhan</dd>
+                </div>
+                <div>
+                    <dt>Số điện thoại</dt>
+                    <dd>@Model.DienThoaiNguoiNhan</dd>
+                </div>
+                <div class="order-success__detail-wide">
+                    <dt>Địa chỉ giao bánh</dt>
+                    <dd>@Model.DiaChiGiaoHang</dd>
+                </div>
+                <div>
+                    <dt>Thời gian gửi</dt>
+                    <dd>@Model.NgayDat.ToString("dd/MM/yyyy HH:mm", culture)</dd>
+                </div>
+                <div>
+                    <dt>Tiền bánh hiện tại</dt>
+                    <dd class="order-success__price">@Model.TongTienHang.ToString("N0", culture)đ</dd>
+                </div>
+            </dl>
+
+            <p class="order-success__fee-note">
+                Phí giao hàng, thời gian nhận và số tiền cuối cùng sẽ được nhân viên xác nhận. Đơn chưa giữ bánh ở trạng thái này.
+            </p>
+        </section>
+
+        <section class="order-success__card order-success__next" aria-labelledby="next-steps-title">
+            <p class="order-success__eyebrow">TIẾP THEO SẼ DIỄN RA</p>
+            <h2 id="next-steps-title">Các bước tiếp theo</h2>
+            <ol class="order-success__steps">
+                <li>
+                    <span>1</span>
+                    <div>
+                        <strong>Cửa hàng kiểm tra yêu cầu</strong>
+                        <p>Nhân viên sẽ xem mẫu bánh, số lượng và khả năng đáp ứng.</p>
+                    </div>
+                </li>
+                <li>
+                    <span>2</span>
+                    <div>
+                        <strong>Xác nhận đơn với bạn</strong>
+                        <p>Cửa hàng xác nhận thời gian nhận, phí giao hàng và các khoản cần thanh toán nếu có.</p>
+                    </div>
+                </li>
+                <li>
+                    <span>3</span>
+                    <div>
+                        <strong>Theo dõi trạng thái</strong>
+                        <p>Bạn có thể mở mục “Đơn của tôi” để xem trạng thái đơn hàng.</p>
+                    </div>
+                </li>
+            </ol>
+        </section>
+    </div>
+
+    <div class="order-success__actions">
+        <a class="button button--dark" asp-controller="CuaHang" asp-action="DonDatHang">
+            Xem đơn của tôi <span aria-hidden="true">→</span>
+        </a>
+        <a class="button button--outline" asp-controller="CuaHang" asp-action="Index">
+            Tiếp tục mua bánh
+        </a>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/order-success.js" asp-append-version="true"></script>
+}

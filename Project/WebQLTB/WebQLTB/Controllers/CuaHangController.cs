@@ -221,9 +221,8 @@ public class CuaHangController : Controller
 
             // Thủ tục SQL tạo đơn và cập nhật địa chỉ mặc định trong cùng transaction.
             SaveCart(new List<GioHangItem>());
-            TempData["ThongBao"] = $"Đã gửi đơn {id}. Nhân viên sẽ kiểm tra và phản hồi."
-                + (addressChanged ? " Địa chỉ giao hàng mới đã được lưu làm địa chỉ thường dùng." : string.Empty);
-            return RedirectToAction(nameof(DonDatHang));
+            TempData["DatHangDiaChiCapNhat"] = addressChanged;
+            return RedirectToAction(nameof(DatHangThanhCong), new { maDonHang = id });
         }
         catch (Microsoft.Data.SqlClient.SqlException ex)
         {
@@ -231,6 +230,29 @@ public class CuaHangController : Controller
             PrepareCheckoutView(cart);
             return View(model);
         }
+    }
+
+    [HttpGet]
+    public IActionResult DatHangThanhCong(string? maDonHang)
+    {
+        var maKH = HttpContext.Session.GetInt32("MaKH");
+        if (HttpContext.Session.GetString("Role") != "KhachHang" || maKH is null)
+        {
+            var returnUrl = Url.Action(nameof(DatHangThanhCong), "CuaHang", new { maDonHang });
+            return RedirectToAction("Login", "Account", new { returnUrl });
+        }
+
+        if (string.IsNullOrWhiteSpace(maDonHang) || maDonHang.Length != 11)
+            return NotFound();
+
+        var order = _db.DonHang_CT(maDonHang);
+        if (order == null || order.MaKH != (short)maKH.Value)
+            return NotFound();
+
+        ViewBag.DiaChiMacDinhDaCapNhat =
+            TempData["DatHangDiaChiCapNhat"] is bool updated && updated;
+
+        return View(order);
     }
 
     private void PrepareCheckoutView(List<GioHangItem> cart)
