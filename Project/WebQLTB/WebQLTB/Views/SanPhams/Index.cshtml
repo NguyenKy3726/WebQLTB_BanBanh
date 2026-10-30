@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Quản lý sản phẩm bánh";
     var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var cakeTypes = ViewBag.TenLoaiBanh as Dictionary<byte, string> ?? new Dictionary<byte, string>();
     var images = ViewBag.AnhDaiDien as Dictionary<string, string> ?? new();
     var variants = ViewBag.SoBienThe as Dictionary<string, int> ?? new();
     var lowestPrices = ViewBag.GiaThapNhat as Dictionary<string, decimal> ?? new();
@@ -62,7 +63,7 @@
                     <span class="product-admin-card__status product-admin-card__status--@item.TrangThaiHienThi.ToLowerInvariant()">@statusLabel</span>
                 </a>
                 <div class="product-admin-card__body">
-                    <span class="product-admin-card__category">@(ViewBag.TenLoaiBanh.TryGetValue(item.MaLoaiBanh, out var category) ? category : "Chưa phân loại")</span>
+                    <span class="product-admin-card__category">@cakeTypes.GetValueOrDefault(item.MaLoaiBanh, "Chưa phân loại")</span>
                     <h2>@item.TenSP</h2>
                     <p>@(string.IsNullOrWhiteSpace(item.MoTaNgan) ? "Chưa có mô tả ngắn." : item.MoTaNgan)</p>
                     <div class="product-admin-card__meta">
