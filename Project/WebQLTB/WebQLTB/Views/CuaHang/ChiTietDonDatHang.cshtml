@@ -1,0 +1,207 @@
+@model WebQLTB.Models.DonHangKhachChiTietViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var order = Model.DonHang;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/orders.css" asp-append-version="true" />
+}
+
+<section class="customer-orders customer-orders--detail container" aria-labelledby="order-detail-title">
+    <nav class="customer-orders__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span aria-hidden="true">/</span>
+        <a asp-controller="CuaHang" asp-action="DonDatHang">Đơn hàng của tôi</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">@order.MaDonHang</span>
+    </nav>
+
+    <header class="customer-orders__heading customer-orders__heading--detail">
+        <div>
+            <p class="customer-orders__eyebrow">CHI TIẾT ĐƠN HÀNG</p>
+            <h1 id="order-detail-title">@order.MaDonHang</h1>
+            <p>Đặt ngày @order.NgayDat.ToString("dd/MM/yyyy HH:mm", culture)</p>
+        </div>
+        <span class="customer-order-card__status">@Model.TenTrangThai</span>
+    </header>
+
+    <div class="customer-orders__detail-grid">
+        <div class="customer-orders__main-column">
+            <section class="customer-orders__panel" aria-labelledby="cakes-title">
+                <div class="customer-orders__panel-heading">
+                    <div>
+                        <p class="customer-orders__eyebrow">ĐƠN BÁNH CỦA BẠN</p>
+                        <h2 id="cakes-title">Bánh đã đặt</h2>
+                    </div>
+                </div>
+                @if (Model.CacMon.Count == 0)
+                {
+                    <p class="customer-orders__muted">Chưa có thông tin dòng bánh trong đơn này.</p>
+                }
+                else
+                {
+                    <div class="customer-orders__table-wrap">
+                        <table class="customer-orders__table">
+                            <thead>
+                                <tr><th>Bánh</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var item in Model.CacMon)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@item.TenBanh</strong>
+                                        @if (!string.IsNullOrWhiteSpace(item.TenBienThe))
+                                        {
+                                            <span class="customer-orders__subtext">@item.TenBienThe</span>
+                                        }
+                                        @if (!string.IsNullOrWhiteSpace(item.GhiChu))
+                                        {
+                                            <span class="customer-orders__subtext">Ghi chú: @item.GhiChu</span>
+                                        }
+                                    </td>
+                                    <td>@item.DonGia.ToString("N0", culture) ₫</td>
+                                    <td>@item.SoLuong</td>
+                                    <td><strong>@item.ThanhTien.ToString("N0", culture) ₫</strong></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                <dl class="customer-orders__totals">
+                    <div><dt>Tiền bánh</dt><dd>@order.TongTienHang.ToString("N0", culture) ₫</dd></div>
+                    <div><dt>Phí giao hàng</dt><dd>@order.PhiGiaoHang.ToString("N0", culture) ₫</dd></div>
+                    <div><dt>Giảm giá</dt><dd>−@order.TienGiamGia.ToString("N0", culture) ₫</dd></div>
+                    <div class="customer-orders__totals-final"><dt>Tổng cần thanh toán</dt><dd>@order.TongTienPhaiTra.ToString("N0", culture) ₫</dd></div>
+                </dl>
+            </section>
+
+            <section class="customer-orders__panel" aria-labelledby="history-title">
+                <div class="customer-orders__panel-heading">
+                    <div>
+                        <p class="customer-orders__eyebrow">CẬP NHẬT TỪ WHISKFUL</p>
+                        <h2 id="history-title">Lịch sử xử lý</h2>
+                    </div>
+                </div>
+                @if (Model.LichSu.Count == 0)
+                {
+                    <p class="customer-orders__muted">Chưa có cập nhật trạng thái cho đơn này.</p>
+                }
+                else
+                {
+                    <ol class="customer-orders__timeline">
+                    @foreach (var item in Model.LichSu.OrderByDescending(x => x.ThoiDiem))
+                    {
+                        var statusLabel = Model.CacTrangThai.TryGetValue(item.TrangThaiMoi, out var label)
+                            ? label
+                            : item.TrangThaiMoi;
+                        var statusTime = item.ThoiDiem.ToString("O");
+                        var actorLabel = item.NguoiThucHien switch
+                        {
+                            "KHACH_HANG" => "Bạn",
+                            "NHAN_VIEN" => "Nhân viên Whiskful",
+                            _ => "Whiskful"
+                        };
+                        <li>
+                            <span class="customer-orders__timeline-dot" aria-hidden="true"></span>
+                            <div class="customer-orders__timeline-content">
+                                <div class="customer-orders__timeline-top">
+                                    <strong>@statusLabel</strong>
+                                    <time datetime="@statusTime">@item.ThoiDiem.ToString("dd/MM/yyyy HH:mm", culture)</time>
+                                </div>
+                                <p>@actorLabel</p>
+                                @if (!string.IsNullOrWhiteSpace(item.LyDo))
+                                {
+                                    <p class="customer-orders__muted">@item.LyDo</p>
+                                }
+                            </div>
+                        </li>
+                    }
+                    </ol>
+                }
+            </section>
+        </div>
+
+        <aside class="customer-orders__side-column">
+            <section class="customer-orders__panel" aria-labelledby="payment-title">
+                <div class="customer-orders__panel-heading">
+                    <div>
+                        <p class="customer-orders__eyebrow">TÓM TẮT TÀI CHÍNH</p>
+                        <h2 id="payment-title">Cọc & thanh toán</h2>
+                    </div>
+                </div>
+                @if (order.TienCocYeuCau.GetValueOrDefault() > 0)
+                {
+                    <dl class="customer-orders__payment-summary">
+                        <div><dt>Tiền cọc cần có</dt><dd>@order.TienCocYeuCau.Value.ToString("N0", culture) ₫</dd></div>
+                        <div><dt>Đã thu trong tiền cọc</dt><dd>@Model.DaThuCoc.ToString("N0", culture) ₫</dd></div>
+                        <div><dt>Cọc còn thiếu</dt><dd>@Model.ConThieuCoc.ToString("N0", culture) ₫</dd></div>
+                        <div class="customer-orders__payment-total"><dt>Đã thanh toán ròng</dt><dd>@Model.DaThanhToan.ToString("N0", culture) ₫</dd></div>
+                        <div class="customer-orders__payment-total"><dt>Còn phải thanh toán</dt><dd>@Model.ConPhaiTra.ToString("N0", culture) ₫</dd></div>
+                    </dl>
+                }
+                else
+                {
+                    <p class="customer-orders__muted">Cửa hàng chưa yêu cầu đặt cọc cho đơn hàng này.</p>
+                    <dl class="customer-orders__payment-summary">
+                        <div><dt>Đã thanh toán ròng</dt><dd>@Model.DaThanhToan.ToString("N0", culture) ₫</dd></div>
+                        <div class="customer-orders__payment-total"><dt>Còn phải thanh toán</dt><dd>@Model.ConPhaiTra.ToString("N0", culture) ₫</dd></div>
+                    </dl>
+                }
+
+                <h3 class="customer-orders__subheading">Giao dịch</h3>
+                @if (Model.GiaoDich.Count == 0)
+                {
+                    <p class="customer-orders__muted">Chưa ghi nhận giao dịch thanh toán.</p>
+                }
+                else
+                {
+                    <ul class="customer-orders__transactions">
+                    @foreach (var payment in Model.GiaoDich)
+                    {
+                        var typeLabel = payment.LoaiGiaoDich == "REFUND" ? "Hoàn tiền" : "Thanh toán";
+                        var methodLabel = payment.PhuongThuc == "BANK_TRANSFER" ? "Chuyển khoản" : "Tiền mặt";
+                        var stateLabel = payment.TrangThaiThanhToan switch
+                        {
+                            "SUCCESS" => "Thành công",
+                            "REJECTED" => "Đã từ chối",
+                            _ => "Đang chờ xác nhận"
+                        };
+                        var paymentTime = payment.ThoiGianTao.ToString("O");
+                        <li>
+                            <div><strong>@typeLabel · @payment.SoTien.ToString("N0", culture) ₫</strong><span>@methodLabel · @stateLabel</span></div>
+                            <time datetime="@paymentTime">@payment.ThoiGianTao.ToString("dd/MM/yyyy HH:mm", culture)</time>
+                        </li>
+                    }
+                    </ul>
+                }
+                <p class="customer-orders__note">Số tiền đã thanh toán chỉ tính giao dịch thành công; giao dịch hoàn tiền thành công được trừ khỏi tổng thu.</p>
+            </section>
+
+            <section class="customer-orders__panel" aria-labelledby="delivery-title">
+                <div class="customer-orders__panel-heading">
+                    <div>
+                        <p class="customer-orders__eyebrow">THÔNG TIN NHẬN BÁNH</p>
+                        <h2 id="delivery-title">Người nhận</h2>
+                    </div>
+                </div>
+                <dl class="customer-orders__recipient">
+                    <div><dt>Họ tên</dt><dd>@order.TenNguoiNhan</dd></div>
+                    <div><dt>Điện thoại</dt><dd>@order.DienThoaiNguoiNhan</dd></div>
+                    <div><dt>Địa chỉ</dt><dd>@order.DiaChiGiaoHang</dd></div>
+                    <div><dt>Dự kiến giao</dt><dd>@(order.NgayGiaoDuKien?.ToString("dd/MM/yyyy HH:mm", culture) ?? "Chưa xác nhận")</dd></div>
+                    @if (!string.IsNullOrWhiteSpace(order.GhiChu))
+                    {
+                        <div><dt>Ghi chú</dt><dd>@order.GhiChu</dd></div>
+                    }
+                </dl>
+            </section>
+        </aside>
+    </div>
+
+    <a class="customer-orders__return" asp-controller="CuaHang" asp-action="DonDatHang">← Quay lại danh sách đơn</a>
+</section>

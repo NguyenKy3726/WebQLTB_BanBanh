@@ -1,6 +1,103 @@
-@model IEnumerable<DonHang>
-@{ ViewData["Title"]="Đơn của tôi"; }
-<h1>Đơn hàng của tôi</h1>@if(TempData["ThongBao"] is string msg){<div class="alert alert-success">@msg</div>}
-<table class="table"><thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Trạng thái</th><th>Tổng tiền</th></tr></thead><tbody>
-@foreach(var x in Model){<tr><td>@x.MaDonHang</td><td>@x.NgayDat</td><td>@x.TrangThaiDonHang</td><td>@x.TongTienPhaiTra.ToString("N0") ₫</td></tr>}
-</tbody></table>
+@model WebQLTB.Models.DonHangKhachDanhSachViewModel
+@using System.Globalization
+@{
+    ViewData["Title"] = "Đơn hàng của tôi";
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/orders.css" asp-append-version="true" />
+}
+
+<section class="customer-orders container" aria-labelledby="orders-title">
+    <nav class="customer-orders__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
+        <span aria-hidden="true">/</span>
+        <a asp-controller="Account" asp-action="ThongTin">Tài khoản</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page">Đơn hàng của tôi</span>
+    </nav>
+
+    <header class="customer-orders__heading">
+        <div>
+            <p class="customer-orders__eyebrow">HÀNH TRÌNH NGỌT NGÀO</p>
+            <h1 id="orders-title">Đơn hàng của tôi</h1>
+            <p>Theo dõi trạng thái, lịch nhận bánh và thông tin thanh toán của bạn.</p>
+        </div>
+        <a class="customer-orders__back-link" asp-controller="CuaHang" asp-action="Index">Tiếp tục mua bánh <span aria-hidden="true">→</span></a>
+    </header>
+
+    <form class="customer-orders__filter" asp-controller="CuaHang" asp-action="DonDatHang" method="get">
+        <label for="order-status">Lọc theo trạng thái</label>
+        <select id="order-status" name="trangThai">
+            <option value="">Tất cả đơn hàng</option>
+            @foreach (var status in Model.CacTrangThai)
+            {
+                if (Model.TrangThaiDangChon == status.Key)
+                {
+                    <option value="@status.Key" selected>@status.Value</option>
+                }
+                else
+                {
+                    <option value="@status.Key">@status.Value</option>
+                }
+            }
+        </select>
+        <button type="submit">Lọc đơn</button>
+        @if (!string.IsNullOrWhiteSpace(Model.TrangThaiDangChon))
+        {
+            <a asp-controller="CuaHang" asp-action="DonDatHang">Xóa lọc</a>
+        }
+    </form>
+
+    @if (Model.DonHangs.Count == 0)
+    {
+        <div class="customer-orders__empty">
+            <span class="customer-orders__empty-icon" aria-hidden="true">♡</span>
+            <h2>Chưa có đơn hàng nào</h2>
+            <p>Các đơn bánh bạn đặt sẽ xuất hiện ở đây để tiện theo dõi.</p>
+            <a class="customer-orders__button" asp-controller="CuaHang" asp-action="Index">Khám phá các mẫu bánh</a>
+        </div>
+    }
+    else
+    {
+        <div class="customer-orders__list">
+            @foreach (var order in Model.DonHangs)
+            {
+                <article class="customer-order-card">
+                    <div class="customer-order-card__top">
+                        <div>
+                            <span class="customer-order-card__label">MÃ ĐƠN</span>
+                            <h2>@order.MaDonHang</h2>
+                        </div>
+                        <span class="customer-order-card__status">@order.TenTrangThai</span>
+                    </div>
+                    <dl class="customer-order-card__facts">
+                        <div>
+                            <dt>Ngày đặt</dt>
+                            <dd>@order.NgayDat.ToString("dd/MM/yyyy HH:mm", culture)</dd>
+                        </div>
+                        <div>
+                            <dt>Dự kiến nhận</dt>
+                            <dd>@(order.NgayGiaoDuKien?.ToString("dd/MM/yyyy HH:mm", culture) ?? "Đang chờ xác nhận")</dd>
+                        </div>
+                        <div>
+                            <dt>Tiền cọc yêu cầu</dt>
+                            <dd>@(order.TienCocYeuCau.GetValueOrDefault() > 0 ? order.TienCocYeuCau.Value.ToString("N0", culture) + " ₫" : "Không yêu cầu cọc")</dd>
+                        </div>
+                        <div>
+                            <dt>Tổng thanh toán</dt>
+                            <dd class="customer-order-card__total">@order.TongTienPhaiTra.ToString("N0", culture) ₫</dd>
+                        </div>
+                    </dl>
+                    <div class="customer-order-card__bottom">
+                        <span>Chi tiết bánh, thanh toán và lịch sử nằm trong trang chi tiết đơn.</span>
+                        <a asp-controller="CuaHang" asp-action="ChiTietDonDatHang" asp-route-maDonHang="@order.MaDonHang">
+                            Xem chi tiết <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>

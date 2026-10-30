@@ -9,6 +9,21 @@ public class CuaHangController : Controller
 {
     private readonly AppDbContext _db;
     private const string CartKey = "GioHang";
+
+    private static readonly IReadOnlyDictionary<string, string> TenTrangThaiDon =
+        new Dictionary<string, string>
+        {
+            ["CHO_NHAN_VIEN_XU_LY"] = "Chờ cửa hàng xác nhận",
+            ["CHO_KHACH_XAC_NHAN"] = "Chờ bạn xác nhận",
+            ["CHO_THANH_TOAN_COC"] = "Chờ thanh toán cọc",
+            ["DA_XAC_NHAN"] = "Đã xác nhận",
+            ["DANG_CHUAN_BI"] = "Đang chuẩn bị bánh",
+            ["SAN_SANG_GIAO"] = "Sẵn sàng giao",
+            ["DANG_GIAO"] = "Đang giao",
+            ["HOAN_TAT"] = "Đã hoàn tất",
+            ["DA_HUY"] = "Đã hủy"
+        };
+
     public CuaHangController(AppDbContext db) => _db = db;
 
     public IActionResult Index()
@@ -263,11 +278,124 @@ public class CuaHangController : Controller
             .Sum(item => item.DonGia * item.SoLuong);
     }
 
-    public IActionResult DonDatHang()
+    [HttpGet]
+    public IActionResult DonDatHang(string? trangThai)
     {
-        if (HttpContext.Session.GetString("Role")!="KhachHang") return RedirectToAction("Login","Account");
-        var id=HttpContext.Session.GetInt32("MaKH");
-        return View(_db.DonHang_DS().Where(x=>x.MaKH==id).ToList());
+        var maKH = HttpContext.Session.GetInt32("MaKH");
+        if (HttpContext.Session.GetString("Role") != "KhachHang" || maKH is null)
+        {
+            return RedirectToAction("Login", "Account", new
+            {
+                returnUrl = Url.Action(nameof(DonDatHang), "CuaHang")
+            });
+        }
+
+        var danhSach = _db.DonHang_DS()
+            .Where(don => don.MaKH == (short)maKH.Value)
+            .Where(don => string.IsNullOrWhiteSpace(trangThai)
+                || don.TrangThaiDonHang == trangThai)
+            .Select(don => new DonHangKhachDanhSachItemViewModel
+            {
+                MaDonHang = don.MaDonHang,
+                NgayDat = don.NgayDat,
+                NgayGiaoDuKien = don.NgayGiaoDuKien,
+                TrangThaiDonHang = don.TrangThaiDonHang,
+                TenTrangThai = TenTrangThaiDon.TryGetValue(don.TrangThaiDonHang, out var ten)
+                    ? ten
+                    : don.TrangThaiDonHang,
+                TienCocYeuCau = don.TienCocYeuCau,
+                TongTienPhaiTra = don.TongTienPhaiTra
+            })
+            .ToList();
+
+        return View(new DonHangKhachDanhSachViewModel
+        {
+            DonHangs = danhSach,
+            TrangThaiDangChon = trangThai,
+            CacTrangThai = TenTrangThaiDon
+        });
+    }
+
+    [HttpGet]
+    public IActionResult ChiTietDonDatHang(string? maDonHang)
+    {
+        var maKH = HttpContext.Session.GetInt32("MaKH");
+        if (HttpContext.Session.GetString("Role") != "KhachHang" || maKH is null)
+        {
+            return RedirectToAction("Login", "Account", new
+            {
+                returnUrl = Url.Action(nameof(ChiTietDonDatHang), "CuaHang", new { maDonHang })
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(maDonHang)) return NotFound();
+
+        // Kiểm tra quyền sở hữu trước khi đọc chi tiết, thanh toán và lịch sử.
+        var donHang = _db.DonHang_CT(maDonHang.Trim());
+        if (donHang == null || donHang.MaKH != (short)maKH.Value) return NotFound();
+
+        var bienTheTheoMa = _db.BienTheBanh_DS().ToDictionary(x => x.MaBienThe);
+        var sanPhamTheoMa = _db.SanPham_DS().ToDictionary(x => x.MaSP);
+
+        var cacMon = _db.ChiTietDonHang_DS()
+            .Where(ct => ct.MaDonHang == donHang.MaDonHang)
+            .OrderBy(ct => ct.STT)
+            .Select(ct =>
+            {
+                var tenBanh = "Sản phẩm bánh";
+                var tenBienThe = string.Empty;
+                if (bienTheTheoMa.TryGetValue(ct.MaBienThe, out var bienThe))
+                {
+                    tenBienThe = bienThe.TenBienThe;
+                    if (sanPhamTheoMa.TryGetValue(bienThe.MaSP, out var sanPham))
+                        tenBanh = sanPham.TenSP;
+                }
+
+                return new DonHangKhachMonHangViewModel
+                {
+                    TenBanh = tenBanh,
+                    TenBienThe = tenBienThe,
+                    SoLuong = ct.SoLuong,
+                    DonGia = ct.DonGiaTaiThoiDiemDat,
+                    ThanhTien = ct.SoLuong * ct.DonGiaTaiThoiDiemDat,
+                    GhiChu = ct.GhiChu
+                };
+            })
+            .ToList();
+
+        var giaoDich = _db.ThanhToan_DS()
+            .Where(tt => tt.MaDonHang == donHang.MaDonHang)
+            .OrderByDescending(tt => tt.ThoiGianTao)
+            .ToList();
+
+        var tongThu = giaoDich
+            .Where(tt => tt.LoaiGiaoDich == "PAYMENT" && tt.TrangThaiThanhToan == "SUCCESS")
+            .Sum(tt => tt.SoTien);
+        var tongHoan = giaoDich
+            .Where(tt => tt.LoaiGiaoDich == "REFUND" && tt.TrangThaiThanhToan == "SUCCESS")
+            .Sum(tt => tt.SoTien);
+        var daThanhToan = Math.Max(0m, tongThu - tongHoan);
+        var daThuCoc = donHang.TienCocYeuCau.HasValue
+            ? Math.Min(daThanhToan, donHang.TienCocYeuCau.Value)
+            : 0m;
+
+        return View(new DonHangKhachChiTietViewModel
+        {
+            DonHang = donHang,
+            TenTrangThai = TenTrangThaiDon.TryGetValue(donHang.TrangThaiDonHang, out var ten)
+                ? ten
+                : donHang.TrangThaiDonHang,
+            CacMon = cacMon,
+            LichSu = _db.DonHang_LichSu(donHang.MaDonHang),
+            GiaoDich = giaoDich,
+            DaThanhToan = daThanhToan,
+            ConPhaiTra = Math.Max(0m, donHang.TongTienPhaiTra - daThanhToan),
+            DaThuCoc = daThuCoc,
+            ConThieuCoc = donHang.TienCocYeuCau.HasValue
+                ? Math.Max(0m, donHang.TienCocYeuCau.Value - daThuCoc)
+                : 0m,
+            CacTrangThai = TenTrangThaiDon
+        });
     }
 
     // Đối chiếu session với database để giỏ hiển thị giá và trạng thái hiện tại.
