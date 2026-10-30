@@ -261,10 +261,26 @@ namespace WebQLTB.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Logout()
+        public IActionResult Logout(string? returnUrl = null)
         {
+            var cart = HttpContext.Session.GetString("GioHang");
             HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            if (!string.IsNullOrWhiteSpace(cart))
+                HttpContext.Session.SetString("GioHang", cart);
+
+            TempData["StoreNotice"] = "Bạn đã đăng xuất thành công. Giỏ bánh vẫn được giữ lại trên thiết bị này.";
+
+            if (Url.IsLocalUrl(returnUrl)
+                && !returnUrl!.StartsWith("/Account/Login", StringComparison.OrdinalIgnoreCase)
+                && !returnUrl.StartsWith("/Account/Register", StringComparison.OrdinalIgnoreCase)
+                && !returnUrl.StartsWith("/Account/ThongTin", StringComparison.OrdinalIgnoreCase)
+                && !returnUrl.StartsWith("/CuaHang/DonDatHang", StringComparison.OrdinalIgnoreCase)
+                && !returnUrl.StartsWith("/CuaHang/ChiTietDonDatHang", StringComparison.OrdinalIgnoreCase))
+            {
+                return LocalRedirect(returnUrl);
+            }
+
+            return RedirectToAction("Index", "CuaHang");
         }
 
         public IActionResult AccessDenied()

@@ -36,6 +36,10 @@
     <partial name="_StoreHeader" />
 
     <main class="store__main">
+        @if (TempData["StoreNotice"] is string storeNotice)
+        {
+            <div class="store-notice container" role="status">@storeNotice</div>
+        }
         @RenderBody()
     </main>
 

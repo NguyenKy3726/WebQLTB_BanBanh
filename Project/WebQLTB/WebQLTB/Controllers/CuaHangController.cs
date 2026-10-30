@@ -159,9 +159,19 @@ public class CuaHangController : Controller
     public IActionResult DatHang()
     {
         var maKH = HttpContext.Session.GetInt32("MaKH");
+        var cart = RefreshCart();
+        if (!cart.Any()) return RedirectToAction(nameof(GioHang));
+        if (cart.Any(x => !x.DangBan))
+        {
+            TempData["GioHangThongBao"] = "Có bánh không còn được bán. Vui lòng xóa các dòng đó trước khi đặt hàng.";
+            return RedirectToAction(nameof(GioHang));
+        }
+
         if (HttpContext.Session.GetString("Role") != "KhachHang" || maKH is null)
         {
-            return RedirectToAction("Login", "Account", new { returnUrl = "/CuaHang/DatHang" });
+            ViewBag.CheckoutRequiresLogin = true;
+            PrepareCheckoutView(cart);
+            return View(new DatHangViewModel());
         }
 
         var customer = _db.KhachHang_CT((short)maKH.Value);
@@ -169,14 +179,6 @@ public class CuaHangController : Controller
         {
             HttpContext.Session.Clear();
             return RedirectToAction("Login", "Account", new { returnUrl = "/CuaHang/DatHang" });
-        }
-
-        var cart = RefreshCart();
-        if (!cart.Any()) return RedirectToAction(nameof(GioHang));
-        if (cart.Any(x => !x.DangBan))
-        {
-            TempData["GioHangThongBao"] = "Có bánh không còn được bán. Vui lòng xóa các dòng đó trước khi đặt hàng.";
-            return RedirectToAction(nameof(GioHang));
         }
 
         PrepareCheckoutView(cart);
@@ -286,7 +288,7 @@ public class CuaHangController : Controller
     }
 
     [HttpGet]
-    public IActionResult DonDatHang(string? trangThai)
+    public IActionResult DonDatHang(string? trangThai, DateTime? ngayDat)
     {
         var maKH = HttpContext.Session.GetInt32("MaKH");
         if (HttpContext.Session.GetString("Role") != "KhachHang" || maKH is null)
@@ -301,6 +303,7 @@ public class CuaHangController : Controller
             .Where(don => don.MaKH == (short)maKH.Value)
             .Where(don => string.IsNullOrWhiteSpace(trangThai)
                 || don.TrangThaiDonHang == trangThai)
+            .Where(don => !ngayDat.HasValue || don.NgayDat.Date == ngayDat.Value.Date)
             .Select(don => new DonHangKhachDanhSachItemViewModel
             {
                 MaDonHang = don.MaDonHang,
@@ -319,6 +322,7 @@ public class CuaHangController : Controller
         {
             DonHangs = danhSach,
             TrangThaiDangChon = trangThai,
+            NgayDatDangChon = ngayDat,
             CacTrangThai = TenTrangThaiDon
         });
     }

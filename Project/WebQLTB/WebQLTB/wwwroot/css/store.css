@@ -9,6 +9,19 @@
     min-width: 0;
 }
 
+.store-notice {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border: 1px solid #d8c49f;
+    border-radius: 12px;
+    background: #fff8e9;
+    color: #634b25;
+}
+
+.header__identity { display:flex; align-items:center; gap:30px; flex-shrink:0; }
+.header__primary-nav { display:flex; align-items:center; gap:26px; }
+.header__nav { margin-left:auto; }
+
 .header__logo {
     height: auto;
     object-fit: contain;
@@ -40,6 +53,9 @@
 }
 
 @media (max-width: 1200px) {
+    .header__identity { gap:16px; }
+    .header__primary-nav { gap:16px; }
+    .header__brand { margin-right:0; }
     .header__mobile-item {
         display: block;
     }
@@ -51,6 +67,12 @@
     .header__nav-list {
         padding-block: 16px;
     }
+}
+
+@media (max-width: 600px) {
+    .header__identity { gap:8px; }
+    .header__primary-nav { gap:8px; }
+    .header__primary-nav .header__nav-link { font-size:9px; letter-spacing:0; }
 }
 
 /* Điều hướng và tên người dùng trên header. */

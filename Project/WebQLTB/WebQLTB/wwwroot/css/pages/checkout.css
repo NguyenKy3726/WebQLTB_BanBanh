@@ -70,6 +70,11 @@
     padding: clamp(22px, 3.5vw, 38px);
 }
 
+.checkout__login-note { display:grid; gap:12px; padding:20px; border:1px solid var(--color-border-light); border-radius:var(--radius-medium); background:var(--color-background-secondary); }
+.checkout__login-note h2,.checkout__login-note p { margin:0; }
+.checkout__login-note p { color:var(--color-text-secondary); line-height:1.7; }
+.checkout__login-note .button { width:max-content; }
+
 .checkout__card-heading {
     display: flex;
     align-items: flex-start;
