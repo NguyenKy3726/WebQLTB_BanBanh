@@ -1,66 +1,69 @@
 @model WebQLTB.Models.NhanVien
-
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Chi tiết nhân viên";
+    var fullName = $"{Model.HoNV} {Model.TenNV}".Trim();
+    var initials = string.Concat(new[] { Model.HoNV, Model.TenNV }
+        .Where(part => !string.IsNullOrWhiteSpace(part))
+        .Select(part => part!.Trim()[0])).ToUpperInvariant();
 }
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/employee-profile.css" asp-append-version="true" />
+}
+<section class="product-admin container employee-profile">
+    <nav class="product-admin__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="QuanLy" asp-action="Index">Quản lý</a><span>/</span>
+        <a asp-action="Index">Nhân viên</a><span>/</span>
+        <span aria-current="page">Chi tiết</span>
+    </nav>
 
-<h1>Details</h1>
+    <header class="product-admin__heading employee-profile__page-heading">
+        <div>
+            <p class="product-admin__eyebrow">HỒ SƠ NHÂN SỰ</p>
+            <h1>Chi tiết nhân viên</h1>
+            <p>Xem thông tin liên hệ và tài khoản của nhân viên.</p>
+        </div>
+        <div class="product-admin-detail__heading-actions">
+            <a class="product-admin__button product-admin__button--primary" asp-action="Edit" asp-route-manv="@Model.MaNV">Sửa thông tin</a>
+            <a class="product-admin__button" asp-action="Index">Danh sách nhân viên</a>
+        </div>
+    </header>
 
-<div>
-    <h4>NhanVien</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            Họ
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HoNV)
-        </dd>
+    <article class="employee-profile__card">
+        <div class="employee-profile__identity">
+            @if (!string.IsNullOrWhiteSpace(Model.AnhNV))
+            {
+                <img class="employee-profile__avatar" src="@Url.Content(Model.AnhNV)" alt="Ảnh đại diện của @fullName" />
+            }
+            else
+            {
+                <div class="employee-profile__avatar employee-profile__avatar--fallback" aria-hidden="true">@(string.IsNullOrWhiteSpace(initials) ? "NV" : initials)</div>
+            }
+            <div class="employee-profile__identity-copy">
+                <span class="employee-profile__eyebrow">MÃ NHÂN VIÊN · @Model.MaNV</span>
+                <h2>@fullName</h2>
+                <span class="employee-profile__account">@Model.TenDN</span>
+            </div>
+        </div>
 
-        <dt class = "col-sm-2">
-            Tên
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TenNV)
-        </dd>
-
-        <dt class = "col-sm-2">
-            Điện thoại
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DienThoai)
-        </dd>
-
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Email)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Email)
-        </dd>
-
-        <dt class = "col-sm-2">
-            Tên đăng nhập
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TenDN)
-        </dd>
-
-        <dt class = "col-sm-2">
-            Mật khẩu
-        </dt>
-        <dd class = "col-sm-10">
-            ...
-        </dd>
-
-        <dt class = "col-sm-2">
-            Avatar
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AnhNV)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.MaNV">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+        <dl class="employee-profile__facts">
+            <div class="employee-profile__fact">
+                <dt>Họ và tên</dt>
+                <dd>@fullName</dd>
+            </div>
+            <div class="employee-profile__fact">
+                <dt>Điện thoại</dt>
+                <dd>@(string.IsNullOrWhiteSpace(Model.DienThoai) ? "Chưa cập nhật" : Model.DienThoai)</dd>
+            </div>
+            <div class="employee-profile__fact">
+                <dt>Email</dt>
+                <dd>@(string.IsNullOrWhiteSpace(Model.Email) ? "Chưa cập nhật" : Model.Email)</dd>
+            </div>
+            <div class="employee-profile__fact">
+                <dt>Tên đăng nhập</dt>
+                <dd>@Model.TenDN</dd>
+            </div>
+        </dl>
+        <p class="employee-profile__privacy">Mật khẩu được bảo mật và không hiển thị tại đây.</p>
+    </article>
+</section>
