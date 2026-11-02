@@ -115,6 +115,19 @@ CREATE OR ALTER PROC dbo.PhanQuyen_Xoa
     @MaNV tinyint
 AS
 BEGIN
+    IF EXISTS
+    (
+        SELECT 1
+        FROM dbo.PhanQuyen AS pq
+        INNER JOIN dbo.Quyen AS q ON q.MaQuyen = pq.MaQuyen
+        WHERE pq.MaQuyen = @MaQuyen
+          AND pq.MaNV = @MaNV
+          AND UPPER(LTRIM(RTRIM(q.TenQuyen))) = 'ADMIN'
+    )
+    BEGIN
+        ;THROW 50001, N'Không thể thu hồi quyền ADMIN của tài khoản quản trị.', 1;
+    END;
+
     DELETE FROM dbo.PhanQuyen
     WHERE MaQuyen = @MaQuyen AND MaNV = @MaNV;
 END;
