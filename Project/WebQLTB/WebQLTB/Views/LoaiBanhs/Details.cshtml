@@ -1,31 +1,4 @@
 @model WebQLTB.Models.LoaiBanh
-
-@{
-    ViewData["Title"] = "Details";
-}
-
-<h1>Details</h1>
-
-<div>
-    <h4>LoaiBanh</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            Loại bánh
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TenLoaiBanh)
-        </dd>
-   
-        <dt class = "col-sm-2">
-            Mô tả
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MoTa)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.MaLoaiBanh">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+@{ ViewData["Title"] = "Chi tiết loại bánh"; }
+<h1>Chi tiết loại bánh</h1><div class="admin-card"><h3>@Model.TenLoaiBanh</h3><p>@(string.IsNullOrWhiteSpace(Model.MoTa) ? "Chưa có mô tả" : Model.MoTa)</p>
+<div class="admin-actions"><a class="btn btn-primary" asp-action="Edit" asp-route-maloaibanh="@Model.MaLoaiBanh">Chỉnh sửa</a><a asp-action="Index">Quay lại danh sách</a></div></div>

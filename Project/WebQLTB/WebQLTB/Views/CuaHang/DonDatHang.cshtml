@@ -89,7 +89,7 @@
                     <div class="customer-order-card__bottom">
                         <span>Chi tiết bánh, thanh toán và lịch sử nằm trong trang chi tiết đơn.</span>
                         <a asp-controller="CuaHang" asp-action="ChiTietDonDatHang" asp-route-maDonHang="@order.MaDonHang">
-                            Xem chi tiết <span aria-hidden="true">→</span>
+                            @(order.TrangThaiDonHang == "CHO_KHACH_XAC_NHAN" ? "Xem và xác nhận" : "Xem chi tiết") <span aria-hidden="true">→</span>
                         </a>
                     </div>
                 </article>

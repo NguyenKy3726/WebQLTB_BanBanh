@@ -8,11 +8,6 @@
 }
 
 <section class="management-page container" aria-labelledby="management-title">
-    <nav class="management-page__breadcrumb" aria-label="Đường dẫn">
-        <a asp-controller="Home" asp-action="Index">Trang chủ</a>
-        <span aria-hidden="true">/</span>
-        <span aria-current="page">Quản lý</span>
-    </nav>
 
     <header class="management-page__heading">
         <p class="management-page__eyebrow">WHISKFUL · KHU VỰC NHÂN VIÊN</p>
@@ -76,18 +71,6 @@
                     <span class="management-card__icon" aria-hidden="true">▦</span>
                     <span class="management-card__title">Loại bánh</span>
                     <span class="management-card__description">Quản lý danh mục phân loại các mẫu bánh.</span>
-                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
-                </a>
-                <a class="management-card" asp-controller="BienTheBanhs" asp-action="Index">
-                    <span class="management-card__icon" aria-hidden="true">◫</span>
-                    <span class="management-card__title">Phiên bản bánh</span>
-                    <span class="management-card__description">Quản lý kích thước, giá bán và trạng thái từng phiên bản.</span>
-                    <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
-                </a>
-                <a class="management-card" asp-controller="HinhAnhBanhs" asp-action="Index">
-                    <span class="management-card__icon" aria-hidden="true">▣</span>
-                    <span class="management-card__title">Hình ảnh bánh</span>
-                    <span class="management-card__description">Thêm, sắp xếp và chọn ảnh đại diện cho sản phẩm.</span>
                     <span class="management-card__link">Mở chức năng <span aria-hidden="true">→</span></span>
                 </a>
                 <a class="management-card" asp-controller="NhanViens" asp-action="Index">

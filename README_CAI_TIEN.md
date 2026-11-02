@@ -15,15 +15,16 @@
 
 Tạo database `DbQLTB` trống. Trong SSMS, chạy theo thứ tự:
 
-1. `Project/SQL_Query/Table.sql`
-2. `Proc_Create.sql`
-3. `Proc_Edit.sql`
-4. `Proc_Delete.sql`
-5. `Proc_Details.sql`
-6. `Proc_Index.sql`
-7. `Proc_Login.sql`
-8. `Proc_Improvements.sql`
-9. `Insert.sql` nếu muốn tạo dữ liệu mẫu; chỉ chạy khi database còn trống.
+1. `Project/Database/Table.sql`
+2. `Project/Database/Migration_TienVNDSoNguyen.sql`
+3. `Proc_Create.sql`
+4. `Proc_Edit.sql`
+5. `Proc_Delete.sql`
+6. `Proc_Details.sql`
+7. `Proc_Index.sql`
+8. `Proc_Login.sql`
+9. `Proc_Improvements.sql`
+10. `Insert.sql` nếu muốn tạo dữ liệu mẫu; chỉ chạy khi database còn trống.
 
 Cập nhật `DbQLTBConnection` trong `Project/WebQLTB/WebQLTB/appsettings.json` cho SQL Server của bạn. Script dữ liệu mẫu dùng mật khẩu học tập `123456`.
 
@@ -33,6 +34,6 @@ Chỉ có hai quyền ứng dụng: `ADMIN` và `SALES`. `ADMIN` có quyền qu�
 
 ## Kiểm chứng
 
-Schema mới có 12 bảng phục vụ nhân viên, quyền, khách hàng, loại bánh, sản phẩm, ảnh, biến thể, đơn hàng, lịch sử trạng thái, chi tiết đơn và thanh toán. Source MVC và stored procedures được rà soát để không chứa phân hệ nhập/xuất nguyên liệu. Cài database cũ cần chạy `Migration_QuyTrinhTrangThaiDonHang.sql` trước khi cập nhật procedure; cài mới thì `Table.sql` đã tạo sẵn bảng nhật ký.
+Schema mới có 12 bảng phục vụ nhân viên, quyền, khách hàng, loại bánh, sản phẩm, ảnh, biến thể, đơn hàng, lịch sử trạng thái, chi tiết đơn và thanh toán. Source MVC và stored procedures được rà soát để không chứa phân hệ nhập/xuất nguyên liệu. Cài database cũ cần chạy các migration còn thiếu (luồng trạng thái, xác nhận khách hàng, số nguyên VNĐ) trước khi cập nhật procedure; cài mới thì chạy `Migration_TienVNDSoNguyen.sql` sau `Table.sql`.
 
 Môi trường đóng gói hiện không có .NET CLI hoặc SQL Server nên chưa thể biên dịch ứng dụng hay chạy các stored procedure tại đây. Sau khi cập nhật SQL, hãy chạy `dotnet build` và cài migration trên database phát triển trước khi demo.

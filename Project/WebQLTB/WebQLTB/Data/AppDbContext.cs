@@ -661,6 +661,27 @@ namespace WebQLTB.Data
             finally { Database.CloseConnection(); }
         }
 
+        public void DonHang_KhachXacNhan(DonHangKhachXacNhanViewModel model, short maKH)
+        {
+            using var cmd = Database.GetDbConnection().CreateCommand();
+            cmd.CommandText = "dbo.DonHang_KhachXacNhan";
+            cmd.CommandType = CommandType.StoredProcedure;
+            cmd.Parameters.Add(new SqlParameter("@MaDonHang", SqlDbType.Char, 11) { Value = model.MaDonHang });
+            cmd.Parameters.Add(new SqlParameter("@MaKH", SqlDbType.SmallInt) { Value = maKH });
+            foreach (var (name, value) in new[]
+            {
+                ("@TongTienPhaiTra", model.TongTienPhaiTra), ("@PhiGiaoHang", model.PhiGiaoHang),
+                ("@TienGiamGia", model.TienGiamGia), ("@TienCocYeuCau", model.TienCocYeuCau)
+            })
+                cmd.Parameters.Add(new SqlParameter(name, SqlDbType.Decimal)
+                { Precision = 14, Scale = 2, Value = (object?)value ?? DBNull.Value });
+            cmd.Parameters.Add(new SqlParameter("@NgayGiaoDuKien", SqlDbType.DateTime2)
+            { Value = (object?)model.NgayGiaoDuKien ?? DBNull.Value });
+            Database.OpenConnection();
+            try { cmd.ExecuteNonQuery(); }
+            finally { Database.CloseConnection(); }
+        }
+
         public int DonHang_ChuyenTrangThai(DonHangChuyenTrangThaiViewModel model, byte maNVThucHien)
         {
             using var cmd = Database.GetDbConnection().CreateCommand();

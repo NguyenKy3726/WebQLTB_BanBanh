@@ -1,39 +1,10 @@
 @model WebQLTB.Models.LoaiBanh
-
-@{
-    ViewData["Title"] = "Edit";
-}
-
-<h1>Edit</h1>
-
-<h4>LoaiBanh</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger">Loại bánh</div>
-            <input type="hidden" asp-for="MaLoaiBanh" />
-            <div class="form-group">
-                <label asp-for="TenLoaiBanh" class="control-label"></label>
-                <input asp-for="TenLoaiBanh" class="form-control" />
-                <span asp-validation-for="TenLoaiBanh" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MoTa" class="control-label">Mô tả</label>
-                <input asp-for="MoTa" class="form-control" />
-                <span asp-validation-for="MoTa" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
-    </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+@{ ViewData["Title"] = "Chỉnh sửa loại bánh"; }
+<h1>Chỉnh sửa loại bánh</h1><div class="admin-card">
+<form asp-action="Edit" asp-route-maloaibanh="@Model.MaLoaiBanh" method="post">
+<div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div><input type="hidden" asp-for="MaLoaiBanh" />
+<div class="form-group"><label asp-for="TenLoaiBanh">Tên loại bánh</label><input asp-for="TenLoaiBanh" class="form-control" required /><span asp-validation-for="TenLoaiBanh" class="text-danger"></span></div>
+<div class="form-group"><label asp-for="MoTa">Mô tả</label><textarea asp-for="MoTa" class="form-control" rows="4"></textarea><span asp-validation-for="MoTa" class="text-danger"></span></div>
+<div class="admin-actions"><button class="btn btn-primary" type="submit">Lưu loại bánh</button><a asp-action="Index">Quay lại danh sách</a></div>
+</form></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

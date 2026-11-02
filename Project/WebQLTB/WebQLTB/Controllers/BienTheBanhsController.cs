@@ -18,15 +18,7 @@ public class BienTheBanhsController : Controller
     }
 
     // GET: BIENTHEBANHS
-    public IActionResult Index(string? masp)
-    {
-        var products = _context.SanPham_DS();
-        ViewBag.TenSP = products.ToDictionary(sp => sp.MaSP, sp => sp.TenSP);
-        ViewBag.MaSPDangChon = masp;
-        ViewBag.ThongBao = TempData["ThongBaoBienThe"];
-        var variants = _context.BienTheBanh_DS();
-        return View(string.IsNullOrWhiteSpace(masp) ? variants : variants.Where(bt => bt.MaSP == masp).ToList());
-    }
+    public IActionResult Index(string? masp) => RedirectToAction("Index", "SanPhams");
 
     // GET: BIENTHEBANHS/Details/5
     public async Task<IActionResult> Details(short? mabienthe)

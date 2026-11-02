@@ -1,0 +1,23 @@
+.admin-workspace { padding-block:28px 64px; min-height:60vh; }
+.admin-workspace__nav { margin-bottom:24px; font-size:13px; color:var(--color-primary); }
+.admin-workspace h1 { font:500 clamp(30px,4vw,46px)/1.2 var(--font-heading); color:var(--color-primary-dark); margin-bottom:20px; }
+.admin-workspace h3,.admin-workspace h4 { margin-block:16px; }
+.admin-workspace p { margin-bottom:16px; }
+.admin-workspace .table { --bs-table-bg:var(--color-surface); --bs-table-color:var(--color-text); border-color:var(--color-border-light); }
+.admin-workspace .table th { background:#f2e5d4; color:var(--color-primary-dark); padding:16px; }
+.admin-workspace .table td { padding:16px; vertical-align:middle; }
+.admin-workspace .table td a { color:var(--color-primary); text-decoration:underline; text-underline-offset:4px; }
+.admin-workspace .form-group { margin-bottom:20px; }
+.admin-workspace label { display:block; margin-bottom:8px; font-weight:600; }
+.admin-workspace .form-control { background:var(--color-surface); border:1px solid var(--color-border); border-radius:12px; padding:12px; }
+.admin-workspace .form-control:focus { border-color:var(--color-accent-dark); box-shadow:0 0 0 3px #bf8d3626; }
+.admin-workspace .btn { padding:10px 20px; border-radius:999px; }
+.admin-workspace .btn-primary { background:var(--color-primary-dark); border-color:var(--color-primary-dark); }
+.admin-workspace .btn-danger { background:#923f35; border-color:#923f35; }
+.admin-workspace .col-md-4 { width:100%; max-width:680px; }
+.admin-card { padding:clamp(18px,3vw,32px); border:1px solid var(--color-border-light); border-radius:20px; background:var(--color-surface); box-shadow:var(--shadow-small); margin-block:20px; }
+.admin-heading,.admin-actions { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.admin-actions { justify-content:flex-start; }
+.admin-empty { padding:40px; text-align:center; }
+.admin-workspace :is(a,button,input,textarea):focus-visible { outline:2px solid var(--color-accent-dark); outline-offset:3px; }
+@media(max-width:700px) { .admin-workspace { overflow-x:auto; } .admin-workspace .table { min-width:580px; } }

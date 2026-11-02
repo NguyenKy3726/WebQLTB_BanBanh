@@ -1,41 +1,7 @@
 @model IEnumerable<WebQLTB.Models.LoaiBanh>
-
-@{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Loại bánh
-            </th>
-            <th>
-                Mô tả
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.TenLoaiBanh)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.MoTa)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-maloaibanh="@item.MaLoaiBanh">Edit</a> |
-                <a asp-action="Details" asp-route-maloaibanh="@item.MaLoaiBanh">Details</a> |
-                <a asp-action="Delete" asp-route-maloaibanh="@item.MaLoaiBanh">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+@{ ViewData["Title"] = "Quản lý loại bánh"; }
+@section Styles { <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" /> }
+<section class="product-admin container"><header class="product-admin__heading"><div><p class="product-admin__eyebrow">DANH MỤC WHISKFUL</p><h1>Loại bánh</h1><p>Nhóm các mẫu bánh để khách dễ tìm kiếm trong cửa hàng.</p></div><a class="product-admin__button product-admin__button--primary" asp-action="Create">+ Thêm loại bánh</a></header>
+@if (!Model.Any()) { <div class="product-admin__empty"><h2>Chưa có loại bánh</h2><p>Thêm nhóm đầu tiên, ví dụ bánh kem hoặc bánh mousse.</p><a class="product-admin__button product-admin__button--primary" asp-action="Create">Thêm loại bánh</a></div> }
+else { <div class="table-responsive product-admin-table-wrap"><table class="table product-admin-table"><thead><tr><th>Tên loại</th><th>Mô tả</th><th>Thao tác</th></tr></thead><tbody>@foreach (var item in Model) { <tr><td><strong>@item.TenLoaiBanh</strong></td><td>@(string.IsNullOrWhiteSpace(item.MoTa) ? "Chưa có mô tả" : item.MoTa)</td><td><div class="product-admin-card__actions"><a asp-action="Details" asp-route-maloaibanh="@item.MaLoaiBanh">Chi tiết</a><a asp-action="Edit" asp-route-maloaibanh="@item.MaLoaiBanh">Sửa</a><a asp-action="Delete" asp-route-maloaibanh="@item.MaLoaiBanh">Xóa</a></div></td></tr> }</tbody></table></div> }
+</section>

@@ -21,15 +21,7 @@ public class HinhAnhBanhsController : Controller
         _environment = environment;
     }
 
-    public IActionResult Index(string? masp)
-    {
-        var products = _context.SanPham_DS();
-        ViewBag.TenSP = products.ToDictionary(sp => sp.MaSP, sp => sp.TenSP);
-        ViewBag.MaSPDangChon = masp;
-        ViewBag.ThongBao = TempData["ThongBaoAnh"];
-        var images = _context.HinhAnhBanh_DS();
-        return View(string.IsNullOrWhiteSpace(masp) ? images : images.Where(anh => anh.MaSP == masp).ToList());
-    }
+    public IActionResult Index(string? masp) => RedirectToAction("Index", "SanPhams");
 
     public IActionResult Details(short? maanh)
     {
@@ -43,23 +35,57 @@ public class HinhAnhBanhsController : Controller
     public IActionResult Create(string? masp)
     {
         PrepareProducts(masp);
-        return View(new HinhAnhBanhFormViewModel { MaSP = masp ?? string.Empty, ThuTuHienThi = 1 });
+        var nextOrderByProduct = (Dictionary<string, short>)ViewBag.ThuTuTiepTheo;
+        var suggestedOrder = !string.IsNullOrWhiteSpace(masp) && nextOrderByProduct.TryGetValue(masp, out var next)
+            ? next
+            : (short)1;
+        return View(new HinhAnhBanhFormViewModel { MaSP = masp ?? string.Empty, ThuTuHienThi = suggestedOrder });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     [RequestSizeLimit(MaxUploadBytes + 1024 * 1024)]
-    public async Task<IActionResult> Create(HinhAnhBanhFormViewModel form)
+    public async Task<IActionResult> Create(HinhAnhBanhFormViewModel form, bool returnToProductDetails = false)
     {
+        var existingProductImages = _context.HinhAnhBanh_DS()
+            .Where(x => x.MaSP == form.MaSP)
+            .ToList();
+        var nextAvailableOrder = existingProductImages.Count == 0
+            ? 1
+            : existingProductImages.Max(x => (int)x.ThuTuHienThi) + 1;
+        var displacedCount = existingProductImages.Count(x => x.ThuTuHienThi == form.ThuTuHienThi);
+        if (nextAvailableOrder + displacedCount - 1 > short.MaxValue)
+            ModelState.AddModelError(string.Empty, "Không thể chèn ảnh tại vị trí này vì thứ tự ảnh đã đạt giới hạn.");
+
         var path = await ResolveImagePath(form);
         if (path == null)
         {
+            if (returnToProductDetails)
+                return BackToProductDetails(form.MaSP, FirstModelError("Không thể đọc ảnh. Hãy kiểm tra dữ liệu và thử lại."));
             PrepareProducts(form.MaSP);
             return View(form);
         }
 
         try
         {
+            var productImages = _context.HinhAnhBanh_DS()
+                .Where(x => x.MaSP == form.MaSP)
+                .ToList();
+            var nextFreeOrder = productImages.Count == 0 ? 1 : productImages.Max(x => (int)x.ThuTuHienThi) + 1;
+
+            // Nếu người dùng chọn một vị trí đang có ảnh, chuyển ảnh cũ ra số trống kế tiếp.
+            foreach (var displacedImage in productImages.Where(x => x.ThuTuHienThi == form.ThuTuHienThi))
+            {
+                _context.HinhAnhBanh_Sua(new HinhAnhBanh
+                {
+                    MaAnh = displacedImage.MaAnh,
+                    MaSP = displacedImage.MaSP,
+                    DuongDanAnh = displacedImage.DuongDanAnh,
+                    LaAnhDaiDien = displacedImage.LaAnhDaiDien,
+                    ThuTuHienThi = checked((short)nextFreeOrder++)
+                });
+            }
+
             var image = new HinhAnhBanh
             {
                 MaSP = form.MaSP,
@@ -81,6 +107,8 @@ public class HinhAnhBanhsController : Controller
                 _context.HinhAnhBanh_Sua(created);
             }
 
+            if (returnToProductDetails)
+                return BackToProductDetails(form.MaSP, "Đã thêm ảnh cho sản phẩm.");
             TempData["ThongBaoAnh"] = "Đã thêm ảnh cho mẫu bánh.";
             return RedirectToAction(nameof(Index), new { masp = form.MaSP });
         }
@@ -89,6 +117,8 @@ public class HinhAnhBanhsController : Controller
             ModelState.AddModelError(string.Empty, ex is SqlException sqlError
                 ? SqlErrorMessage.ForUser(sqlError, "Không thể lưu ảnh lúc này. Vui lòng thử lại.")
                 : "Không thể hoàn tất thao tác ảnh bánh. Vui lòng tải lại danh sách và thử lại.");
+            if (returnToProductDetails)
+                return BackToProductDetails(form.MaSP, FirstModelError("Không thể thêm ảnh lúc này."));
             PrepareProducts(form.MaSP);
             return View(form);
         }
@@ -113,7 +143,7 @@ public class HinhAnhBanhsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [RequestSizeLimit(MaxUploadBytes + 1024 * 1024)]
-    public async Task<IActionResult> Edit(short? maanh, HinhAnhBanhFormViewModel form)
+    public async Task<IActionResult> Edit(short? maanh, HinhAnhBanhFormViewModel form, bool returnToProductDetails = false)
     {
         if (maanh != form.MaAnh) return NotFound();
         var current = _context.HinhAnhBanh_CT(maanh!.Value);
@@ -124,6 +154,8 @@ public class HinhAnhBanhsController : Controller
         var path = await ResolveImagePath(form, current.DuongDanAnh);
         if (path == null)
         {
+            if (returnToProductDetails)
+                return BackToProductDetails(current.MaSP, FirstModelError("Không thể cập nhật ảnh. Hãy kiểm tra dữ liệu và thử lại."));
             PrepareProducts(current.MaSP);
             return View(form);
         }
@@ -138,12 +170,16 @@ public class HinhAnhBanhsController : Controller
                 LaAnhDaiDien = form.LaAnhDaiDien,
                 ThuTuHienThi = form.ThuTuHienThi
             });
+            if (returnToProductDetails)
+                return BackToProductDetails(current.MaSP, "Đã cập nhật ảnh sản phẩm.");
             TempData["ThongBaoAnh"] = "Đã cập nhật ảnh bánh.";
             return RedirectToAction(nameof(Index), new { masp = current.MaSP });
         }
         catch (SqlException ex)
         {
             ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex, "Không thể cập nhật ảnh lúc này. Vui lòng thử lại."));
+            if (returnToProductDetails)
+                return BackToProductDetails(current.MaSP, SqlErrorMessage.ForUser(ex, "Không thể cập nhật ảnh lúc này."));
             PrepareProducts(current.MaSP);
             return View(form);
         }
@@ -160,7 +196,7 @@ public class HinhAnhBanhsController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public IActionResult DeleteConfirmed(short? maanh)
+    public IActionResult DeleteConfirmed(short? maanh, bool returnToProductDetails = false)
     {
         if (maanh == null) return NotFound();
         var image = _context.HinhAnhBanh_CT(maanh.Value);
@@ -168,20 +204,44 @@ public class HinhAnhBanhsController : Controller
         try
         {
             _context.HinhAnhBanh_Xoa(maanh.Value);
+            if (returnToProductDetails)
+                return BackToProductDetails(image.MaSP, "Đã xóa ảnh khỏi sản phẩm.");
             TempData["ThongBaoAnh"] = "Đã xóa ảnh khỏi danh sách ảnh bánh.";
             return RedirectToAction(nameof(Index), new { masp = image.MaSP });
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể xóa ảnh lúc này. Vui lòng thử lại.");
+            var message = SqlErrorMessage.ForUser(ex, "Không thể xóa ảnh lúc này. Vui lòng thử lại.");
+            if (returnToProductDetails)
+                return BackToProductDetails(image.MaSP, message);
+            ViewBag.LoiXoa = message;
             ViewBag.TenSP = _context.SanPham_DS().ToDictionary(sp => sp.MaSP, sp => sp.TenSP);
             return View("Delete", image);
         }
     }
 
+    private string FirstModelError(string fallback) =>
+        ModelState.Values.SelectMany(value => value.Errors)
+            .Select(error => error.ErrorMessage)
+            .FirstOrDefault(message => !string.IsNullOrWhiteSpace(message)) ?? fallback;
+
+    private IActionResult BackToProductDetails(string masp, string message)
+    {
+        TempData["ThongBaoSanPham"] = message;
+        return RedirectToAction("Details", "SanPhams", new { masp });
+    }
+
     private void PrepareProducts(string? selected)
     {
-        ViewBag.MaSP = new SelectList(_context.SanPham_DS().Select(sp => new
+        var products = _context.SanPham_DS();
+        var images = _context.HinhAnhBanh_DS();
+        ViewBag.TenSP = products.ToDictionary(sp => sp.MaSP, sp => sp.TenSP);
+        ViewBag.ThuTuTiepTheo = products.ToDictionary(
+            sp => sp.MaSP,
+            sp => images.Where(image => image.MaSP == sp.MaSP)
+                .Select(image => (int?)image.ThuTuHienThi)
+                .Max() is int lastOrder ? (short)Math.Min(lastOrder + 1, short.MaxValue) : (short)1);
+        ViewBag.MaSP = new SelectList(products.Select(sp => new
         {
             sp.MaSP,
             HienThi = $"{sp.MaSP} - {sp.TenSP}"

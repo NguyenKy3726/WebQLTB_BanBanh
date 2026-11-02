@@ -173,7 +173,7 @@ CREATE TABLE dbo.BienTheBanh
     CONSTRAINT UQ_BienTheBanh_SanPham_Ten
         UNIQUE (MaSP, TenBienThe),
     CONSTRAINT CK_BienTheBanh_GiaBan
-        CHECK (GiaBan >= 0),
+        CHECK (GiaBan >= 0 AND GiaBan = ROUND(GiaBan, 0)),
     CONSTRAINT CK_BienTheBanh_SoLuong
         CHECK
         (
@@ -259,9 +259,13 @@ CREATE TABLE dbo.DonHang
         CHECK
         (
             PhiGiaoHang >= 0
+            AND PhiGiaoHang = ROUND(PhiGiaoHang, 0)
             AND TienGiamGia >= 0
+            AND TienGiamGia = ROUND(TienGiamGia, 0)
             AND TongTienHang >= 0
+            AND TongTienHang = ROUND(TongTienHang, 0)
             AND TongTienPhaiTra >= 0
+            AND TongTienPhaiTra = ROUND(TongTienPhaiTra, 0)
             AND TienGiamGia <= TongTienHang + PhiGiaoHang
             AND
             (
@@ -269,6 +273,7 @@ CREATE TABLE dbo.DonHang
                 OR
                 (
                     TienCocYeuCau >= 0
+                    AND TienCocYeuCau = ROUND(TienCocYeuCau, 0)
                     AND TienCocYeuCau <= TongTienPhaiTra
                 )
             )
@@ -341,7 +346,7 @@ CREATE TABLE dbo.ChiTietDonHang
             AND SoLuongCoSanDaGiu + SoLuongCanLam <= SoLuong
         ),
     CONSTRAINT CK_CTDH_DonGia
-        CHECK (DonGiaTaiThoiDiemDat >= 0)
+        CHECK (DonGiaTaiThoiDiemDat >= 0 AND DonGiaTaiThoiDiemDat = ROUND(DonGiaTaiThoiDiemDat, 0))
 );
 GO
 
@@ -385,7 +390,7 @@ CREATE TABLE dbo.ThanhToan
             OR (LoaiGiaoDich = 'REFUND' AND MaThanhToanGoc IS NOT NULL)
         ),
     CONSTRAINT CK_ThanhToan_SoTien
-        CHECK (SoTien > 0),
+        CHECK (SoTien > 0 AND SoTien = ROUND(SoTien, 0)),
     CONSTRAINT CK_ThanhToan_PhuongThuc
         CHECK (PhuongThuc IN ('CASH', 'BANK_TRANSFER')),
     CONSTRAINT CK_ThanhToan_TrangThai

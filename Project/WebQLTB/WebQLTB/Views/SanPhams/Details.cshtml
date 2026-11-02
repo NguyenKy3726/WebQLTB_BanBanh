@@ -1,84 +1,154 @@
 @model WebQLTB.Models.SanPham
-
+@using System.Globalization
+@using WebQLTB.Models
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Quản lý " + Model.TenSP;
+    var culture = CultureInfo.GetCultureInfo("vi-VN");
+    var categoryNames = ViewBag.TenLoaiBanh as Dictionary<byte, string> ?? new();
+    var statusNames = ViewBag.TenTrangThaiHienThi as Dictionary<string, string> ?? new();
+    var variants = ViewBag.Variants as List<BienTheBanh> ?? new();
+    var images = ViewBag.Images as List<HinhAnhBanh> ?? new();
+    var lowStockThreshold = (int)(ViewBag.NguongTonThap ?? 3);
+    var nextImageOrder = (int)(ViewBag.ThuTuAnhTiepTheo ?? 1);
 }
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" />
+}
+<section class="product-admin container product-admin-detail">
+    <nav class="product-admin__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="QuanLy" asp-action="Index">Quản lý</a><span>/</span>
+        <a asp-action="Index">Sản phẩm bánh</a><span>/</span>
+        <span aria-current="page">@Model.TenSP</span>
+    </nav>
 
-<h1>Details</h1>
+    <header class="product-admin__heading">
+        <div>
+            <p class="product-admin__eyebrow">QUẢN LÝ MẪU BÁNH</p>
+            <h1>@Model.TenSP</h1>
+            <p>@categoryNames.GetValueOrDefault(Model.MaLoaiBanh, "Chưa phân loại") · @statusNames.GetValueOrDefault(Model.TrangThaiHienThi, Model.TrangThaiHienThi) · Mã @Model.MaSP</p>
+        </div>
+        <div class="product-admin-detail__heading-actions">
+            <a class="product-admin__button" asp-action="Edit" asp-route-masp="@Model.MaSP">Sửa thông tin bánh</a>
+            <a class="product-admin__button" asp-action="Index">Quay lại danh sách</a>
+        </div>
+    </header>
 
-<div>
-    <h4>SanPham</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            Loại bánh
-        </dt>
-        <dd class = "col-sm-10">
-            @(ViewBag.TenLoaiBanh[Model.MaLoaiBanh])
-        </dd>
+    @if (ViewBag.ThongBao is string message)
+    {
+        <div class="product-admin__notice" role="status">@message</div>
+    }
 
-        <dt class = "col-sm-2">
-            Tên sản phẩm
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.TenSP)
-        </dd>
+    <section class="product-admin-detail__section" aria-labelledby="variants-title">
+        <header class="product-admin-detail__section-heading">
+            <div>
+                <p class="product-admin__eyebrow">GIÁ · KÍCH CỠ · TỒN KHO</p>
+                <h2 id="variants-title">Biến thể bánh</h2>
+                <p>Cập nhật giá và số lượng ngay tại từng biến thể. Số lượng đang giữ do hệ thống đơn hàng quản lý.</p>
+            </div>
+            <span class="product-admin-detail__threshold">Cảnh báo từng biến thể dưới @lowStockThreshold bánh khả dụng</span>
+        </header>
 
-        <dt class = "col-sm-2">
-            Mô tả
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MoTaNgan)
-        </dd>
+        @if (variants.Count == 0)
+        {
+            <div class="product-admin__empty product-admin-detail__empty">
+                <h3>Chưa có biến thể</h3>
+                <p>Thêm kích cỡ đầu tiên để sản phẩm có thể được mở bán.</p>
+            </div>
+        }
+        <div class="product-admin-detail__variant-grid">
+            @foreach (var variant in variants)
+            {
+                var available = Math.Max(0, variant.SoLuongThucTe - variant.SoLuongDaGiu);
+                <article class="product-admin-variant">
+                    <header class="product-admin-variant__heading">
+                        <div><span>Mã biến thể #@variant.MaBienThe</span><h3>@variant.TenBienThe</h3></div>
+                        <span class="product-admin-table__state @(variant.TrangThaiBan ? "is-on" : "is-off")">@(variant.TrangThaiBan ? "Đang bán" : "Ngừng bán")</span>
+                    </header>
+                    @if (lowStockThreshold > 0 && available < lowStockThreshold)
+                    {
+                        <div class="product-admin-card__stock-warning" role="status">
+                            <strong>Sắp hết hàng · @variant.TenBienThe</strong>
+                            <span>Còn @available bánh khả dụng (ngưỡng @lowStockThreshold).</span>
+                        </div>
+                    }
+                    <form asp-action="SaveVariant" method="post" class="product-admin-form product-admin-variant__form">
+                        <input type="hidden" name="MaBienThe" value="@variant.MaBienThe" />
+                        <label class="product-admin-form__field"><span>Tên biến thể</span><input name="TenBienThe" value="@variant.TenBienThe" maxlength="50" required /></label>
+                        <label class="product-admin-form__field"><span>Giá bán (VNĐ)</span><input name="GiaBan" type="number" min="0" step="1" inputmode="numeric" value="@variant.GiaBan.ToString("0", CultureInfo.InvariantCulture)" required /></label>
+                        <label class="product-admin-form__field"><span>Tồn thực tế</span><input name="SoLuongThucTe" type="number" min="0" step="1" inputmode="numeric" value="@variant.SoLuongThucTe" required /></label>
+                        <div class="product-admin-variant__stock-note">Đang giữ: <strong>@variant.SoLuongDaGiu</strong> · Khả dụng: <strong>@available</strong></div>
+                        <label class="product-admin-form__field"><span>Số ngày chuẩn bị</span><input name="SoNgayChuanBiDuKien" type="number" min="0" step="1" value="@variant.SoNgayChuanBiDuKien" required /></label>
+                        <label class="product-admin-form__check"><input type="checkbox" name="TrangThaiBan" value="true" checked="@variant.TrangThaiBan" /> Đang mở bán</label>
+                        <input type="hidden" name="TrangThaiBan" value="false" />
+                        <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Lưu biến thể</button></div>
+                    </form>
+                </article>
+            }
+        </div>
 
-        <dt class = "col-sm-2">
-            Thành phần
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MoTaChiTiet)
-        </dd>
+        <details class="product-admin-detail__add-panel">
+            <summary>+ Thêm biến thể cho mẫu bánh này</summary>
+            <form asp-action="AddVariant" asp-route-masp="@Model.MaSP" method="post" class="product-admin-form">
+                <label class="product-admin-form__field"><span>Tên biến thể</span><input name="TenBienThe" maxlength="50" placeholder="Ví dụ: 16 cm · 6–8 người" required /></label>
+                <label class="product-admin-form__field"><span>Giá bán (VNĐ)</span><input name="GiaBan" type="number" min="0" step="1" inputmode="numeric" value="0" required /></label>
+                <label class="product-admin-form__field"><span>Tồn thực tế</span><input name="SoLuongThucTe" type="number" min="0" step="1" inputmode="numeric" value="0" required /></label>
+                <label class="product-admin-form__field"><span>Số ngày chuẩn bị</span><input name="SoNgayChuanBiDuKien" type="number" min="0" step="1" value="0" required /></label>
+                <label class="product-admin-form__check"><input type="checkbox" name="TrangThaiBan" value="true" checked /> Đang mở bán</label>
+                <input type="hidden" name="TrangThaiBan" value="false" />
+                <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Thêm biến thể</button></div>
+            </form>
+        </details>
+    </section>
 
-        <dt class = "col-sm-2">
-            Trạng thái hiển thị
-        </dt>
-        <dd class = "col-sm-10">
-            @(ViewBag.TenTrangThaiHienThi[Model.TrangThaiHienThi])
-        </dd>
- 
-        <dt class = "col-sm-2">
-            Nhân viên tạo
-        </dt>
-        <dd class = "col-sm-10">
-            @(ViewBag.TenNV[Model.MaNVTao])
-        </dd>
+    <section class="product-admin-detail__section" aria-labelledby="images-title">
+        <header class="product-admin-detail__section-heading">
+            <div><p class="product-admin__eyebrow">THƯ VIỆN SẢN PHẨM</p><h2 id="images-title">Hình ảnh bánh</h2><p>Thay ảnh, chọn ảnh đại diện, xóa ảnh hoặc thêm ảnh mới ngay tại đây.</p></div>
+        </header>
 
-        <dt class = "col-sm-2">
-            Ngày tạo
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayTao)
-        </dd>
+        @if (images.Count == 0)
+        {
+            <div class="product-admin__empty product-admin-detail__empty"><h3>Chưa có hình ảnh</h3><p>Thêm ảnh để sản phẩm hiển thị trong cửa hàng.</p></div>
+        }
+        <div class="product-admin-detail__image-grid">
+            @foreach (var image in images)
+            {
+                <article class="product-admin-image">
+                    <img src="@Url.Content(image.DuongDanAnh)" alt="@Model.TenSP — ảnh @image.ThuTuHienThi" loading="lazy" />
+                    <form asp-controller="HinhAnhBanhs" asp-action="Edit" asp-route-maanh="@image.MaAnh" method="post" enctype="multipart/form-data" class="product-admin-image__form">
+                        <input type="hidden" name="MaAnh" value="@image.MaAnh" />
+                        <input type="hidden" name="MaSP" value="@image.MaSP" />
+                        <input type="hidden" name="DuongDanAnh" value="@image.DuongDanAnh" />
+                        <input type="hidden" name="ThuTuHienThi" value="@image.ThuTuHienThi" />
+                        <input type="hidden" name="returnToProductDetails" value="true" />
+                        <label class="product-admin-form__field"><span>Thay ảnh</span><input type="file" name="TepAnh" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" /></label>
+                        <label class="product-admin-form__check"><input type="checkbox" name="LaAnhDaiDien" value="true" checked="@image.LaAnhDaiDien" /> Ảnh đại diện</label>
+                        <input type="hidden" name="LaAnhDaiDien" value="false" />
+                        <div class="product-admin-form__actions"><button class="product-admin__button" type="submit">Lưu ảnh</button></div>
+                    </form>
+                    <form asp-controller="HinhAnhBanhs" asp-action="Delete" asp-route-maanh="@image.MaAnh" method="post" class="product-admin-image__delete" onsubmit="return confirm('Xóa ảnh này khỏi sản phẩm?');">
+                        <input type="hidden" name="returnToProductDetails" value="true" />
+                        <button class="product-admin__button product-admin__button--danger" type="submit">Xóa ảnh</button>
+                    </form>
+                </article>
+            }
+        </div>
 
-        <dt class = "col-sm-2">
-            Nhân viên cập nhật
-        </dt>
-        <dd class = "col-sm-10">
-            @(Model.MaNVCapNhat.HasValue
-                ? ViewBag.TenNV[Model.MaNVCapNhat.Value]
-                : "_")
-        </dd>
-
-        <dt class = "col-sm-2">
-            Ngày cập nhật
-        </dt>
-        <dd class = "col-sm-10">
-            @(Model.NgayCapNhat.HasValue
-                ? ViewBag.TenNV[Model.NgayCapNhat]
-                : "_")
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.MaSP">Edit</a> |
-    <a asp-action="Index">Back to List</a>
-</div>
+        <details class="product-admin-detail__add-panel">
+            <summary>+ Thêm ảnh cho mẫu bánh này</summary>
+            <form asp-controller="HinhAnhBanhs" asp-action="Create" method="post" enctype="multipart/form-data" class="product-admin-form">
+                <input type="hidden" name="MaSP" value="@Model.MaSP" />
+                <input type="hidden" name="returnToProductDetails" value="true" />
+                <label class="product-admin-form__field"><span>Chọn ảnh (JPG, PNG, WEBP; tối đa 5 MB)</span><input type="file" name="TepAnh" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-image-picker required /></label>
+                <img class="product-admin-form__preview" data-image-preview alt="Xem trước ảnh được chọn" hidden />
+                <label class="product-admin-form__field"><span>Thứ tự hiển thị</span><input name="ThuTuHienThi" type="number" min="1" max="32767" step="1" value="@nextImageOrder" required /></label>
+                <p class="product-image-order-hint">Gợi ý số kế tiếp: @nextImageOrder. Nếu chọn số đã có, ảnh cũ sẽ chuyển xuống số trống kế tiếp.</p>
+                <label class="product-admin-form__check"><input type="checkbox" name="LaAnhDaiDien" value="true" /> Đặt làm ảnh đại diện</label>
+                <input type="hidden" name="LaAnhDaiDien" value="false" />
+                <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Thêm ảnh</button></div>
+            </form>
+        </details>
+    </section>
+</section>
+@section Scripts {
+    <script src="~/js/pages/product-images.js" asp-append-version="true"></script>
+}
