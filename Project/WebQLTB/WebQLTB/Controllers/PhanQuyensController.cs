@@ -25,6 +25,8 @@ public class PhanQuyensController : Controller
 
         ViewBag.TenNV = _context.NhanVien_DS()
             .ToDictionary(n => n.MaNV, n => n.HoNV + " " + n.TenNV);
+        if (TempData["ThongBaoPhanQuyen"] is string message)
+            ViewBag.ThongBao = message;
         return View(_context.PhanQuyen_DS());
     }
 
@@ -172,6 +174,11 @@ public class PhanQuyensController : Controller
         {
             return NotFound();
         }
+        if (IsAdminPermission(phanQuyen.MaQuyen))
+        {
+            TempData["ThongBaoPhanQuyen"] = "Không thể thu hồi quyền ADMIN của tài khoản quản trị.";
+            return RedirectToAction(nameof(Index));
+        }
         ViewBag.TenQuyen = _context.Quyen_DS()
             .ToDictionary(q => q.MaQuyen, q => q.TenQuyen);
 
@@ -189,6 +196,11 @@ public class PhanQuyensController : Controller
 
         var phanQuyen = _context.PhanQuyen_CT(maquyen.Value, manv.Value);
         if (phanQuyen == null) return NotFound();
+        if (IsAdminPermission(phanQuyen.MaQuyen))
+        {
+            TempData["ThongBaoPhanQuyen"] = "Không thể thu hồi quyền ADMIN của tài khoản quản trị.";
+            return RedirectToAction(nameof(Index));
+        }
 
         try
         {
@@ -200,6 +212,13 @@ public class PhanQuyensController : Controller
             ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể gỡ quyền lúc này. Vui lòng thử lại.");
             return View("Delete", phanQuyen);
         }
+    }
+
+    private bool IsAdminPermission(byte maquyen)
+    {
+        return _context.Quyen_DS().Any(q =>
+            q.MaQuyen == maquyen &&
+            string.Equals(q.TenQuyen?.Trim(), "ADMIN", StringComparison.OrdinalIgnoreCase));
     }
 
     private bool PhanQuyenExists(byte? maquyen, byte? manv)
