@@ -2,6 +2,7 @@
 @using System.Globalization
 @{
     ViewData["Title"] = $"Đơn hàng {Model.MaDonHang}";
+    var customer = ViewBag.KhachDatHang as WebQLTB.Models.KhachHang;
     var culture = CultureInfo.GetCultureInfo("vi-VN");
     var states = ViewBag.TenTrangThaiDonHang as Dictionary<string, string> ?? new();
     var customers = ViewBag.TenKH as Dictionary<short, string> ?? new();
@@ -67,8 +68,17 @@
             <section class="order-panel" aria-labelledby="recipient-title">
                 <header class="order-panel__heading"><div><p class="order-admin__eyebrow">GIAO NHẬN</p><h2 id="recipient-title">Thông tin nhận bánh</h2></div></header>
                 <dl class="order-info-grid">
+                    @if (customer != null)
+                    {
+                        <div><dt>Điện thoại người đặt</dt><dd>
+                            @if (!string.IsNullOrWhiteSpace(customer.DienThoai))
+                            { <a href="tel:@customer.DienThoai">@customer.DienThoai</a> }
+                            else { <span>Chưa cung cấp</span> }
+                        </dd></div>
+                        <div class="order-info-grid__wide"><dt>Địa chỉ thường dùng của người đặt</dt><dd>@(string.IsNullOrWhiteSpace(customer.DiaChiThuongDung) ? "Chưa cung cấp" : customer.DiaChiThuongDung)</dd></div>
+                    }
                     <div><dt>Người đặt</dt><dd>@customerName</dd></div><div><dt>Người nhận</dt><dd>@Model.TenNguoiNhan</dd></div>
-                    <div><dt>Điện thoại</dt><dd>@Model.DienThoaiNguoiNhan</dd></div><div><dt>Ngày giao dự kiến</dt><dd>@(Model.NgayGiaoDuKien?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa hẹn")</dd></div>
+                    <div><dt>Điện thoại người nhận</dt><dd><a href="tel:@Model.DienThoaiNguoiNhan">@Model.DienThoaiNguoiNhan</a></dd></div><div><dt>Ngày giao dự kiến</dt><dd>@(Model.NgayGiaoDuKien?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa hẹn")</dd></div>
                     <div class="order-info-grid__wide"><dt>Địa chỉ</dt><dd>@Model.DiaChiGiaoHang</dd></div>
                     <div><dt>Nhân viên xử lý</dt><dd>@(Model.MaNVXuLy.HasValue ? employees.GetValueOrDefault(Model.MaNVXuLy.Value, "Nhân viên") : "Chưa tiếp nhận")</dd></div>
                     <div><dt>Ngày xác nhận đơn</dt><dd>@(Model.NgayXacNhan?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa xác nhận")</dd></div>
