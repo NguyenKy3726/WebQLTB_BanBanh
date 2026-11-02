@@ -206,6 +206,12 @@
     font-size: 25px;
 }
 
+.quick-order__categories { display:grid; gap:8px; margin-bottom:20px; }
+.quick-order__category { display:flex; align-items:center; gap:10px; min-height:42px; padding:8px 12px; border:1px solid var(--color-border-light); border-radius:12px; color:var(--color-primary-dark); background:rgba(255,255,255,.58); text-decoration:none; font-size:13px; }
+.quick-order__category:hover { border-color:var(--color-accent-dark); background:#fffaf2; }
+.quick-order__category > span:first-child { color:var(--color-accent-dark); }
+.quick-order__category-count { margin-left:auto; color:var(--color-text-secondary); font-size:11px; }
+
 .form-field {
     margin-bottom: 18px;
 }

@@ -28,7 +28,17 @@
     </header>
 
     <div class="checkout__layout">
-        <section class="checkout__form-card" aria-labelledby="checkout-form-title">
+        <section class="checkout__form-card" aria-label="Thông tin đặt bánh">
+            @if (ViewBag.CheckoutRequiresLogin is true)
+            {
+                <div class="checkout__login-note" role="status">
+                    <h2 id="checkout-form-title">Đăng nhập để hoàn tất đơn hàng</h2>
+                    <p>Giỏ bánh vẫn được giữ lại. Hãy đăng nhập để tiếp tục gửi đơn đặt bánh.</p>
+                    <a class="button button--dark" asp-controller="Account" asp-action="Login" asp-route-returnUrl="/CuaHang/DatHang">Đăng nhập để tiếp tục</a>
+                </div>
+            }
+            else
+            {
             <div class="checkout__card-heading">
                 <span class="checkout__step">01</span>
                 <div>
@@ -94,6 +104,7 @@
                     </button>
                 </div>
             </form>
+            }
         </section>
 
         <aside class="checkout__summary" aria-labelledby="checkout-summary-title">

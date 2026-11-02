@@ -22,8 +22,8 @@
     </header>
 
     <form class="customer-orders__filter" asp-controller="CuaHang" asp-action="DonDatHang" method="get">
-        <label for="order-status">Lọc theo trạng thái</label>
-        <select id="order-status" name="trangThai">
+        <label class="visually-hidden" for="order-status">Lọc đơn hàng theo trạng thái</label>
+        <select id="order-status" name="trangThai" aria-label="Lọc đơn hàng theo trạng thái">
             <option value="">Tất cả đơn hàng</option>
             @foreach (var status in Model.CacTrangThai)
             {
@@ -37,8 +37,10 @@
                 }
             }
         </select>
+        <label class="visually-hidden" for="order-date">Lọc đơn hàng theo ngày đặt</label>
+        <input id="order-date" name="ngayDat" type="date" value="@(Model.NgayDatDangChon?.ToString("yyyy-MM-dd"))" aria-label="Lọc đơn hàng theo ngày đặt" />
         <button type="submit">Lọc đơn</button>
-        @if (!string.IsNullOrWhiteSpace(Model.TrangThaiDangChon))
+        @if (!string.IsNullOrWhiteSpace(Model.TrangThaiDangChon) || Model.NgayDatDangChon.HasValue)
         {
             <a asp-controller="CuaHang" asp-action="DonDatHang">Xóa lọc</a>
         }

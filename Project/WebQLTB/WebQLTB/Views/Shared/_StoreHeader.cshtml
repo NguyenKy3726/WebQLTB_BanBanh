@@ -22,15 +22,19 @@
 
 <header class="header">
     <div class="container header__container">
-        <a class="header__brand" asp-controller="Home" asp-action="Index">
-            <img class="header__logo" src="~/assets/images/logo/whiskful-logo.png" alt="Whiskful — Trang chủ" />
-        </a>
+        <div class="header__identity">
+            <a class="header__brand" asp-controller="Home" asp-action="Index">
+                <img class="header__logo" src="~/assets/images/logo/whiskful-logo.png" alt="Whiskful — Trang chủ" />
+            </a>
+
+            <nav class="header__primary-nav" aria-label="Điều hướng cửa hàng">
+                <a class="header__nav-link @(isHome ? "header__nav-link--active" : "")" asp-controller="Home" asp-action="Index" aria-current="@(isHome ? "page" : null)">Trang chủ</a>
+                <a class="header__nav-link @(isCatalog ? "header__nav-link--active" : "")" asp-controller="CuaHang" asp-action="Index" aria-current="@(isCatalog && action == "Index" ? "page" : null)">Mua bánh</a>
+            </nav>
+        </div>
 
         <nav id="store-navigation" class="header__nav" aria-label="Điều hướng chính">
             <ul class="header__nav-list">
-                <li><a class="header__nav-link @(isHome ? "header__nav-link--active" : "")" asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-                <li><a class="header__nav-link @(isCatalog ? "header__nav-link--active" : "")" asp-controller="CuaHang" asp-action="Index">Mua bánh</a></li>
-
                 @if (isLoggedIn)
                 {
                     <li class="header__mobile-account"><a class="header__nav-link @(isAccount ? "header__nav-link--active" : "")" asp-controller="Account" asp-action="ThongTin" aria-current="@(isAccount ? "page" : null)">@accountName</a></li>
@@ -46,6 +50,7 @@
                     {
                         <form asp-controller="Account" asp-action="Logout" method="post" class="header__logout-form header__logout-form--mobile">
                             @Html.AntiForgeryToken()
+                            <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
                             <button class="header__nav-link header__logout-button" type="submit">Đăng xuất</button>
                         </form>
                     }
@@ -73,6 +78,7 @@
                 <a class="header__text-link header__nav-link header__user-link @(isAccount ? "header__nav-link--active" : "")" asp-controller="Account" asp-action="ThongTin" aria-current="@(isAccount ? "page" : null)" title="@accountName">@accountName</a>
                 <form asp-controller="Account" asp-action="Logout" method="post" class="header__logout-form">
                     @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@(Context.Request.Path + Context.Request.QueryString)" />
                     <button class="header__text-link header__nav-link header__logout-button" type="submit">Đăng xuất</button>
                 </form>
             }

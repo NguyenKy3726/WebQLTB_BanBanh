@@ -1,71 +1,103 @@
 @model IEnumerable<WebQLTB.Models.KhachHang>
-
+@using System.Linq
 @{
-    ViewData["Title"] = "Index";
+    Layout = "_StoreLayout";
+    ViewData["Title"] = "Khách hàng";
+    var customers = Model.ToList();
+    var searchTerm = ViewBag.SearchTerm as string;
 }
 
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Họ
-            </th>
-            <th>
-                Tên
-            </th>
-            <th>
-                Điện thoại
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Email)
-            </th>
-            <th>
-                Địa chỉ
-            </th>
-            <th>
-                Tên đăng nhập
-            </th>
-            <th>
-                Mật khẩu
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.HoKH)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.TenKH)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.DienThoai)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.Email)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.DiaChiThuongDung)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.TenDN)
-            </td>
-            <td>
-                ...
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-makh="@item.MaKH">Edit</a> |
-                <a asp-action="Details" asp-route-makh="@item.MaKH">Details</a> |
-                <a asp-action="Delete" asp-route-makh="@item.MaKH">Delete</a>
-            </td>
-        </tr>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/customer-management.css" asp-append-version="true" />
 }
-    </tbody>
-</table>
+
+<section class="customer-admin container" aria-labelledby="customer-admin-title">
+    <nav class="customer-admin__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="Home" asp-action="Index">Trang chủ</a><span aria-hidden="true">/</span>
+        <a asp-controller="QuanLy" asp-action="Index">Quản lý</a><span aria-hidden="true">/</span>
+        <span aria-current="page">Khách hàng</span>
+    </nav>
+
+    <header class="customer-admin__heading">
+        <div>
+            <p class="customer-admin__eyebrow">HỒ SƠ KHÁCH HÀNG</p>
+            <h1 id="customer-admin-title">Khách hàng</h1>
+            <p>Tra cứu nhanh thông tin liên hệ và tài khoản khách hàng.</p>
+        </div>
+        <a class="customer-admin__create" asp-action="Create"><span aria-hidden="true">＋</span> Thêm khách hàng</a>
+    </header>
+
+    <div class="customer-admin__toolbar">
+        <p class="customer-admin__count"><strong>@customers.Count</strong> khách hàng</p>
+        <form class="customer-admin__search" asp-controller="KhachHangs" asp-action="Index" method="get" role="search">
+            <label class="visually-hidden" for="customer-search">Tìm khách hàng theo tên, số điện thoại, email hoặc tài khoản</label>
+            <span aria-hidden="true">⌕</span>
+            <input id="customer-search" type="search" name="q" value="@searchTerm" placeholder="Tìm tên, điện thoại, email hoặc tài khoản" />
+            <button type="submit">Tìm kiếm</button>
+            @if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a asp-action="Index" aria-label="Xóa tìm kiếm">Xóa</a>
+            }
+        </form>
+    </div>
+
+    @if (customers.Count == 0)
+    {
+        <div class="customer-admin__empty">
+            <span aria-hidden="true">♡</span>
+            <h2>@(string.IsNullOrWhiteSpace(searchTerm) ? "Chưa có khách hàng" : "Không tìm thấy khách hàng")</h2>
+            <p>@(string.IsNullOrWhiteSpace(searchTerm) ? "Khách hàng mới sẽ xuất hiện tại đây." : "Thử tìm bằng tên, số điện thoại, email hoặc tên đăng nhập khác.")</p>
+            @if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                <a class="customer-admin__create" asp-action="Create">Thêm khách hàng</a>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="customer-admin__table-wrap">
+            <table class="customer-admin__table">
+                <thead>
+                    <tr>
+                        <th scope="col">Khách hàng</th>
+                        <th scope="col">Liên hệ</th>
+                        <th scope="col">Tài khoản</th>
+                        <th scope="col">Địa chỉ thường dùng</th>
+                        <th scope="col" class="customer-admin__actions-heading">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in customers)
+                    {
+                        var fullName = $"{item.HoKH} {item.TenKH}".Trim();
+                        var initials = string.IsNullOrWhiteSpace(item.TenKH) ? "W" : item.TenKH[..1].ToUpperInvariant();
+                        <tr>
+                            <td data-label="Khách hàng">
+                                <div class="customer-admin__identity">
+                                    <span class="customer-admin__avatar" aria-hidden="true">@initials</span>
+                                    <span><strong>@fullName</strong><small>Mã KH @item.MaKH</small></span>
+                                </div>
+                            </td>
+                            <td data-label="Liên hệ">
+                                <div class="customer-admin__contact">
+                                    @if (!string.IsNullOrWhiteSpace(item.DienThoai)) { <a href="tel:@item.DienThoai">@item.DienThoai</a> }
+                                    @if (!string.IsNullOrWhiteSpace(item.Email)) { <a href="mailto:@item.Email">@item.Email</a> }
+                                    @if (string.IsNullOrWhiteSpace(item.DienThoai) && string.IsNullOrWhiteSpace(item.Email)) { <span class="customer-admin__muted">Chưa cập nhật</span> }
+                                </div>
+                            </td>
+                            <td data-label="Tài khoản"><span class="customer-admin__username">@(string.IsNullOrWhiteSpace(item.TenDN) ? "—" : item.TenDN)</span></td>
+                            <td data-label="Địa chỉ thường dùng"><span class="customer-admin__address">@(string.IsNullOrWhiteSpace(item.DiaChiThuongDung) ? "Chưa có địa chỉ" : item.DiaChiThuongDung)</span></td>
+                            <td data-label="Thao tác">
+                                <div class="customer-admin__actions">
+                                    <a class="customer-admin__action" asp-action="Details" asp-route-makh="@item.MaKH" aria-label="Xem @fullName" title="Xem chi tiết">Xem</a>
+                                    <a class="customer-admin__action" asp-action="Edit" asp-route-makh="@item.MaKH" aria-label="Sửa @fullName" title="Chỉnh sửa">Sửa</a>
+                                    <a class="customer-admin__action customer-admin__action--delete" asp-action="Delete" asp-route-makh="@item.MaKH" aria-label="Xóa @fullName" title="Xóa">Xóa</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

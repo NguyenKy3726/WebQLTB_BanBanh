@@ -197,8 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         get("catalog-no-results").hidden = matches.length !== 0;
         get("catalog-filter-count").textContent = matches.length + " mẫu bánh";
-        root.querySelector(".catalog-tools__count").textContent =
-            matches.length + " mẫu bánh" + (matches.length ? " · Hiển thị " + (start + 1) + "–" + end : "");
+        root.querySelector(".catalog-tools__count").textContent = matches.length + " mẫu bánh";
         chips.forEach(chip => {
             const selected = state.categories.includes(chip.dataset.category.trim());
             chip.classList.toggle("catalog-chip--selected", selected);

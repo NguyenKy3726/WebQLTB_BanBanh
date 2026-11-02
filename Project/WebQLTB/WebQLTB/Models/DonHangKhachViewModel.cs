@@ -9,6 +9,7 @@ public class DonHangKhachDanhSachViewModel
         = new Dictionary<string, string>();
 
     public string? TrangThaiDangChon { get; init; }
+    public DateTime? NgayDatDangChon { get; init; }
 }
 
 public class DonHangKhachDanhSachItemViewModel
