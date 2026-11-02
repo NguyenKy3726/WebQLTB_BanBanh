@@ -43,10 +43,10 @@ public class HinhAnhBanhsController : Controller
     public IActionResult Create(string? masp)
     {
         PrepareProducts(masp);
-        var nextOrderByProduct = (Dictionary<string, int>)ViewBag.ThuTuTiepTheo;
+        var nextOrderByProduct = (Dictionary<string, short>)ViewBag.ThuTuTiepTheo;
         var suggestedOrder = !string.IsNullOrWhiteSpace(masp) && nextOrderByProduct.TryGetValue(masp, out var next)
             ? next
-            : 1;
+            : (short)1;
         return View(new HinhAnhBanhFormViewModel { MaSP = masp ?? string.Empty, ThuTuHienThi = suggestedOrder });
     }
 
@@ -55,6 +55,16 @@ public class HinhAnhBanhsController : Controller
     [RequestSizeLimit(MaxUploadBytes + 1024 * 1024)]
     public async Task<IActionResult> Create(HinhAnhBanhFormViewModel form)
     {
+        var existingProductImages = _context.HinhAnhBanh_DS()
+            .Where(x => x.MaSP == form.MaSP)
+            .ToList();
+        var nextAvailableOrder = existingProductImages.Count == 0
+            ? 1
+            : existingProductImages.Max(x => (int)x.ThuTuHienThi) + 1;
+        var displacedCount = existingProductImages.Count(x => x.ThuTuHienThi == form.ThuTuHienThi);
+        if (nextAvailableOrder + displacedCount - 1 > short.MaxValue)
+            ModelState.AddModelError(string.Empty, "Không thể chèn ảnh tại vị trí này vì thứ tự ảnh đã đạt giới hạn.");
+
         var path = await ResolveImagePath(form);
         if (path == null)
         {
@@ -67,7 +77,7 @@ public class HinhAnhBanhsController : Controller
             var productImages = _context.HinhAnhBanh_DS()
                 .Where(x => x.MaSP == form.MaSP)
                 .ToList();
-            var nextFreeOrder = productImages.Count == 0 ? 1 : productImages.Max(x => x.ThuTuHienThi) + 1;
+            var nextFreeOrder = productImages.Count == 0 ? 1 : productImages.Max(x => (int)x.ThuTuHienThi) + 1;
 
             // Nếu người dùng chọn một vị trí đang có ảnh, chuyển ảnh cũ ra số trống kế tiếp.
             foreach (var displacedImage in productImages.Where(x => x.ThuTuHienThi == form.ThuTuHienThi))
@@ -78,7 +88,7 @@ public class HinhAnhBanhsController : Controller
                     MaSP = displacedImage.MaSP,
                     DuongDanAnh = displacedImage.DuongDanAnh,
                     LaAnhDaiDien = displacedImage.LaAnhDaiDien,
-                    ThuTuHienThi = nextFreeOrder++
+                    ThuTuHienThi = checked((short)nextFreeOrder++)
                 });
             }
 
@@ -210,7 +220,7 @@ public class HinhAnhBanhsController : Controller
             sp => sp.MaSP,
             sp => images.Where(image => image.MaSP == sp.MaSP)
                 .Select(image => (int?)image.ThuTuHienThi)
-                .Max() is int lastOrder ? lastOrder + 1 : 1);
+                .Max() is int lastOrder ? (short)Math.Min(lastOrder + 1, short.MaxValue) : (short)1);
         ViewBag.MaSP = new SelectList(products.Select(sp => new
         {
             sp.MaSP,

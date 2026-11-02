@@ -9,7 +9,7 @@
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <label class="product-admin-form__field"><span>Mẫu bánh</span>@{
             var productNames = ViewBag.TenSP as Dictionary<string, string> ?? new();
-            var nextOrderByProduct = ViewBag.ThuTuTiepTheo as Dictionary<string, int> ?? new();
+            var nextOrderByProduct = ViewBag.ThuTuTiepTheo as Dictionary<string, short> ?? new();
         }
         <select asp-for="MaSP" data-image-product>
             <option value="" data-next-order="1">-- Chọn mẫu bánh --</option>
