@@ -196,12 +196,15 @@
 
 <section class="home-section home-budget" aria-labelledby="home-budget-title">
     <div class="container home-budget__layout">
-        <div><p class="section-heading__eyebrow">MỘT CHÚT NGỌT NGÀO</p><h2 class="section-heading__title" id="home-budget-title">Chọn bánh trong tầm giá</h2><p>Một món quà nhỏ hay một chiếc bánh cho cả buổi tiệc — bắt đầu từ ngân sách của bạn.</p></div>
-        <div class="home-budget__links">
-            <a asp-controller="CuaHang" asp-action="Index" asp-route-budget="under-300">Dưới 300.000đ <span>→</span></a>
-            <a asp-controller="CuaHang" asp-action="Index" asp-route-budget="300-500">300.000đ – 500.000đ <span>→</span></a>
-            <a asp-controller="CuaHang" asp-action="Index" asp-route-budget="500-1000">500.000đ – 1.000.000đ <span>→</span></a>
-            <a asp-controller="CuaHang" asp-action="Index" asp-route-budget="over-1000">Trên 1.000.000đ <span>→</span></a>
+        <div>
+            <p class="section-heading__eyebrow">MỘT CHÚT NGỌT NGÀO</p>
+            <h2 class="section-heading__title" id="home-budget-title">Gửi 1 chút ngọt ngào đến cô Minh</h2>
+        </div>
+        <div class="home-budget__links" role="group" aria-label="Bốn ô trống dành cho lời nhắn">
+            <div aria-hidden="true"></div>
+            <div aria-hidden="true"></div>
+            <div aria-hidden="true"></div>
+            <div aria-hidden="true"></div>
         </div>
     </div>
 </section>
