@@ -1,41 +1,13 @@
 @model IEnumerable<WebQLTB.Models.LoaiBanh>
-
-@{
-    ViewData["Title"] = "Index";
-}
-
-<h1>Index</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Loại bánh
-            </th>
-            <th>
-                Mô tả
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
+@{ ViewData["Title"] = "Quản lý loại bánh"; }
+<header class="admin-heading"><div><p>DANH MỤC WHISKFUL</p><h1>Loại bánh</h1><p>Sắp xếp các mẫu bánh theo từng nhóm trong cửa hàng.</p></div><a class="btn btn-primary" asp-action="Create">+ Thêm loại bánh</a></header>
+<div class="admin-card">
+@if (!Model.Any()) { <p class="admin-empty">Chưa có loại bánh. Hãy thêm loại bánh đầu tiên.</p> }
+else {
+<div class="table-responsive"><table class="table"><thead><tr><th>Loại bánh</th><th>Mô tả</th><th>Thao tác</th></tr></thead><tbody>
 @foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(model => item.TenLoaiBanh)
-            </td>
-            <td>
-                @Html.DisplayFor(model => item.MoTa)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-maloaibanh="@item.MaLoaiBanh">Edit</a> |
-                <a asp-action="Details" asp-route-maloaibanh="@item.MaLoaiBanh">Details</a> |
-                <a asp-action="Delete" asp-route-maloaibanh="@item.MaLoaiBanh">Delete</a>
-            </td>
-        </tr>
+<tr><td><strong>@item.TenLoaiBanh</strong></td><td>@(string.IsNullOrWhiteSpace(item.MoTa) ? "Chưa có mô tả" : item.MoTa)</td><td><div class="admin-actions"><a asp-action="Details" asp-route-maloaibanh="@item.MaLoaiBanh">Chi tiết</a><a asp-action="Edit" asp-route-maloaibanh="@item.MaLoaiBanh">Sửa</a><a asp-action="Delete" asp-route-maloaibanh="@item.MaLoaiBanh">Xóa</a></div></td></tr>
 }
-    </tbody>
-</table>
+</tbody></table></div>
+}
+</div>
