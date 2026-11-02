@@ -7,6 +7,11 @@
     var images = ViewBag.AnhDaiDien as Dictionary<string, string> ?? new();
     var variants = ViewBag.SoBienThe as Dictionary<string, int> ?? new();
     var lowestPrices = ViewBag.GiaThapNhat as Dictionary<string, decimal> ?? new();
+    var lowestAvailableStocks = ViewBag.TonKhaDungThapNhat as Dictionary<string, int> ?? new();
+    var lowStockThreshold = (int)(ViewBag.NguongTonThap ?? 3);
+    var selectedCategory = ViewBag.MaLoaiBanhDangChon as byte?;
+    var selectedStatus = ViewBag.TrangThaiDangChon as string;
+    var keyword = ViewBag.TuKhoa as string;
 }
 
 @section Styles {
@@ -33,6 +38,32 @@
     {
         <div class="product-admin__notice" role="status">@message</div>
     }
+
+    <form method="get" class="product-admin-filter" aria-label="Lọc sản phẩm bánh">
+        <label for="category-filter">Loại bánh</label>
+        <select id="category-filter" name="maloai" onchange="this.form.requestSubmit()">
+            <option value="">Tất cả loại bánh</option>
+            @foreach (var category in cakeTypes.OrderBy(x => x.Value))
+            {
+                <option value="@category.Key" selected="@(selectedCategory == category.Key)">@category.Value</option>
+            }
+        </select>
+        <label for="status-filter">Trạng thái</label>
+        <select id="status-filter" name="trangthai" onchange="this.form.requestSubmit()">
+            <option value="">Tất cả trạng thái</option>
+            <option value="PUBLISHED" selected="@(selectedStatus == "PUBLISHED")">Đang hiển thị</option>
+            <option value="DRAFT" selected="@(selectedStatus == "DRAFT")">Bản nháp</option>
+            <option value="HIDDEN" selected="@(selectedStatus == "HIDDEN")">Tạm ẩn</option>
+        </select>
+        <label class="visually-hidden" for="product-search">Tìm sản phẩm</label>
+        <input id="product-search" name="q" value="@keyword" placeholder="Tìm theo tên hoặc mã bánh" />
+        <button class="product-admin__button" type="submit">Tìm</button>
+        @if (selectedCategory.HasValue || !string.IsNullOrEmpty(selectedStatus) || !string.IsNullOrWhiteSpace(keyword))
+        {
+            <a asp-action="Index" class="product-admin__button">Xóa lọc</a>
+        }
+        <span class="product-admin-filter__hint">Cảnh báo tồn thấp khi còn dưới @lowStockThreshold bánh; đổi ngưỡng tại Inventory:LowStockThreshold trong appsettings.json.</span>
+    </form>
 
     @if (!Model.Any())
     {
@@ -66,6 +97,13 @@
                     <span class="product-admin-card__category">@cakeTypes.GetValueOrDefault(item.MaLoaiBanh, "Chưa phân loại")</span>
                     <h2>@item.TenSP</h2>
                     <p>@(string.IsNullOrWhiteSpace(item.MoTaNgan) ? "Chưa có mô tả ngắn." : item.MoTaNgan)</p>
+                    @if (lowestAvailableStocks.TryGetValue(item.MaSP, out var availableStock) && lowStockThreshold > 0 && availableStock < lowStockThreshold)
+                    {
+                        <div class="product-admin-card__stock-warning" role="status">
+                            <strong>Sắp hết hàng</strong>
+                            <span>Còn @availableStock bánh, dưới ngưỡng @lowStockThreshold</span>
+                        </div>
+                    }
                     <div class="product-admin-card__meta">
                         <span>@variantCount phiên bản</span>
                         <strong>@(lowestPrices.TryGetValue(item.MaSP, out var price) ? "Từ " + price.ToString("N0", culture) + " ₫" : "Chưa có giá")</strong>
@@ -83,3 +121,16 @@
         </div>
     }
 </section>
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const search = document.getElementById("product-search");
+            if (!search) return;
+            let timer;
+            search.addEventListener("input", () => {
+                window.clearTimeout(timer);
+                timer = window.setTimeout(() => search.form?.requestSubmit(), 350);
+            });
+        });
+    </script>
+}

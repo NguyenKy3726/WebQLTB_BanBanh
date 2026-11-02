@@ -67,3 +67,11 @@
 .product-admin-table a { color:#79521c; font-weight:700; text-decoration:none; }
 .product-admin-table a:hover { text-decoration:underline; }
 @media (max-width:640px) { .product-admin { padding:20px 14px 42px; } .product-admin__heading { align-items:flex-start; flex-direction:column; } .product-admin-form { padding:18px; } }
+
+.product-admin-filter__hint { flex-basis:100%; color:var(--admin-muted); font-size:.88rem; }
+.product-admin-filter input { width:min(100%,320px); min-height:46px; padding:11px 13px; border:1px solid #dfd1c2; border-radius:10px; background:#fff; color:var(--admin-ink); font:inherit; }
+.product-admin-filter input:focus { outline:2px solid #d7ad66; outline-offset:1px; }
+.product-admin-card__stock-warning { display:grid; gap:3px; margin-top:14px; padding:11px 13px; border:1px solid #e8b7a8; border-radius:11px; background:#fff1ec; color:#873b2a; font-size:.88rem; }
+.product-admin-card__stock-warning span { color:#74493e; }
+.product-image-order-hint { margin:-8px 0 0; color:var(--admin-muted); font-size:.9rem; }
+@media (max-width:640px) { .product-admin-filter { align-items:stretch; flex-direction:column; } .product-admin-filter select,.product-admin-filter input { width:100%; } }

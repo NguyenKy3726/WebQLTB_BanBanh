@@ -43,7 +43,11 @@ public class HinhAnhBanhsController : Controller
     public IActionResult Create(string? masp)
     {
         PrepareProducts(masp);
-        return View(new HinhAnhBanhFormViewModel { MaSP = masp ?? string.Empty, ThuTuHienThi = 1 });
+        var nextOrderByProduct = (Dictionary<string, int>)ViewBag.ThuTuTiepTheo;
+        var suggestedOrder = !string.IsNullOrWhiteSpace(masp) && nextOrderByProduct.TryGetValue(masp, out var next)
+            ? next
+            : 1;
+        return View(new HinhAnhBanhFormViewModel { MaSP = masp ?? string.Empty, ThuTuHienThi = suggestedOrder });
     }
 
     [HttpPost]
@@ -60,6 +64,24 @@ public class HinhAnhBanhsController : Controller
 
         try
         {
+            var productImages = _context.HinhAnhBanh_DS()
+                .Where(x => x.MaSP == form.MaSP)
+                .ToList();
+            var nextFreeOrder = productImages.Count == 0 ? 1 : productImages.Max(x => x.ThuTuHienThi) + 1;
+
+            // Nếu người dùng chọn một vị trí đang có ảnh, chuyển ảnh cũ ra số trống kế tiếp.
+            foreach (var displacedImage in productImages.Where(x => x.ThuTuHienThi == form.ThuTuHienThi))
+            {
+                _context.HinhAnhBanh_Sua(new HinhAnhBanh
+                {
+                    MaAnh = displacedImage.MaAnh,
+                    MaSP = displacedImage.MaSP,
+                    DuongDanAnh = displacedImage.DuongDanAnh,
+                    LaAnhDaiDien = displacedImage.LaAnhDaiDien,
+                    ThuTuHienThi = nextFreeOrder++
+                });
+            }
+
             var image = new HinhAnhBanh
             {
                 MaSP = form.MaSP,
@@ -181,7 +203,15 @@ public class HinhAnhBanhsController : Controller
 
     private void PrepareProducts(string? selected)
     {
-        ViewBag.MaSP = new SelectList(_context.SanPham_DS().Select(sp => new
+        var products = _context.SanPham_DS();
+        var images = _context.HinhAnhBanh_DS();
+        ViewBag.TenSP = products.ToDictionary(sp => sp.MaSP, sp => sp.TenSP);
+        ViewBag.ThuTuTiepTheo = products.ToDictionary(
+            sp => sp.MaSP,
+            sp => images.Where(image => image.MaSP == sp.MaSP)
+                .Select(image => (int?)image.ThuTuHienThi)
+                .Max() is int lastOrder ? lastOrder + 1 : 1);
+        ViewBag.MaSP = new SelectList(products.Select(sp => new
         {
             sp.MaSP,
             HienThi = $"{sp.MaSP} - {sp.TenSP}"

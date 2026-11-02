@@ -7,11 +7,23 @@
     <header class="product-admin__heading"><div><p class="product-admin__eyebrow">THƯ VIỆN ẢNH</p><h1>Thêm ảnh bánh</h1><p>Tải ảnh từ máy hoặc nhập đường dẫn ảnh đang có.</p></div></header>
     <form asp-action="Create" method="post" enctype="multipart/form-data" class="product-admin-form">
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <label class="product-admin-form__field"><span>Mẫu bánh</span><select asp-for="MaSP" asp-items="ViewBag.MaSP"><option value="">-- Chọn mẫu bánh --</option></select><span asp-validation-for="MaSP" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Mẫu bánh</span>@{
+            var productNames = ViewBag.TenSP as Dictionary<string, string> ?? new();
+            var nextOrderByProduct = ViewBag.ThuTuTiepTheo as Dictionary<string, int> ?? new();
+        }
+        <select asp-for="MaSP" data-image-product>
+            <option value="" data-next-order="1">-- Chọn mẫu bánh --</option>
+            @foreach (var product in productNames)
+            {
+                var nextOrder = nextOrderByProduct.GetValueOrDefault(product.Key, 1);
+                <option value="@product.Key" data-next-order="@nextOrder" selected="@(product.Key == Model.MaSP)">@product.Key — @product.Value</option>
+            }
+        </select><span asp-validation-for="MaSP" class="text-danger"></span></label>
         <label class="product-admin-form__field"><span>Chọn ảnh từ máy (JPG, PNG, WEBP; tối đa 5 MB)</span><input asp-for="TepAnh" type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-image-picker /><span asp-validation-for="TepAnh" class="text-danger"></span></label>
         <img class="product-admin-form__preview" data-image-preview alt="Xem trước ảnh được chọn" hidden />
         <label class="product-admin-form__field"><span>Hoặc đường dẫn ảnh (tùy chọn)</span><input asp-for="DuongDanAnh" placeholder="~/assets/images/products/tiramisu.webp" /><span asp-validation-for="DuongDanAnh" class="text-danger"></span></label>
-        <label class="product-admin-form__field"><span>Thứ tự hiển thị</span><input asp-for="ThuTuHienThi" type="number" min="1" /><span asp-validation-for="ThuTuHienThi" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Thứ tự hiển thị</span><input asp-for="ThuTuHienThi" type="number" min="1" step="1" data-image-order /><span asp-validation-for="ThuTuHienThi" class="text-danger"></span></label>
+        <p class="product-image-order-hint">Ảnh mới được gợi ý ở vị trí kế tiếp. Nếu chọn vị trí đang có ảnh, ảnh cũ sẽ chuyển xuống số trống kế tiếp.</p>
         <label class="product-admin-form__check"><input asp-for="LaAnhDaiDien" /> Đặt làm ảnh đại diện</label>
         <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Lưu ảnh</button><a class="product-admin__button" asp-action="Index" asp-route-masp="@Model.MaSP">Hủy</a></div>
     </form>

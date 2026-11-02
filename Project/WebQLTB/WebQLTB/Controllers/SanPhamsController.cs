@@ -11,16 +11,34 @@ using WebQLTB.Models;
 public class SanPhamsController : Controller
 {
     private readonly AppDbContext _context;
+    private readonly IConfiguration _configuration;
 
-    public SanPhamsController(AppDbContext context)
+    public SanPhamsController(AppDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     // GET: SANPHAMS
-    public async Task<IActionResult> Index()    
+    public IActionResult Index(byte? maloai, string? trangthai, string? q)
     {
         var sanPhams = _context.SanPham_DS();
+        if (maloai.HasValue)
+            sanPhams = sanPhams.Where(sp => sp.MaLoaiBanh == maloai.Value).ToList();
+        if (!string.IsNullOrWhiteSpace(trangthai))
+            sanPhams = sanPhams.Where(sp => sp.TrangThaiHienThi == trangthai).ToList();
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var keyword = q.Trim();
+            sanPhams = sanPhams.Where(sp =>
+                sp.TenSP.Contains(keyword, StringComparison.CurrentCultureIgnoreCase) ||
+                sp.MaSP.Contains(keyword, StringComparison.CurrentCultureIgnoreCase)).ToList();
+        }
+
+        ViewBag.MaLoaiBanhDangChon = maloai;
+        ViewBag.TrangThaiDangChon = trangthai;
+        ViewBag.TuKhoa = q;
+        ViewBag.LoaiBanhLoc = new SelectList(_context.LoaiBanh_DS(), "MaLoaiBanh", "TenLoaiBanh", maloai);
         PrepareListData(sanPhams);
         if (TempData["ThongBaoSanPham"] is string message)
             ViewBag.ThongBao = message;
@@ -234,6 +252,12 @@ public class SanPhamsController : Controller
             .Where(bt => bt.TrangThaiBan)
             .GroupBy(bt => bt.MaSP)
             .ToDictionary(group => group.Key, group => group.Min(bt => bt.GiaBan));
+        ViewBag.NguongTonThap = Math.Max(0, _configuration.GetValue<int?>("Inventory:LowStockThreshold") ?? 3);
+        ViewBag.TonKhaDungThapNhat = variants
+            .GroupBy(bt => bt.MaSP)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Min(bt => Math.Max(0, bt.SoLuongThucTe - bt.SoLuongDaGiu)));
     }
 
     private void PrepareDetailsData()
