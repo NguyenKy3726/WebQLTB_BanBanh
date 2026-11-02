@@ -409,6 +409,37 @@ public class CuaHangController : Controller
         });
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult XacNhanDonHang(DonHangKhachXacNhanViewModel model)
+    {
+        var maKH = HttpContext.Session.GetInt32("MaKH");
+        if (HttpContext.Session.GetString("Role") != "KhachHang" || maKH is not (>= 1 and <= short.MaxValue))
+            return RedirectToAction("Login", "Account", new
+            {
+                returnUrl = Url.Action(nameof(ChiTietDonDatHang), new { maDonHang = model.MaDonHang })
+            });
+
+        if (!ModelState.IsValid) return BadRequest("Thông tin xác nhận chưa hợp lệ. Vui lòng tải lại đơn hàng.");
+        var order = _db.DonHang_CT(model.MaDonHang);
+        if (order == null || order.MaKH != (short)maKH.Value) return NotFound();
+
+        try
+        {
+            _db.DonHang_KhachXacNhan(model, (short)maKH.Value);
+            TempData["DonHangThongBao"] = model.TienCocYeuCau > 0
+                ? "Bạn đã đồng ý với đơn hàng. Vui lòng thanh toán cọc theo hướng dẫn bên dưới."
+                : "Bạn đã đồng ý với đơn hàng. Đơn không yêu cầu cọc và đã được xác nhận.";
+        }
+        catch (Microsoft.Data.SqlClient.SqlException ex)
+        {
+            _logger.LogError(ex, "Could not confirm customer order {OrderId}.", model.MaDonHang);
+            TempData["DonHangLoi"] = SqlErrorMessage.ForUser(ex,
+                "Chưa thể xác nhận đơn. Vui lòng tải lại trang và thử lại.");
+        }
+        return RedirectToAction(nameof(ChiTietDonDatHang), new { maDonHang = model.MaDonHang });
+    }
+
     // Đối chiếu session với database để giỏ hiển thị giá và trạng thái hiện tại.
     private List<GioHangItem> RefreshCart()
     {

@@ -424,7 +424,8 @@ CREATE OR ALTER PROC dbo.DonHang_Sua
     @GhiChu nvarchar(1000)=NULL,
     @TrangThaiMongDoi varchar(30)=NULL,
     @MaNVThucHien tinyint=NULL,
-    @LyDoHuy nvarchar(500)=NULL
+    @LyDoHuy nvarchar(500)=NULL,
+    @MaKHThucHien smallint=NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -465,7 +466,13 @@ BEGIN
         END;
         IF @Cu<>@TrangThaiDonHang
         BEGIN
-            IF @MaNVThucHien IS NULL OR NOT EXISTS(SELECT 1 FROM dbo.NhanVien WHERE MaNV=@MaNVThucHien)
+            -- Khách chỉ được đồng ý báo giá của chính đơn mình, không được dùng đường này để hủy/giao/hoàn tất.
+            IF @MaKHThucHien IS NOT NULL AND
+               (@KHCu IS NULL OR @MaKHThucHien<>@KHCu OR @Cu<>'CHO_KHACH_XAC_NHAN'
+                OR @TrangThaiDonHang NOT IN ('CHO_THANH_TOAN_COC','DA_XAC_NHAN') OR @MaNVThucHien IS NOT NULL)
+                THROW 50001,N'Khách hàng không có quyền thực hiện thao tác này.',1;
+            IF @MaKHThucHien IS NULL AND
+               (@MaNVThucHien IS NULL OR NOT EXISTS(SELECT 1 FROM dbo.NhanVien WHERE MaNV=@MaNVThucHien))
             BEGIN
                 ;THROW 50001,N'Thiếu nhân viên thực hiện hợp lệ cho thao tác chuyển trạng thái.',1;
             END;
@@ -660,7 +667,9 @@ BEGIN
             INSERT dbo.LichSuTrangThaiDonHang
                 (MaDonHang,TrangThaiCu,TrangThaiMoi,NguoiThucHien,MaNVThucHien,ThoiDiem,LyDo)
             VALUES
-                (@MaDonHang,@Cu,@TrangThaiDonHang,'NHAN_VIEN',@MaNVThucHien,@Gio,
+                (@MaDonHang,@Cu,@TrangThaiDonHang,
+                 CASE WHEN @MaKHThucHien IS NOT NULL THEN 'KHACH_HANG' ELSE 'NHAN_VIEN' END,
+                 @MaNVThucHien,@Gio,
                  CASE WHEN @TrangThaiDonHang='DA_HUY' THEN @LyDoHuy ELSE NULL END);
         END;
 
@@ -683,6 +692,63 @@ BEGIN
     END TRY
     BEGIN CATCH
         IF XACT_STATE() <> 0 ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH;
+END;
+GO
+
+-- Khách đồng ý đúng báo giá đã xem; tái dùng toàn bộ kiểm tra cọc và phân bổ bánh của DonHang_Sua.
+CREATE OR ALTER PROC dbo.DonHang_KhachXacNhan
+    @MaDonHang char(11),
+    @MaKH smallint,
+    @TongTienPhaiTra decimal(14,2),
+    @PhiGiaoHang decimal(14,2),
+    @TienGiamGia decimal(14,2),
+    @TienCocYeuCau decimal(14,2),
+    @NgayGiaoDuKien datetime2(0)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    IF @@TRANCOUNT<>0 THROW 50001,N'Hãy xác nhận đơn ngoài transaction đang mở.',1;
+    IF @MaKH IS NULL OR @TongTienPhaiTra IS NULL OR @PhiGiaoHang IS NULL
+       OR @TienGiamGia IS NULL OR @TienCocYeuCau IS NULL OR @NgayGiaoDuKien IS NULL
+        THROW 50001,N'Thiếu thông tin báo giá. Vui lòng tải lại đơn hàng.',1;
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        DECLARE @K int,@ChuDon smallint,@TrangThai varchar(30),@Dich varchar(30),
+                @NV tinyint,@Ten nvarchar(80),@DT varchar(11),@DC nvarchar(300),
+                @Phi decimal(12,2),@Giam decimal(12,2),@Coc decimal(12,2),
+                @Tong decimal(14,2),@Giao datetime2(0),@GhiChu nvarchar(1000);
+        EXEC @K=sys.sp_getapplock @Resource=N'DbQLTB:ProcSua:NghiepVu',
+            @LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=10000;
+        IF @K<0 THROW 50001,N'Không lấy được khóa xử lý đơn. Vui lòng thử lại.',1;
+        SELECT @ChuDon=MaKH,@TrangThai=TrangThaiDonHang,@NV=MaNVXuLy,
+               @Ten=TenNguoiNhan,@DT=DienThoaiNguoiNhan,@DC=DiaChiGiaoHang,
+               @Phi=PhiGiaoHang,@Giam=TienGiamGia,@Coc=TienCocYeuCau,
+               @Tong=TongTienPhaiTra,@Giao=NgayGiaoDuKien,@GhiChu=GhiChu
+        FROM dbo.DonHang WITH (UPDLOCK,HOLDLOCK) WHERE MaDonHang=@MaDonHang;
+        IF @ChuDon IS NULL OR @ChuDon<>@MaKH
+            THROW 50001,N'Không tìm thấy đơn hàng của bạn.',1;
+        IF @TrangThai<>'CHO_KHACH_XAC_NHAN'
+            THROW 50001,N'Đơn đã được xử lý hoặc không còn chờ bạn xác nhận. Vui lòng tải lại trang.',1;
+        IF @Coc IS NULL OR @Giao IS NULL OR @Tong<>@TongTienPhaiTra OR @Phi<>@PhiGiaoHang
+           OR @Giam<>@TienGiamGia OR @Coc<>@TienCocYeuCau OR @Giao<>@NgayGiaoDuKien
+            THROW 50001,N'Báo giá hoặc lịch giao đã thay đổi. Vui lòng xem lại trước khi xác nhận.',1;
+        IF @NV IS NULL OR NOT EXISTS(SELECT 1 FROM dbo.NhanVien WHERE MaNV=@NV)
+            THROW 50001,N'Đơn chưa có nhân viên tiếp nhận hợp lệ.',1;
+        SET @Dich=CASE WHEN @Coc>0 THEN 'CHO_THANH_TOAN_COC' ELSE 'DA_XAC_NHAN' END;
+        -- Không cọc: xác nhận theo báo giá nhân viên đã tiếp nhận, vẫn phân bổ bánh qua proc chung.
+        -- Có cọc: chỉ ghi nhận khách đồng ý; nhân viên phải đối chiếu tiền rồi xác nhận sau.
+        EXEC dbo.DonHang_Sua @MaDonHang=@MaDonHang,@TrangThaiDonHang=@Dich,
+            @TenNguoiNhan=@Ten,@DienThoaiNguoiNhan=@DT,@DiaChiGiaoHang=@DC,
+            @PhiGiaoHang=@Phi,@TienGiamGia=@Giam,@MaKH=@MaKH,@MaNVXuLy=@NV,
+            @MaNVXacNhan=@NV,@NgayGiaoDuKien=@Giao,@TienCocYeuCau=@Coc,@GhiChu=@GhiChu,
+            @TrangThaiMongDoi='CHO_KHACH_XAC_NHAN',@MaKHThucHien=@MaKH;
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE()<>0 ROLLBACK TRANSACTION;
         THROW;
     END CATCH;
 END;
