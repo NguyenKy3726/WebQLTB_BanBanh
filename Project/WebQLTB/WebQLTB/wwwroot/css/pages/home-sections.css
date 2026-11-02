@@ -18,8 +18,7 @@
 .home-budget { background:#eee0cc; }
 .home-budget__layout { display:grid; grid-template-columns:1fr 1fr; gap:70px; align-items:center; }
 .home-budget__links { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-.home-budget__links a { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:22px; border:1px solid #dbc4a3; border-radius:15px; background:#fffaf3; color:#65472d; text-decoration:none; }
-.home-budget__links a:hover { border-color:#b88c48; background:#fffdfa; }
+.home-budget__links > div { min-height:96px; border:1px solid #dbc4a3; border-radius:15px; background:#fffaf3; }
 .home-story { background:#fffaf4; }
 .home-story__layout { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; }
 .home-story .button { margin-top:24px; }
