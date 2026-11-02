@@ -1,9 +1,13 @@
 @model WebQLTB.Models.DonHangKhachChiTietViewModel
 @using System.Globalization
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Chi tiết đơn hàng";
     var culture = CultureInfo.GetCultureInfo("vi-VN");
     var order = Model.DonHang;
+    var qrImagePath = Configuration["Payment:QrImagePath"];
+    var showTransfer = order.TrangThaiDonHang is not ("CHO_NHAN_VIEN_XU_LY" or "DA_HUY" or "HOAN_TAT")
+        && Model.ConPhaiTra > 0;
 }
 
 @section Styles {
@@ -27,6 +31,11 @@
         </div>
         <span class="customer-order-card__status">@Model.TenTrangThai</span>
     </header>
+
+    @if (TempData["DonHangThongBao"] is string notice)
+    { <p class="customer-orders__feedback" role="status">@notice</p> }
+    @if (TempData["DonHangLoi"] is string error)
+    { <p class="customer-orders__feedback customer-orders__feedback--error" role="alert">@error</p> }
 
     <div class="customer-orders__detail-grid">
         <div class="customer-orders__main-column">
@@ -79,6 +88,29 @@
                     <div class="customer-orders__totals-final"><dt>Tổng cần thanh toán</dt><dd>@order.TongTienPhaiTra.ToString("N0", culture) ₫</dd></div>
                 </dl>
             </section>
+
+            @if (order.TrangThaiDonHang == "CHO_KHACH_XAC_NHAN")
+            {
+                <section class="customer-orders__panel customer-orders__confirmation" aria-labelledby="confirm-title">
+                    <h2 id="confirm-title">Xác nhận thông tin đơn bánh</h2>
+                    <p>Cửa hàng đã chốt báo giá. Vui lòng kiểm tra bánh, số lượng, phí giao hàng, tiền cọc và lịch giao trước khi đồng ý.</p>
+                    <dl class="customer-orders__payment-summary">
+                        <div><dt>Tổng thanh toán (đã gồm phí giao và giảm giá)</dt><dd>@order.TongTienPhaiTra.ToString("N0", culture) ₫</dd></div>
+                        <div><dt>Tiền cọc yêu cầu</dt><dd>@order.TienCocYeuCau.GetValueOrDefault().ToString("N0", culture) ₫</dd></div>
+                        <div><dt>Lịch giao dự kiến</dt><dd>@(order.NgayGiaoDuKien?.ToString("dd/MM/yyyy HH:mm", culture))</dd></div>
+                    </dl>
+                    <p>Nếu cần đổi số lượng hoặc thông tin giao nhận, hãy liên hệ cửa hàng trước khi xác nhận.</p>
+                    <form asp-action="XacNhanDonHang" method="post">
+                        <input type="hidden" name="MaDonHang" value="@order.MaDonHang" />
+                        <input type="hidden" name="TongTienPhaiTra" value="@order.TongTienPhaiTra.ToString("0.00", CultureInfo.CurrentCulture)" />
+                        <input type="hidden" name="PhiGiaoHang" value="@order.PhiGiaoHang.ToString("0.00", CultureInfo.CurrentCulture)" />
+                        <input type="hidden" name="TienGiamGia" value="@order.TienGiamGia.ToString("0.00", CultureInfo.CurrentCulture)" />
+                        <input type="hidden" name="TienCocYeuCau" value="@(order.TienCocYeuCau?.ToString("0.00", CultureInfo.CurrentCulture))" />
+                        <input type="hidden" name="NgayGiaoDuKien" value="@(order.NgayGiaoDuKien?.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture))" />
+                        <button class="customer-orders__button" type="submit">Đồng ý giá, phí giao hàng và tiền cọc</button>
+                    </form>
+                </section>
+            }
 
             <section class="customer-orders__panel" aria-labelledby="history-title">
                 <div class="customer-orders__panel-heading">
@@ -153,6 +185,31 @@
                     </dl>
                 }
 
+                @if (showTransfer)
+                {
+                    <div class="customer-orders__transfer">
+                        <h3 class="customer-orders__subheading">Hướng dẫn chuyển khoản</h3>
+                        @if (order.TrangThaiDonHang == "CHO_KHACH_XAC_NHAN")
+                        { <p>Vui lòng bấm đồng ý báo giá trước khi chuyển khoản.</p> }
+                        else if (Model.ConThieuCoc > 0)
+                        { <p>Tiền cọc còn cần thanh toán: <strong>@Model.ConThieuCoc.ToString("N0", culture) ₫</strong>.</p> }
+                        else
+                        { <p>Cọc đã đủ hoặc đơn không yêu cầu cọc. Số tiền còn phải trả: <strong>@Model.ConPhaiTra.ToString("N0", culture) ₫</strong>.</p> }
+                        @if (!string.IsNullOrWhiteSpace(qrImagePath))
+                        {
+                            <img class="customer-orders__payment-qr" src="@Url.Content(qrImagePath)" alt="Thông tin chuyển khoản của cửa hàng Whiskful" />
+                        }
+                        else
+                        { <p>Vui lòng liên hệ cửa hàng để nhận thông tin tài khoản chuyển khoản.</p> }
+                        <p>Nội dung chuyển khoản phải ghi <strong>đúng mã đơn bên dưới, chỉ ghi mã đơn</strong>; không thêm tên, số điện thoại hay nội dung khác.</p>
+                        <label for="transfer-content">Nội dung chuyển khoản</label>
+                        <input id="transfer-content" class="customer-orders__transfer-code" value="@order.MaDonHang.Trim()" readonly />
+                        <button id="copy-transfer-content" class="customer-orders__button" type="button">Sao chép mã đơn</button>
+                        <p id="copy-transfer-status" role="status" aria-live="polite"></p>
+                        <p class="customer-orders__note">Sau khi chuyển khoản, cửa hàng sẽ kiểm tra tiền thực nhận và cập nhật giao dịch. Sao chép mã đơn không đồng nghĩa đã thanh toán.</p>
+                    </div>
+                }
+
                 <h3 class="customer-orders__subheading">Giao dịch</h3>
                 @if (Model.GiaoDich.Count == 0)
                 {
@@ -205,3 +262,7 @@
 
     <a class="customer-orders__return" asp-controller="CuaHang" asp-action="DonDatHang">← Quay lại danh sách đơn</a>
 </section>
+
+@section Scripts {
+    <script src="~/js/order-confirmation.js" asp-append-version="true"></script>
+}

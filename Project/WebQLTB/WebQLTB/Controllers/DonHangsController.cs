@@ -247,6 +247,7 @@ public class DonHangsController : Controller
             .OrderBy(payment => payment.ThoiGianTao)
             .ToList();
 
+        ViewBag.KhachDatHang = order.MaKH.HasValue ? _context.KhachHang_CT(order.MaKH.Value) : null;
         ViewBag.TenKH = _context.KhachHang_DS()
             .ToDictionary(customer => customer.MaKH, customer => $"{customer.HoKH} {customer.TenKH}");
         ViewBag.TenNV = _context.NhanVien_DS()

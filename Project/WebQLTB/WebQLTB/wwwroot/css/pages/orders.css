@@ -559,3 +559,14 @@
         transform: none;
     }
 }
+
+.customer-orders__feedback { padding:16px; border:1px solid #d8c49f; border-radius:12px; background:#fff8e9; color:#634b25; }
+.customer-orders__feedback--error { border-color:#dcaaa1; background:#fff1ed; color:#8b4036; }
+.customer-orders__confirmation { border-color:var(--color-accent-dark); }
+.customer-orders__confirmation h2 { font-family:var(--font-heading); color:var(--color-primary-dark); }
+.customer-orders__confirmation p,.customer-orders__transfer p { font-size:13px; line-height:1.7; }
+.customer-orders__confirmation button { max-width:100%; white-space:normal; text-align:center; }
+.customer-orders__transfer { margin-block:22px; padding-top:16px; border-top:1px solid var(--color-border-light); }
+.customer-orders__transfer label { display:block; margin-bottom:8px; font-size:12px; }
+.customer-orders__transfer-code { box-sizing:border-box; display:block; width:100%; min-width:0; margin-bottom:12px; padding:12px; border:1px solid var(--color-border); border-radius:10px; background:var(--color-surface); color:var(--color-primary-dark); font:700 17px monospace; }
+.customer-orders__payment-qr { display:block; width:100%; max-width:280px; height:auto; margin:16px auto; border-radius:12px; }
