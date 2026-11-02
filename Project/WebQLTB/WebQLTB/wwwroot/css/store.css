@@ -22,6 +22,9 @@
 .header__primary-nav { display:flex; align-items:center; gap:26px; }
 .header__nav { margin-left:auto; }
 
+/* Bootstrap adds default spacing to UL; keep the shared header vertically aligned. */
+.header__nav-list { margin:0; padding:0; list-style:none; }
+
 .header__logo {
     height: auto;
     object-fit: contain;
