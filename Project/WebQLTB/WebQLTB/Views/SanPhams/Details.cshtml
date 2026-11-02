@@ -42,16 +42,16 @@
         <header class="product-admin-detail__section-heading">
             <div>
                 <p class="product-admin__eyebrow">GIÁ · KÍCH CỠ · TỒN KHO</p>
-                <h2 id="variants-title">Biến thể bánh</h2>
-                <p>Cập nhật giá và số lượng ngay tại từng biến thể. Số lượng đang giữ do hệ thống đơn hàng quản lý.</p>
+                <h2 id="variants-title">Kích thước bánh</h2>
+                <p>Cập nhật giá và số lượng ngay tại từng kích thước. Số lượng đang giữ do hệ thống đơn hàng quản lý.</p>
             </div>
-            <span class="product-admin-detail__threshold">Cảnh báo từng biến thể dưới @lowStockThreshold bánh khả dụng</span>
+            <span class="product-admin-detail__threshold">Cảnh báo từng kích thước dưới @lowStockThreshold bánh khả dụng</span>
         </header>
 
         @if (variants.Count == 0)
         {
             <div class="product-admin__empty product-admin-detail__empty">
-                <h3>Chưa có biến thể</h3>
+                <h3>Chưa có kích thước</h3>
                 <p>Thêm kích cỡ đầu tiên để sản phẩm có thể được mở bán.</p>
             </div>
         }
@@ -61,7 +61,7 @@
                 var available = Math.Max(0, variant.SoLuongThucTe - variant.SoLuongDaGiu);
                 <article class="product-admin-variant">
                     <header class="product-admin-variant__heading">
-                        <div><span>Mã biến thể #@variant.MaBienThe</span><h3>@variant.TenBienThe</h3></div>
+                        <div><span>Mã kích thước #@variant.MaBienThe</span><h3>@variant.TenBienThe</h3></div>
                         <span class="product-admin-table__state @(variant.TrangThaiBan ? "is-on" : "is-off")">@(variant.TrangThaiBan ? "Đang bán" : "Ngừng bán")</span>
                     </header>
                     @if (lowStockThreshold > 0 && available < lowStockThreshold)
@@ -73,29 +73,29 @@
                     }
                     <form asp-action="SaveVariant" method="post" class="product-admin-form product-admin-variant__form">
                         <input type="hidden" name="MaBienThe" value="@variant.MaBienThe" />
-                        <label class="product-admin-form__field"><span>Tên biến thể</span><input name="TenBienThe" value="@variant.TenBienThe" maxlength="50" required /></label>
+                        <label class="product-admin-form__field"><span>Tên kích thước</span><input name="TenBienThe" value="@variant.TenBienThe" maxlength="50" required /></label>
                         <label class="product-admin-form__field"><span>Giá bán (VNĐ)</span><input name="GiaBan" type="number" min="0" step="1" inputmode="numeric" value="@variant.GiaBan.ToString("0", CultureInfo.InvariantCulture)" required /></label>
                         <label class="product-admin-form__field"><span>Tồn thực tế</span><input name="SoLuongThucTe" type="number" min="0" step="1" inputmode="numeric" value="@variant.SoLuongThucTe" required /></label>
                         <div class="product-admin-variant__stock-note">Đang giữ: <strong>@variant.SoLuongDaGiu</strong> · Khả dụng: <strong>@available</strong></div>
                         <label class="product-admin-form__field"><span>Số ngày chuẩn bị</span><input name="SoNgayChuanBiDuKien" type="number" min="0" step="1" value="@variant.SoNgayChuanBiDuKien" required /></label>
                         <label class="product-admin-form__check"><input type="checkbox" name="TrangThaiBan" value="true" checked="@variant.TrangThaiBan" /> Đang mở bán</label>
                         <input type="hidden" name="TrangThaiBan" value="false" />
-                        <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Lưu biến thể</button></div>
+                        <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Lưu kích thước</button></div>
                     </form>
                 </article>
             }
         </div>
 
         <details class="product-admin-detail__add-panel">
-            <summary>+ Thêm biến thể cho mẫu bánh này</summary>
+            <summary>+ Thêm kích thước cho mẫu bánh này</summary>
             <form asp-action="AddVariant" asp-route-masp="@Model.MaSP" method="post" class="product-admin-form">
-                <label class="product-admin-form__field"><span>Tên biến thể</span><input name="TenBienThe" maxlength="50" placeholder="Ví dụ: 16 cm · 6–8 người" required /></label>
+                <label class="product-admin-form__field"><span>Tên kích thước</span><input name="TenBienThe" maxlength="50" placeholder="Ví dụ: 16 cm · 6–8 người" required /></label>
                 <label class="product-admin-form__field"><span>Giá bán (VNĐ)</span><input name="GiaBan" type="number" min="0" step="1" inputmode="numeric" value="0" required /></label>
                 <label class="product-admin-form__field"><span>Tồn thực tế</span><input name="SoLuongThucTe" type="number" min="0" step="1" inputmode="numeric" value="0" required /></label>
                 <label class="product-admin-form__field"><span>Số ngày chuẩn bị</span><input name="SoNgayChuanBiDuKien" type="number" min="0" step="1" value="0" required /></label>
                 <label class="product-admin-form__check"><input type="checkbox" name="TrangThaiBan" value="true" checked /> Đang mở bán</label>
                 <input type="hidden" name="TrangThaiBan" value="false" />
-                <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Thêm biến thể</button></div>
+                <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Thêm kích thước</button></div>
             </form>
         </details>
     </section>
