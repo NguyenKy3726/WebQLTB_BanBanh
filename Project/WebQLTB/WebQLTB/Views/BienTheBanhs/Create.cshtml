@@ -7,8 +7,8 @@
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <label class="product-admin-form__field"><span>Mẫu bánh</span><select asp-for="MaSP" asp-items="ViewBag.MaSP"><option value="">-- Chọn mẫu bánh --</option></select><span asp-validation-for="MaSP" class="text-danger"></span></label>
         <label class="product-admin-form__field"><span>Tên phiên bản</span><input asp-for="TenBienThe" maxlength="50" placeholder="Ví dụ: 16 cm · 6–8 người" /><span asp-validation-for="TenBienThe" class="text-danger"></span></label>
-        <label class="product-admin-form__field"><span>Giá bán (VNĐ)</span><input asp-for="GiaBan" type="number" min="0" step="1000" /><span asp-validation-for="GiaBan" class="text-danger"></span></label>
-        <label class="product-admin-form__field"><span>Số lượng tồn thực tế</span><input asp-for="SoLuongThucTe" type="number" min="0" /><span asp-validation-for="SoLuongThucTe" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Giá bán (VNĐ)</span><input asp-for="GiaBan" type="number" min="0" step="1" value="@(Model?.GiaBan.ToString("0", System.Globalization.CultureInfo.InvariantCulture) ?? "0")" inputmode="numeric" /><span asp-validation-for="GiaBan" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Số lượng tồn thực tế</span><input asp-for="SoLuongThucTe" type="number" min="0" step="1" inputmode="numeric" /><span asp-validation-for="SoLuongThucTe" class="text-danger"></span></label>
         <label class="product-admin-form__field"><span>Số ngày chuẩn bị dự kiến</span><input asp-for="SoNgayChuanBiDuKien" type="number" min="0" /><span asp-validation-for="SoNgayChuanBiDuKien" class="text-danger"></span></label>
         <label class="product-admin-form__check"><input asp-for="TrangThaiBan" /> Đang mở bán</label>
         <div class="product-admin-form__actions"><button class="product-admin__button product-admin__button--primary" type="submit">Thêm phiên bản</button><a asp-action="Index" asp-route-masp="@Model?.MaSP" class="product-admin__button">Hủy</a></div>

@@ -7,8 +7,8 @@
         <input asp-for="MaBienThe" type="hidden" /><input asp-for="MaSP" type="hidden" />
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
         <label class="product-admin-form__field"><span>Tên phiên bản</span><input asp-for="TenBienThe" maxlength="50" /><span asp-validation-for="TenBienThe" class="text-danger"></span></label>
-        <label class="product-admin-form__field"><span>Giá bán (VNĐ)</span><input asp-for="GiaBan" type="number" min="0" step="1000" /><span asp-validation-for="GiaBan" class="text-danger"></span></label>
-        <label class="product-admin-form__field"><span>Số lượng tồn thực tế</span><input asp-for="SoLuongThucTe" type="number" min="0" /><span asp-validation-for="SoLuongThucTe" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Giá bán (VNĐ)</span><input asp-for="GiaBan" type="number" min="0" step="1" value="@(Model?.GiaBan.ToString("0", System.Globalization.CultureInfo.InvariantCulture) ?? "0")" inputmode="numeric" /><span asp-validation-for="GiaBan" class="text-danger"></span></label>
+        <label class="product-admin-form__field"><span>Số lượng tồn thực tế</span><input asp-for="SoLuongThucTe" type="number" min="0" step="1" inputmode="numeric" /><span asp-validation-for="SoLuongThucTe" class="text-danger"></span></label>
         <div class="product-admin-form__field"><span>Số lượng đang giữ cho đơn</span><strong>@Model.SoLuongDaGiu</strong><small>Giá trị do hệ thống đặt hàng quản lý.</small></div>
         <label class="product-admin-form__field"><span>Số ngày chuẩn bị dự kiến</span><input asp-for="SoNgayChuanBiDuKien" type="number" min="0" /><span asp-validation-for="SoNgayChuanBiDuKien" class="text-danger"></span></label>
         <label class="product-admin-form__check"><input asp-for="TrangThaiBan" /> Đang mở bán</label>
