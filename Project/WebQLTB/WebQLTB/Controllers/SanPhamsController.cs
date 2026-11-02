@@ -288,9 +288,9 @@ public class SanPhamsController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult AddVariant(string masp, [Bind("TenBienThe,GiaBan,SoLuongThucTe,SoNgayChuanBiDuKien,TrangThaiBan")] BienTheBanh variant)
     {
-        if (_context.SanPham_CT(masp) == null) return NotFound();
+        if (string.IsNullOrWhiteSpace(masp) || _context.SanPham_CT(masp) == null) return NotFound();
 
-        if (!ValidateVariant(variant))
+        if (!ModelState.IsValid || !ValidateVariant(variant))
             return RedirectToDetailsWithMessage(masp, "Kiểm tra tên biến thể, giá nguyên không âm, tồn kho và thời gian chuẩn bị.");
 
         variant.MaSP = masp;
@@ -313,7 +313,7 @@ public class SanPhamsController : Controller
         var current = _context.BienTheBanh_CT(variant.MaBienThe);
         if (current == null) return NotFound();
 
-        if (!ValidateVariant(variant))
+        if (!ModelState.IsValid || !ValidateVariant(variant))
             return RedirectToDetailsWithMessage(current.MaSP, "Kiểm tra tên biến thể, giá nguyên không âm, tồn kho và thời gian chuẩn bị.");
 
         current.TenBienThe = variant.TenBienThe;

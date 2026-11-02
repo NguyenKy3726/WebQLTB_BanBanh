@@ -140,7 +140,7 @@
                 <input type="hidden" name="returnToProductDetails" value="true" />
                 <label class="product-admin-form__field"><span>Chọn ảnh (JPG, PNG, WEBP; tối đa 5 MB)</span><input type="file" name="TepAnh" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" data-image-picker required /></label>
                 <img class="product-admin-form__preview" data-image-preview alt="Xem trước ảnh được chọn" hidden />
-                <label class="product-admin-form__field"><span>Thứ tự hiển thị</span><input name="ThuTuHienThi" type="number" min="1" max="@short.MaxValue" step="1" value="@nextImageOrder" required /></label>
+                <label class="product-admin-form__field"><span>Thứ tự hiển thị</span><input name="ThuTuHienThi" type="number" min="1" max="32767" step="1" value="@nextImageOrder" required /></label>
                 <p class="product-image-order-hint">Gợi ý số kế tiếp: @nextImageOrder. Nếu chọn số đã có, ảnh cũ sẽ chuyển xuống số trống kế tiếp.</p>
                 <label class="product-admin-form__check"><input type="checkbox" name="LaAnhDaiDien" value="true" /> Đặt làm ảnh đại diện</label>
                 <input type="hidden" name="LaAnhDaiDien" value="false" />
