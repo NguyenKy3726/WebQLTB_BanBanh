@@ -1,7 +1,64 @@
 @model IEnumerable<WebQLTB.Models.PhanQuyen>
-@{ ViewData["Title"] = "Phân quyền nhân viên"; var roles = ViewBag.TenQuyen as Dictionary<byte,string> ?? new(); var employees = ViewBag.TenNV as Dictionary<byte,string> ?? new(); }
-@section Styles { <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" /> }
-<section class="product-admin container"><header class="product-admin__heading"><div><p class="product-admin__eyebrow">QUẢN TRỊ TÀI KHOẢN</p><h1>Phân quyền nhân viên</h1><p>Gán quyền quản trị hoặc bán hàng cho từng nhân viên.</p></div><a class="product-admin__button product-admin__button--primary" asp-action="Create">+ Gán quyền</a></header>
-@if (!Model.Any()) { <div class="product-admin__empty"><h2>Chưa có phân quyền</h2><p>Gán quyền cho nhân viên để họ truy cập đúng chức năng.</p><a class="product-admin__button product-admin__button--primary" asp-action="Create">Gán quyền</a></div> }
-else { <div class="table-responsive product-admin-table-wrap"><table class="table product-admin-table"><thead><tr><th>Nhân viên</th><th>Quyền</th><th>Thao tác</th></tr></thead><tbody>@foreach (var item in Model) { <tr><td><strong>@employees.GetValueOrDefault(item.MaNV, $"Nhân viên {item.MaNV}")</strong></td><td><span class="product-admin-table__state is-on">@roles.GetValueOrDefault(item.MaQuyen, $"Quyền {item.MaQuyen}")</span></td><td><a asp-action="Delete" asp-route-maquyen="@item.MaQuyen" asp-route-manv="@item.MaNV">Thu hồi quyền</a></td></tr> }</tbody></table></div> }
+@{
+    ViewData["Title"] = "Phân quyền nhân viên";
+    var roles = ViewBag.TenQuyen as Dictionary<byte, string> ?? new();
+    var employees = ViewBag.TenNV as Dictionary<byte, string> ?? new();
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" />
+}
+<section class="product-admin container">
+    <header class="product-admin__heading">
+        <div>
+            <p class="product-admin__eyebrow">QUẢN TRỊ TÀI KHOẢN</p>
+            <h1>Phân quyền nhân viên</h1>
+            <p>Gán quyền quản trị hoặc bán hàng cho từng nhân viên.</p>
+        </div>
+        <a class="product-admin__button product-admin__button--primary" asp-action="Create">+ Gán quyền</a>
+    </header>
+
+    @if (ViewBag.ThongBao is string message)
+    {
+        <div class="product-admin__notice" role="status">@message</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="product-admin__empty">
+            <h2>Chưa có phân quyền</h2>
+            <p>Gán quyền cho nhân viên để họ truy cập đúng chức năng.</p>
+            <a class="product-admin__button product-admin__button--primary" asp-action="Create">Gán quyền</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive product-admin-table-wrap">
+            <table class="table product-admin-table">
+                <thead>
+                    <tr><th>Nhân viên</th><th>Quyền</th><th>Thao tác</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var roleName = roles.GetValueOrDefault(item.MaQuyen, $"Quyền {item.MaQuyen}");
+                        var isAdminPermission = string.Equals(roleName, "ADMIN", StringComparison.OrdinalIgnoreCase);
+                        <tr>
+                            <td><strong>@employees.GetValueOrDefault(item.MaNV, $"Nhân viên {item.MaNV}")</strong></td>
+                            <td><span class="product-admin-table__state is-on">@roleName</span></td>
+                            <td>
+                                @if (isAdminPermission)
+                                {
+                                    <span class="text-muted">Quyền ADMIN được giữ lại</span>
+                                }
+                                else
+                                {
+                                    <a asp-action="Delete" asp-route-maquyen="@item.MaQuyen" asp-route-manv="@item.MaNV">Thu hồi quyền</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </section>
