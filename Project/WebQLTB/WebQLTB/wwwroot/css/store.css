@@ -104,3 +104,18 @@
     .header__mobile-account a { display:inline-block; max-width:100%; overflow-wrap:anywhere; white-space:normal; }
 }
 @media(prefers-reduced-motion:reduce) { .header__nav-link,.header__nav-link::after { transition:none; } .header__nav-link:active { transform:none; } }
+
+/* Các trang quản lý đã có header; ẩn breadcrumb lặp lại bên dưới header. */
+.management-page__breadcrumb,
+.order-admin__breadcrumb,
+.product-admin__breadcrumb,
+.customer-admin__breadcrumb,
+.revenue-report__breadcrumb { display:none !important; }
+
+/* Giữ khoảng trống rõ giữa Quản lý, tên nhân viên và các nút tài khoản. */
+@media (min-width:1201px) {
+    .header__container { gap:clamp(24px, 2vw, 40px); }
+    .header__nav-list { gap:clamp(22px, 2vw, 34px); }
+    .header__actions { gap:clamp(16px, 1.5vw, 24px); }
+    .header__actions > .header__user-link { max-width:190px; }
+}
