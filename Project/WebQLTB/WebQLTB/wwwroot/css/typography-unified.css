@@ -1,0 +1,86 @@
+/* Một font hệ thống ổn định, có đủ ký tự tiếng Việt, tránh nhảy khi font web tải muộn. */
+html, body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-synthesis: none;
+    font-kerning: normal;
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+body :where(*) {
+    font-family: inherit !important;
+}
+
+.customer-orders__heading h1,
+.order-admin__heading h1 {
+    letter-spacing: normal !important;
+    font-variant-ligatures: none;
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+@media (min-width: 1400px) {
+    .header__container {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 140px max-content;
+        justify-content: initial;
+        gap: clamp(18px, 2vw, 34px);
+    }
+
+    .header__identity {
+        min-width: 0;
+        flex-shrink: 1;
+        gap: clamp(20px, 2.5vw, 38px);
+    }
+
+    .header__brand {
+        flex: 0 0 220px;
+        width: 220px;
+    }
+
+    .header__logo {
+        display: block;
+        width: 100%;
+        max-width: 220px;
+        height: auto;
+    }
+
+    .header__primary-nav {
+        flex: 0 0 auto;
+        gap: clamp(18px, 2vw, 28px);
+    }
+
+    .header__primary-nav .header__nav-link {
+        white-space: nowrap;
+    }
+
+    .header__nav {
+        width: 140px;
+        justify-self: center;
+        margin-left: 0;
+    }
+
+    .header__nav-list {
+        justify-content: center;
+    }
+
+    .header__user-link {
+        min-width: 170px;
+        justify-content: center;
+    }
+
+    .header__nav-list,
+    .header__actions {
+        flex-wrap: nowrap;
+        white-space: nowrap;
+    }
+
+    .header__actions {
+        min-width: 0;
+        justify-self: end;
+        gap: clamp(12px, 1.4vw, 22px);
+    }
+}
+
+.header__nav-link:active,
+.header__text-link:active {
+    transform: none !important;
+}
