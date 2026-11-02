@@ -13,8 +13,6 @@ public class BaoCaoDoanhThuViewModel
     public int SoDonHangCoThanhToan { get; init; }
     public IReadOnlyList<DoanhThuTheoNgayViewModel> TheoNgay { get; init; }
         = Array.Empty<DoanhThuTheoNgayViewModel>();
-    public IReadOnlyList<BaoCaoGiaoDichViewModel> GiaoDich { get; init; }
-        = Array.Empty<BaoCaoGiaoDichViewModel>();
 }
 
 public class DoanhThuTheoNgayViewModel
@@ -26,13 +24,3 @@ public class DoanhThuTheoNgayViewModel
     public int ChieuCaoCot { get; set; }
 }
 
-public class BaoCaoGiaoDichViewModel
-{
-    public string MaThanhToan { get; init; } = string.Empty;
-    public string MaDonHang { get; init; } = string.Empty;
-    public string LoaiGiaoDich { get; init; } = string.Empty;
-    public decimal SoTien { get; init; }
-    public string PhuongThuc { get; init; } = string.Empty;
-    public string TrangThai { get; init; } = string.Empty;
-    public DateTime ThoiGian { get; init; }
-}

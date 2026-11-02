@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using WebQLTB.Data;
+using WebQLTB.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSingleton<InventoryThresholdStore>();
 builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DbQLTBConnection")));
 // Add Session
 builder.Services.AddDistributedMemoryCache(); // session lưu in-memory (dev)

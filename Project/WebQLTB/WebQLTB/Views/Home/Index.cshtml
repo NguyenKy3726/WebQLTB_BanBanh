@@ -171,22 +171,16 @@
     </a>
 </section>
 
-<section class="home-section home-categories" id="categories" aria-labelledby="home-category-title">
+<section class="home-section home-categories home-welcome" id="categories" aria-labelledby="home-category-title">
     <div class="container">
-        <div class="home-section__heading"><div><p class="section-heading__eyebrow">KHÁM PHÁ WHISKFUL</p><h2 class="section-heading__title" id="home-category-title">Tìm một chiếc bánh bạn yêu</h2></div><a asp-controller="CuaHang" asp-action="Index">Xem tất cả bánh →</a></div>
-        @if (Model.DanhMuc.Count > 0)
-        {
-            <div class="home-category-grid">
-                @foreach (var category in Model.DanhMuc.Take(5))
-                {
-                    <a class="home-category" asp-controller="CuaHang" asp-action="Index" asp-route-category="@category.Ten"><span class="home-category__icon" aria-hidden="true">✦</span><h3>@category.Ten</h3><p>@category.SoMau mẫu bánh đang bán</p><span class="home-category__link">Khám phá →</span></a>
-                }
-            </div>
-        }
-        else { <p class="home-empty">Bộ sưu tập đang được cập nhật. Mời bạn ghé cửa hàng để xem thêm.</p> }
+        <div class="home-welcome__content">
+            <p class="section-heading__eyebrow">CHÀO MỪNG ĐẾN</p>
+            <img class="home-welcome__logo" src="~/assets/images/logo/whiskful-logo.png" alt="Whiskful" />
+            <h2 class="section-heading__title" id="home-category-title">Đủ đầy trong từng miếng bánh.</h2>
+            <a class="button button--outline home-welcome__link" asp-controller="CuaHang" asp-action="Index">Khám phá bánh →</a>
+        </div>
     </div>
 </section>
-
 <section class="home-section home-featured" aria-labelledby="home-featured-title">
     <div class="container">
         <div class="home-section__heading"><div><p class="section-heading__eyebrow">TỪ GIAN BẾP WHISKFUL</p><h2 class="section-heading__title" id="home-featured-title">Gợi ý cho khoảnh khắc ngọt ngào</h2><p>Khám phá những mẫu bánh mới được thêm vào bộ sưu tập.</p></div><a asp-controller="CuaHang" asp-action="Index">Xem bộ sưu tập →</a></div>

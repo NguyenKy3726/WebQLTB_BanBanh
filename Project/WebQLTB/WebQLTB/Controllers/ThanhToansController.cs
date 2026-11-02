@@ -79,20 +79,7 @@ public class ThanhToansController : Controller
             SoGiaoDichThu = thuTien.Count,
             SoGiaoDichHoan = hoanTien.Count,
             SoDonHangCoThanhToan = thuTien.Select(x => x.MaDonHang).Distinct().Count(),
-            TheoNgay = theoNgay,
-            GiaoDich = trongThang.OrderByDescending(x => x.ThoiGianXacNhan ?? x.ThoiGianTao)
-                .Take(40)
-                .Select(x => new BaoCaoGiaoDichViewModel
-                {
-                    MaThanhToan = x.MaThanhToan,
-                    MaDonHang = x.MaDonHang,
-                    LoaiGiaoDich = x.LoaiGiaoDich,
-                    SoTien = x.SoTien,
-                    PhuongThuc = x.PhuongThuc,
-                    TrangThai = x.TrangThaiThanhToan,
-                    ThoiGian = x.ThoiGianXacNhan ?? x.ThoiGianTao
-                })
-                .ToList()
+            TheoNgay = theoNgay
         };
 
         return View(model);

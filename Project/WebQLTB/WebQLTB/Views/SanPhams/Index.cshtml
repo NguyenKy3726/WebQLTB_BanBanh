@@ -37,6 +37,18 @@
         <div class="product-admin__notice" role="status">@message</div>
     }
 
+    <form asp-action="SaveStockThreshold" method="post" class="product-stock-settings" aria-label="Thiết lập ngưỡng cảnh báo tồn">
+        <div class="product-stock-settings__copy">
+            <strong>Ngưỡng tồn tối thiểu</strong>
+            <p>Cảnh báo hiện trên từng biến thể khi số bánh khả dụng thấp hơn ngưỡng này. Nhập 0 để tắt cảnh báo.</p>
+        </div>
+        <label class="product-stock-settings__field" for="stock-threshold">
+            <span>Số bánh</span>
+            <input id="stock-threshold" name="nguongTonThap" type="number" min="0" max="100000" step="1" value="@ViewBag.NguongTonThap" required inputmode="numeric" />
+        </label>
+        <button class="product-admin__button product-admin__button--primary" type="submit">Lưu ngưỡng</button>
+    </form>
+
     <form method="get" class="product-admin-filter" aria-label="Lọc sản phẩm bánh">
         <label for="category-filter">Loại bánh</label>
         <select id="category-filter" name="maloai" onchange="this.form.requestSubmit()">

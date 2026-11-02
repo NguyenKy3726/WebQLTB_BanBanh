@@ -6,17 +6,18 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using WebQLTB.Data;
 using WebQLTB.Models;
+using WebQLTB.Services;
 
 [PermissionAuthorize("ADMIN")]
 public class SanPhamsController : Controller
 {
     private readonly AppDbContext _context;
-    private readonly IConfiguration _configuration;
+    private readonly InventoryThresholdStore _inventoryThresholds;
 
-    public SanPhamsController(AppDbContext context, IConfiguration configuration)
+    public SanPhamsController(AppDbContext context, InventoryThresholdStore inventoryThresholds)
     {
         _context = context;
-        _configuration = configuration;
+        _inventoryThresholds = inventoryThresholds;
     }
 
     // GET: SANPHAMS
@@ -35,6 +36,7 @@ public class SanPhamsController : Controller
                 sp.MaSP.Contains(keyword, StringComparison.CurrentCultureIgnoreCase)).ToList();
         }
 
+        ViewBag.NguongTonThap = _inventoryThresholds.GetThreshold();
         ViewBag.MaLoaiBanhDangChon = maloai;
         ViewBag.TrangThaiDangChon = trangthai;
         ViewBag.TuKhoa = q;
@@ -279,9 +281,34 @@ public class SanPhamsController : Controller
             .ThenBy(image => image.ThuTuHienThi)
             .ThenBy(image => image.MaAnh)
             .ToList();
-        ViewBag.NguongTonThap = Math.Max(0, _configuration.GetValue<int?>("Inventory:LowStockThreshold") ?? 3);
+        ViewBag.NguongTonThap = _inventoryThresholds.GetThreshold();
         var images = (List<HinhAnhBanh>)ViewBag.Images;
         ViewBag.ThuTuAnhTiepTheo = images.Count == 0 ? 1 : images.Max(image => (int)image.ThuTuHienThi) + 1;
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult SaveStockThreshold(int? nguongTonThap)
+    {
+        if (!nguongTonThap.HasValue || nguongTonThap.Value is < 0 or > 100000)
+        {
+            TempData["ThongBaoSanPham"] = "Ngưỡng tồn phải là số nguyên từ 0 đến 100.000.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        try
+        {
+            _inventoryThresholds.SaveThreshold(nguongTonThap.Value);
+            TempData["ThongBaoSanPham"] = nguongTonThap.Value == 0
+                ? "Đã lưu ngưỡng 0: cảnh báo tồn thấp đang tắt."
+                : $"Đã lưu ngưỡng cảnh báo: báo khi từng biến thể còn dưới {nguongTonThap.Value} bánh khả dụng.";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            TempData["ThongBaoSanPham"] = "Không thể lưu ngưỡng. Hãy kiểm tra quyền ghi thư mục ứng dụng.";
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]

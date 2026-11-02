@@ -4,25 +4,26 @@ Gói này được thiết kế để cài mới trên database `DbQLTB` trống
 
 ## `Proc_Create.sql` dùng làm gì?
 
-`Project/SQL_Query/Proc_Create.sql` tạo hoặc cập nhật các stored procedure thêm nhân viên, quyền, loại bánh, khách hàng, phân quyền, sản phẩm, ảnh bánh, biến thể, đơn hàng, chi tiết đơn và thanh toán. Khi chạy file, SQL Server chỉ lưu định nghĩa procedure; dữ liệu chỉ được ghi khi ứng dụng hoặc câu lệnh SQL gọi procedure.
+`Project/Database/Proc_Create.sql` tạo hoặc cập nhật các stored procedure thêm nhân viên, quyền, loại bánh, khách hàng, phân quyền, sản phẩm, ảnh bánh, biến thể, đơn hàng, chi tiết đơn và thanh toán. Khi chạy file, SQL Server chỉ lưu định nghĩa procedure; dữ liệu chỉ được ghi khi ứng dụng hoặc câu lệnh SQL gọi procedure.
 
 File này không tạo bảng và không nạp dữ liệu mẫu. `Table.sql` tạo bảng; `Insert.sql` là dữ liệu mẫu tùy chọn.
 
 ## Thứ tự cài đặt
 
 1. Trong SSMS, tạo database `DbQLTB` nếu chưa tồn tại.
-2. Chạy `Project/SQL_Query/Table.sql` để tạo 12 bảng, gồm bảng nhật ký trạng thái đơn hàng.
-3. Chạy lần lượt `Proc_Create.sql`, `Proc_Edit.sql`, `Proc_Delete.sql`, `Proc_Details.sql`, `Proc_Index.sql`, `Proc_Login.sql`.
-4. Chạy `Proc_Improvements.sql` để thêm ràng buộc tên đăng nhập dùng chung, quyền ứng dụng và xử lý đơn website.
-5. Nếu cần dữ liệu mẫu, chạy `Insert.sql` khi các bảng còn trống. Tài khoản mẫu dùng mật khẩu `123456`, chỉ dành cho học tập.
-6. Trong `Project/WebQLTB/WebQLTB/appsettings.json`, sửa `DbQLTBConnection` cho đúng SQL Server và xác thực đang dùng.
-7. Mở `Project/WebQLTB/WebQLTB.slnx` trong Visual Studio và chạy ứng dụng.
+2. Chạy `Project/Database/Table.sql` để tạo 12 bảng, gồm bảng nhật ký trạng thái đơn hàng.
+3. Chạy `Project/Database/Migration_TienVNDSoNguyen.sql` để xác nhận các giá và số tiền lưu trong database là số nguyên VNĐ.
+4. Chạy lần lượt `Proc_Create.sql`, `Proc_Edit.sql`, `Proc_Delete.sql`, `Proc_Details.sql`, `Proc_Index.sql`, `Proc_Login.sql`.
+5. Chạy `Proc_Improvements.sql` để thêm ràng buộc tên đăng nhập dùng chung, quyền ứng dụng và xử lý đơn website.
+6. Nếu cần dữ liệu mẫu, chạy `Insert.sql` khi các bảng còn trống. Tài khoản mẫu dùng mật khẩu `123456`, chỉ dành cho học tập.
+7. Trong `Project/WebQLTB/WebQLTB/appsettings.json`, sửa `DbQLTBConnection` cho đúng SQL Server và xác thực đang dùng.
+8. Mở `Project/WebQLTB/WebQLTB.slnx` trong Visual Studio và chạy ứng dụng.
 
 Chạy riêng từng file và dừng khi phát sinh lỗi. Không chạy `Insert.sql` lần nữa sau khi đã có dữ liệu.
 
 ## Cập nhật database đã cài trước đó
 
-Không chạy lại `Table.sql` trên database đang có dữ liệu. Chạy `Migration_QuyTrinhTrangThaiDonHang.sql` một lần để tạo bảng nhật ký và tạo mốc lịch sử ban đầu; sau đó chạy lại `Proc_Create.sql`, `Proc_Edit.sql`, `Proc_Details.sql` và `Proc_Improvements.sql` để cập nhật stored procedure.
+Không chạy lại `Table.sql` trên database đang có dữ liệu. Chạy các migration chưa áp dụng: `Migration_QuyTrinhTrangThaiDonHang.sql`, `Migration_KhachXacNhanDonHang.sql` (nếu database chưa có luồng khách xác nhận) và `Migration_TienVNDSoNguyen.sql`. Sau đó chạy lại các file procedure cần cập nhật. Migration tiền VNĐ sẽ dừng nếu phát hiện dữ liệu lẻ để bạn đối chiếu, không tự làm tròn.
 
 ## Luồng thao tác đơn hàng
 
