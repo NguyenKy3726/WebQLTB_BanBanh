@@ -3,8 +3,8 @@
 <section class="product-admin container">
     <nav class="product-admin__breadcrumb"><a asp-controller="QuanLy" asp-action="Index">Quản lý</a><span>/</span><a asp-action="Index">Sản phẩm bánh</a><span>/</span><span>Thêm mẫu</span></nav>
     <header class="product-admin__heading"><div><p class="product-admin__eyebrow">DANH MỤC WHISKFUL</p><h1>Tạo mẫu bánh</h1><p>Tạo thông tin chung trước, sau đó thêm phiên bản giá và ảnh.</p></div></header>
-    <form asp-action="Create" class="product-admin-form">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <form asp-action="Create" method="post" class="product-admin-form">
+        <div asp-validation-summary="All" class="text-danger"></div>
         <label class="product-admin-form__field"><span>Loại bánh</span><select asp-for="MaLoaiBanh" asp-items="ViewBag.MaLoaiBanh"><option value="">-- Chọn loại bánh --</option></select><span asp-validation-for="MaLoaiBanh" class="text-danger"></span></label>
         <label class="product-admin-form__field"><span>Tên sản phẩm</span><input asp-for="TenSP" maxlength="100" /><span asp-validation-for="TenSP" class="text-danger"></span></label>
         <label class="product-admin-form__field"><span>Mô tả ngắn</span><textarea asp-for="MoTaNgan" rows="3" maxlength="300"></textarea><span asp-validation-for="MoTaNgan" class="text-danger"></span></label>
