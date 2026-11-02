@@ -48,7 +48,7 @@ public class SanPhamsController : Controller
     // GET: SANPHAMS/Details/5
     public async Task<IActionResult> Details(string? masp)
     {
-        if (masp == null)
+        if (string.IsNullOrWhiteSpace(masp))
         {
             return NotFound();
         }
@@ -58,7 +58,9 @@ public class SanPhamsController : Controller
         {
             return NotFound();
         }
-        PrepareDetailsData();
+        PrepareDetailsData(masp);
+        if (TempData["ThongBaoSanPham"] is string message)
+            ViewBag.ThongBao = message;
         return View(sanpham);
     }
 
@@ -88,7 +90,7 @@ public class SanPhamsController : Controller
             try
             {
                 _context.SanPham_Them(sanpham);
-                TempData["ThongBaoSanPham"] = "Đã tạo mẫu bánh. Tiếp theo, thêm phiên bản và hình ảnh cho bánh.";
+                TempData["ThongBaoSanPham"] = "Đã tạo sản phẩm. Mở sản phẩm để quản lý biến thể và hình ảnh.";
                 return RedirectToAction(nameof(Index));
             }
             catch (SqlException ex)
@@ -252,15 +254,9 @@ public class SanPhamsController : Controller
             .Where(bt => bt.TrangThaiBan)
             .GroupBy(bt => bt.MaSP)
             .ToDictionary(group => group.Key, group => group.Min(bt => bt.GiaBan));
-        ViewBag.NguongTonThap = Math.Max(0, _configuration.GetValue<int?>("Inventory:LowStockThreshold") ?? 3);
-        ViewBag.TonKhaDungThapNhat = variants
-            .GroupBy(bt => bt.MaSP)
-            .ToDictionary(
-                group => group.Key,
-                group => group.Min(bt => Math.Max(0, bt.SoLuongThucTe - bt.SoLuongDaGiu)));
     }
 
-    private void PrepareDetailsData()
+    private void PrepareDetailsData(string masp)
     {
         ViewBag.TenLoaiBanh = _context.LoaiBanh_DS()
             .ToDictionary(lb => lb.MaLoaiBanh, lb => lb.TenLoaiBanh);
@@ -272,5 +268,80 @@ public class SanPhamsController : Controller
             ["PUBLISHED"] = "Đang hiển thị",
             ["HIDDEN"] = "Tạm ẩn"
         };
+        ViewBag.Variants = _context.BienTheBanh_DS()
+            .Where(variant => variant.MaSP == masp)
+            .OrderBy(variant => variant.GiaBan)
+            .ThenBy(variant => variant.MaBienThe)
+            .ToList();
+        ViewBag.Images = _context.HinhAnhBanh_DS()
+            .Where(image => image.MaSP == masp)
+            .OrderByDescending(image => image.LaAnhDaiDien)
+            .ThenBy(image => image.ThuTuHienThi)
+            .ThenBy(image => image.MaAnh)
+            .ToList();
+        ViewBag.NguongTonThap = Math.Max(0, _configuration.GetValue<int?>("Inventory:LowStockThreshold") ?? 3);
+        var images = (List<HinhAnhBanh>)ViewBag.Images;
+        ViewBag.ThuTuAnhTiepTheo = images.Count == 0 ? 1 : images.Max(image => (int)image.ThuTuHienThi) + 1;
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult AddVariant(string masp, [Bind("TenBienThe,GiaBan,SoLuongThucTe,SoNgayChuanBiDuKien,TrangThaiBan")] BienTheBanh variant)
+    {
+        if (_context.SanPham_CT(masp) == null) return NotFound();
+
+        if (!ValidateVariant(variant))
+            return RedirectToDetailsWithMessage(masp, "Kiểm tra tên biến thể, giá nguyên không âm, tồn kho và thời gian chuẩn bị.");
+
+        variant.MaSP = masp;
+        variant.SoLuongDaGiu = 0;
+        try
+        {
+            _context.BienTheBanh_Them(variant);
+            return RedirectToDetailsWithMessage(masp, "Đã thêm biến thể bánh.");
+        }
+        catch (SqlException ex)
+        {
+            return RedirectToDetailsWithMessage(masp, SqlErrorMessage.ForUser(ex, "Không thể thêm biến thể lúc này."));
+        }
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult SaveVariant([Bind("MaBienThe,TenBienThe,GiaBan,SoLuongThucTe,SoNgayChuanBiDuKien,TrangThaiBan")] BienTheBanh variant)
+    {
+        var current = _context.BienTheBanh_CT(variant.MaBienThe);
+        if (current == null) return NotFound();
+
+        if (!ValidateVariant(variant))
+            return RedirectToDetailsWithMessage(current.MaSP, "Kiểm tra tên biến thể, giá nguyên không âm, tồn kho và thời gian chuẩn bị.");
+
+        current.TenBienThe = variant.TenBienThe;
+        current.GiaBan = variant.GiaBan;
+        current.SoLuongThucTe = variant.SoLuongThucTe;
+        current.SoNgayChuanBiDuKien = variant.SoNgayChuanBiDuKien;
+        current.TrangThaiBan = variant.TrangThaiBan;
+        try
+        {
+            _context.BienTheBanh_Sua(current);
+            return RedirectToDetailsWithMessage(current.MaSP, "Đã lưu giá và tồn kho của biến thể.");
+        }
+        catch (SqlException ex)
+        {
+            return RedirectToDetailsWithMessage(current.MaSP, SqlErrorMessage.ForUser(ex, "Không thể cập nhật biến thể lúc này."));
+        }
+    }
+
+    private static bool ValidateVariant(BienTheBanh variant) =>
+        !string.IsNullOrWhiteSpace(variant.TenBienThe) &&
+        variant.GiaBan >= 0 &&
+        decimal.Truncate(variant.GiaBan) == variant.GiaBan &&
+        variant.SoLuongThucTe >= 0 &&
+        variant.SoNgayChuanBiDuKien >= 0;
+
+    private IActionResult RedirectToDetailsWithMessage(string masp, string message)
+    {
+        TempData["ThongBaoSanPham"] = message;
+        return RedirectToAction(nameof(Details), new { masp });
     }
 }

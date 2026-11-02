@@ -21,15 +21,7 @@ public class HinhAnhBanhsController : Controller
         _environment = environment;
     }
 
-    public IActionResult Index(string? masp)
-    {
-        var products = _context.SanPham_DS();
-        ViewBag.TenSP = products.ToDictionary(sp => sp.MaSP, sp => sp.TenSP);
-        ViewBag.MaSPDangChon = masp;
-        ViewBag.ThongBao = TempData["ThongBaoAnh"];
-        var images = _context.HinhAnhBanh_DS();
-        return View(string.IsNullOrWhiteSpace(masp) ? images : images.Where(anh => anh.MaSP == masp).ToList());
-    }
+    public IActionResult Index(string? masp) => RedirectToAction("Index", "SanPhams");
 
     public IActionResult Details(short? maanh)
     {
@@ -53,7 +45,7 @@ public class HinhAnhBanhsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [RequestSizeLimit(MaxUploadBytes + 1024 * 1024)]
-    public async Task<IActionResult> Create(HinhAnhBanhFormViewModel form)
+    public async Task<IActionResult> Create(HinhAnhBanhFormViewModel form, bool returnToProductDetails = false)
     {
         var existingProductImages = _context.HinhAnhBanh_DS()
             .Where(x => x.MaSP == form.MaSP)
@@ -68,6 +60,8 @@ public class HinhAnhBanhsController : Controller
         var path = await ResolveImagePath(form);
         if (path == null)
         {
+            if (returnToProductDetails)
+                return BackToProductDetails(form.MaSP, FirstModelError("Không thể đọc ảnh. Hãy kiểm tra dữ liệu và thử lại."));
             PrepareProducts(form.MaSP);
             return View(form);
         }
@@ -113,6 +107,8 @@ public class HinhAnhBanhsController : Controller
                 _context.HinhAnhBanh_Sua(created);
             }
 
+            if (returnToProductDetails)
+                return BackToProductDetails(form.MaSP, "Đã thêm ảnh cho sản phẩm.");
             TempData["ThongBaoAnh"] = "Đã thêm ảnh cho mẫu bánh.";
             return RedirectToAction(nameof(Index), new { masp = form.MaSP });
         }
@@ -121,6 +117,8 @@ public class HinhAnhBanhsController : Controller
             ModelState.AddModelError(string.Empty, ex is SqlException sqlError
                 ? SqlErrorMessage.ForUser(sqlError, "Không thể lưu ảnh lúc này. Vui lòng thử lại.")
                 : "Không thể hoàn tất thao tác ảnh bánh. Vui lòng tải lại danh sách và thử lại.");
+            if (returnToProductDetails)
+                return BackToProductDetails(form.MaSP, FirstModelError("Không thể thêm ảnh lúc này."));
             PrepareProducts(form.MaSP);
             return View(form);
         }
@@ -145,7 +143,7 @@ public class HinhAnhBanhsController : Controller
     [HttpPost]
     [ValidateAntiForgeryToken]
     [RequestSizeLimit(MaxUploadBytes + 1024 * 1024)]
-    public async Task<IActionResult> Edit(short? maanh, HinhAnhBanhFormViewModel form)
+    public async Task<IActionResult> Edit(short? maanh, HinhAnhBanhFormViewModel form, bool returnToProductDetails = false)
     {
         if (maanh != form.MaAnh) return NotFound();
         var current = _context.HinhAnhBanh_CT(maanh!.Value);
@@ -156,6 +154,8 @@ public class HinhAnhBanhsController : Controller
         var path = await ResolveImagePath(form, current.DuongDanAnh);
         if (path == null)
         {
+            if (returnToProductDetails)
+                return BackToProductDetails(current.MaSP, FirstModelError("Không thể cập nhật ảnh. Hãy kiểm tra dữ liệu và thử lại."));
             PrepareProducts(current.MaSP);
             return View(form);
         }
@@ -170,12 +170,16 @@ public class HinhAnhBanhsController : Controller
                 LaAnhDaiDien = form.LaAnhDaiDien,
                 ThuTuHienThi = form.ThuTuHienThi
             });
+            if (returnToProductDetails)
+                return BackToProductDetails(current.MaSP, "Đã cập nhật ảnh sản phẩm.");
             TempData["ThongBaoAnh"] = "Đã cập nhật ảnh bánh.";
             return RedirectToAction(nameof(Index), new { masp = current.MaSP });
         }
         catch (SqlException ex)
         {
             ModelState.AddModelError(string.Empty, SqlErrorMessage.ForUser(ex, "Không thể cập nhật ảnh lúc này. Vui lòng thử lại."));
+            if (returnToProductDetails)
+                return BackToProductDetails(current.MaSP, SqlErrorMessage.ForUser(ex, "Không thể cập nhật ảnh lúc này."));
             PrepareProducts(current.MaSP);
             return View(form);
         }
@@ -192,7 +196,7 @@ public class HinhAnhBanhsController : Controller
 
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
-    public IActionResult DeleteConfirmed(short? maanh)
+    public IActionResult DeleteConfirmed(short? maanh, bool returnToProductDetails = false)
     {
         if (maanh == null) return NotFound();
         var image = _context.HinhAnhBanh_CT(maanh.Value);
@@ -200,15 +204,31 @@ public class HinhAnhBanhsController : Controller
         try
         {
             _context.HinhAnhBanh_Xoa(maanh.Value);
+            if (returnToProductDetails)
+                return BackToProductDetails(image.MaSP, "Đã xóa ảnh khỏi sản phẩm.");
             TempData["ThongBaoAnh"] = "Đã xóa ảnh khỏi danh sách ảnh bánh.";
             return RedirectToAction(nameof(Index), new { masp = image.MaSP });
         }
         catch (SqlException ex)
         {
-            ViewBag.LoiXoa = SqlErrorMessage.ForUser(ex, "Không thể xóa ảnh lúc này. Vui lòng thử lại.");
+            var message = SqlErrorMessage.ForUser(ex, "Không thể xóa ảnh lúc này. Vui lòng thử lại.");
+            if (returnToProductDetails)
+                return BackToProductDetails(image.MaSP, message);
+            ViewBag.LoiXoa = message;
             ViewBag.TenSP = _context.SanPham_DS().ToDictionary(sp => sp.MaSP, sp => sp.TenSP);
             return View("Delete", image);
         }
+    }
+
+    private string FirstModelError(string fallback) =>
+        ModelState.Values.SelectMany(value => value.Errors)
+            .Select(error => error.ErrorMessage)
+            .FirstOrDefault(message => !string.IsNullOrWhiteSpace(message)) ?? fallback;
+
+    private IActionResult BackToProductDetails(string masp, string message)
+    {
+        TempData["ThongBaoSanPham"] = message;
+        return RedirectToAction("Details", "SanPhams", new { masp });
     }
 
     private void PrepareProducts(string? selected)
