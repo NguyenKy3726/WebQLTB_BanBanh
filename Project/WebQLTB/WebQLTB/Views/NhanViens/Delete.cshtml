@@ -1,74 +1,79 @@
 @model WebQLTB.Models.NhanVien
-
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Xóa nhân viên";
+    var fullName = $"{Model.HoNV} {Model.TenNV}".Trim();
+    var initials = string.Concat(new[] { Model.HoNV, Model.TenNV }
+        .Where(part => !string.IsNullOrWhiteSpace(part))
+        .Select(part => part!.Trim()[0])).ToUpperInvariant();
 }
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/product-management.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/employee-profile.css" asp-append-version="true" />
+}
+<section class="product-admin container employee-profile employee-profile--delete">
+    <nav class="product-admin__breadcrumb" aria-label="Đường dẫn">
+        <a asp-controller="QuanLy" asp-action="Index">Quản lý</a><span>/</span>
+        <a asp-action="Index">Nhân viên</a><span>/</span>
+        <span aria-current="page">Xóa nhân viên</span>
+    </nav>
 
-<h1>Delete</h1>
-
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>WebQLTB.Models.NhanVien</h4>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-2">
-            Họ
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.HoNV)
-        </dd>
-
-        <dt class="col-sm-2">
-            Tên
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.TenNV)
-        </dd>
-
-        <dt class="col-sm-2">
-            Điện thoại
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.DienThoai)
-        </dd>
-
-        <dt class="col-sm-2">
-            @Html.DisplayNameFor(model => model.Email)
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.Email)
-        </dd>
-
-        <dt class="col-sm-2">
-            Tên đăng nhập
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.TenDN)
-        </dd>
-
-        <dt class="col-sm-2">
-            Mật khẩu
-        </dt>
-        <dd class="col-sm-10">
-            ...
-        </dd>
-
-        <dt class="col-sm-2">
-            Avatar
-        </dt>
-        <dd class="col-sm-10">
-            @Html.DisplayFor(model => model.AnhNV)
-        </dd>
-    </dl>
-    @if (ViewBag.LoiXoa != null)
-    {
-        <div class="alert alert-danger">
-            @ViewBag.LoiXoa
+    <header class="product-admin__heading employee-profile__page-heading">
+        <div>
+            <p class="employee-profile__eyebrow employee-profile__eyebrow--danger">THAO TÁC QUẢN TRỊ</p>
+            <h1>Xóa nhân viên</h1>
+            <p>Vui lòng kiểm tra đúng hồ sơ trước khi xác nhận thao tác.</p>
         </div>
-    }
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="MaNV" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
-</div>
+    </header>
+
+    <section class="employee-delete__panel" aria-labelledby="delete-title">
+        <div class="employee-delete__warning">
+            <span class="employee-delete__warning-icon" aria-hidden="true">!</span>
+            <div>
+                <h2 id="delete-title">Bạn muốn xóa tài khoản này?</h2>
+                <p>Thao tác này sẽ xóa hồ sơ nhân viên khỏi hệ thống và không thể hoàn tác tại đây.</p>
+            </div>
+        </div>
+
+        <article class="employee-profile__card employee-profile__card--compact">
+            <div class="employee-profile__identity">
+                @if (!string.IsNullOrWhiteSpace(Model.AnhNV))
+                {
+                    <img class="employee-profile__avatar" src="@Url.Content(Model.AnhNV)" alt="" />
+                }
+                else
+                {
+                    <div class="employee-profile__avatar employee-profile__avatar--fallback" aria-hidden="true">@(string.IsNullOrWhiteSpace(initials) ? "NV" : initials)</div>
+                }
+                <div class="employee-profile__identity-copy">
+                    <span class="employee-profile__eyebrow">MÃ NHÂN VIÊN · @Model.MaNV</span>
+                    <h2>@fullName</h2>
+                    <span class="employee-profile__account">@Model.TenDN</span>
+                </div>
+            </div>
+            <dl class="employee-profile__facts employee-profile__facts--compact">
+                <div class="employee-profile__fact">
+                    <dt>Điện thoại</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(Model.DienThoai) ? "Chưa cập nhật" : Model.DienThoai)</dd>
+                </div>
+                <div class="employee-profile__fact">
+                    <dt>Email</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(Model.Email) ? "Chưa cập nhật" : Model.Email)</dd>
+                </div>
+            </dl>
+        </article>
+
+        @if (ViewBag.LoiXoa != null)
+        {
+            <div class="employee-delete__error" role="alert">
+                <strong>Không thể xóa nhân viên</strong>
+                <span>@ViewBag.LoiXoa</span>
+            </div>
+        }
+
+        <form asp-action="Delete" method="post" class="employee-delete__actions">
+            <input type="hidden" asp-for="MaNV" />
+            <button type="submit" class="product-admin__button employee-delete__confirm">Xóa nhân viên</button>
+            <a asp-action="Index" class="product-admin__button">Hủy, quay lại danh sách</a>
+        </form>
+    </section>
+</section>
