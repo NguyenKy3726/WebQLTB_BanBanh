@@ -15,7 +15,7 @@
             <option value="" data-next-order="1">-- Chọn mẫu bánh --</option>
             @foreach (var product in productNames)
             {
-                var nextOrder = nextOrderByProduct.GetValueOrDefault(product.Key, 1);
+                var nextOrder = nextOrderByProduct.TryGetValue(product.Key, out var configuredNextOrder) ? configuredNextOrder : (short)1;
                 <option value="@product.Key" data-next-order="@nextOrder" selected="@(product.Key == Model.MaSP)">@product.Key — @product.Value</option>
             }
         </select><span asp-validation-for="MaSP" class="text-danger"></span></label>
